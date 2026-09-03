@@ -114,35 +114,10 @@ def kps_cli() -> int:
         print(f"Kapsel v{__version__}")
         return 0
 
-    if argv[0] in ("help", "-h", "--help"):
-        from kapsel.ui.info import render_help
-        render_help()
-        return 0
-
-    if argv[0] in ("status", "info"):
-        from kapsel.ui.info import render_status
-        render_status()
-        return 0
-
-    if argv[0] == "config":
-        from kapsel.ui.config_cmd import handle_config_command
-        return handle_config_command(argv[1:])
-
-    if argv[0] == "register":
-        from kapsel.ui.user_cmd import handle_register_command
-        return handle_register_command(argv[1:])
-
-    if argv[0] in ("whoami", "user"):
-        from kapsel.ui.user_cmd import handle_whoami_command
-        return handle_whoami_command()
-
-    if argv[0] in ("repo", "hub"):
-        from kapsel.hub.hub_cmd import handle_repo_command
-        return handle_repo_command(argv[1:])
-
-    if argv[0] == "logout":
-        from kapsel.ui.user_cmd import handle_logout_command
-        return handle_logout_command()
+    from kapsel.commands import dispatch_builtin
+    builtin_exit = dispatch_builtin(" ".join(argv))
+    if builtin_exit is not None:
+        return builtin_exit
 
     full_line = "kps " + " ".join(argv)
     engine = DualStateEngine()

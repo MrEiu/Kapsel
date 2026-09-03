@@ -56,13 +56,15 @@ flowchart TD
 - 严禁在代码中写死大段的静态候选字典。
 - 维护人员与开发者使用独立的 `kps-hub` 命令行运维工具执行增删改查（CRUD）或批量 JSON 导入导出。
 
-### 2. 阶段 2：客户端更新同步 (Sync & Delivery)
-- 客户端不直接侵入底层代码，而是通过同步协议（类似 `pip install` / `scoop update`）：
-  ```bash
-  kps repo pull <software>    # 按需拉取特定软件的指令集
-  kps repo sync               # 全量增量同步最新云仓库
-  ```
-- 同步引擎将云端更新合并到本地结构化沙箱中，支持版本对比与冲突安全覆盖。
+### 2. 阶段 2：客户端存储体系解耦与 Git 仓库对齐
+- **指令集与映射集（文件夹式存储对齐 Git 仓库）**：
+  - 本地沙箱维护 `~/.kapsel/registry/manifests/*.json` 与 `~/.kapsel/registry/mappings/*.json`。
+  - 格式与 `KPS-Hub` 公开 Git 仓库 100% 对齐，可直接通过 `git pull` 或 `kps repo pull` 实现单文件精准同步。
+  - 配备内存级 `RegistryIndexer` 倒排检索树，保证击键自动补全达到 **< 1ms** 的极致速度。
+- **用户私有数据（SQLite 集中化存储与未来整库加密）**：
+  - 用户执行时序历史 (`history`) 与个人漫游凭据 (`user_profile`) 全部收敛到单一数据库 `~/.kapsel/user.db` 中。
+  - 杜绝多份散装小文件。
+  - 🔮 **未来规划（加密路线）**：架构已预留整库加密与 AES 密文信封扩展点，后续可在不改变业务接口的前提下平滑接入 SQLCipher 或端到端密文同步。
 
 ### 3. 阶段 3：本地结构化高速读取 (Local Fast-Path Read)
 - 客户端在交互时，所有自动补全、命令解析与参数提示，**一律从本地 SQLite 数据库按索引读取**。
@@ -115,6 +117,25 @@ flowchart TD
 - [ ] **是否增加了新的配置文件？**：是否又在磁盘上创建了新的散装配置文件？（如无极端必要，严禁增加，统一收敛至 SQLite）。
 - [ ] **数据是否支持云端同步与本地读取？**：新功能所需的数据是否支持通过 `kps repo pull` 或 `kps-hub` 进行管理并在本地离线读取？
 - [ ] **性能与延迟是否达标？**：从本地 SQLite 读取的数据是否有内存缓存防护，确保交互击键响应 < 1ms？
+
+---
+
+## 六、 未来演进路线：全球化 i18n 多语言架构规范 (English-First Roadmap)
+
+面向全球开发者生态，Kapsel 确立以 **“英语为主、中文自适应、优雅回退”** 的国际化标准：
+
+### 1. English-First 核心设计原则
+- **基准语言 (Base Language)**：全部代码、内置命令手册、错误排查提示、状态卡片默认以 **`en` (English)** 作为一等公民。
+- **动态语言包与回退 (Fallback)**：
+  - 建立 `kapsel/i18n/locales/`，收录 `en.json`（主字典）与 `zh.json`（中文语言包）。
+  - 若用户语言包中缺少某个词条，系统自动 100% 回退显示英文，绝不发生白屏或抛出 KeyError。
+- **Manifests 指令仓库双语规范**：
+  - `KPS-Hub/manifests/*.json` 中，以 `desc` 记录标准英文说明，以 `desc_zh` 记录可选的中文对照。
+
+### 2. 语言自适应判定层级
+1. **最高优先**：CLI 临时参数（`kps --lang en status`）
+2. **用户显式指定**：`config.yaml` 中配置 `core.locale: "auto" | "en" | "zh"`
+3. **系统环境兜底**：自动探测 `os.environ.get("LANG")`，非中文系统一律默认纯英文交互。
 
 ---
 

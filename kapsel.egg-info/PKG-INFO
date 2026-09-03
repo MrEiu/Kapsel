@@ -324,6 +324,7 @@ kps config edit
 - **自定义指令热重载**：在外部修改 `~/.kapsel/commands.yaml` 时无感知热重载。
 - 📖 **深度技术白皮书**：详细架构与演进方案已整理至 [《Kapsel 指令存储与映射架构分析与全方位优化方案》](docs/command_storage_and_mapping_architecture.md)。
 - 🛠️ **开发架构规范 (DEVELOPMENT.md)**：开发守则与核心铁律已写入 [《Kapsel 架构设计与开发规范》](DEVELOPMENT.md)（坚决杜绝代码硬编码，杜绝配置文件堆叠，坚持云仓库集中、客户端同步、本地高速读取）。
+- 📡 **云端与本地通信架构提案**：详见 [《Kapsel 本地与云端通信方案调研与架构选型报告》](docs/local_cloud_communication_proposals.md)（深度对比 REST API、Git CDN、SQLite Changeset、gRPC 与混合架构五大方案）。
 
 ---
 

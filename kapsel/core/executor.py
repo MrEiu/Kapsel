@@ -99,94 +99,16 @@ class CommandExecutor:
                 is_builtin=True,
             )
 
-        # Builtin: help
-        if primary in ("help", "--help", "-h"):
-            from kapsel.ui.info import render_help
-            render_help()
+        # Check unified commands package (help, status, config, repo, user, install)
+        from kapsel.commands import dispatch_builtin
+        builtin_code = dispatch_builtin(cmd)
+        if builtin_code is not None:
             return ExecutionSummary(
                 command=cmd,
-                exit_code=0,
+                exit_code=builtin_code,
                 duration_ms=0,
                 duration_str="0ms",
-                success=True,
-                is_builtin=True,
-            )
-
-        # Builtin: status / info
-        if primary in ("status", "info"):
-            from kapsel.ui.info import render_status
-            render_status()
-            return ExecutionSummary(
-                command=cmd,
-                exit_code=0,
-                duration_ms=0,
-                duration_str="0ms",
-                success=True,
-                is_builtin=True,
-            )
-
-        # Builtin: register
-        if primary == "register":
-            from kapsel.ui.user_cmd import handle_register_command
-            exit_code = handle_register_command(parts[1:] if len(parts) > 1 else [])
-            return ExecutionSummary(
-                command=cmd,
-                exit_code=exit_code,
-                duration_ms=0,
-                duration_str="0ms",
-                success=(exit_code == 0),
-                is_builtin=True,
-            )
-
-        # Builtin: whoami / user (for Kapsel identity)
-        if primary in ("whoami", "user"):
-            from kapsel.ui.user_cmd import handle_whoami_command
-            exit_code = handle_whoami_command()
-            return ExecutionSummary(
-                command=cmd,
-                exit_code=exit_code,
-                duration_ms=0,
-                duration_str="0ms",
-                success=True,
-                is_builtin=True,
-            )
-
-        # Builtin: logout
-        if primary == "logout":
-            from kapsel.ui.user_cmd import handle_logout_command
-            exit_code = handle_logout_command()
-            return ExecutionSummary(
-                command=cmd,
-                exit_code=exit_code,
-                duration_ms=0,
-                duration_str="0ms",
-                success=True,
-                is_builtin=True,
-            )
-
-        # Builtin: repo / hub (Cloud Command & Mapping Registry)
-        if primary in ("repo", "hub"):
-            from kapsel.hub.hub_cmd import handle_repo_command
-            exit_code = handle_repo_command(parts[1:] if len(parts) > 1 else [])
-            return ExecutionSummary(
-                command=cmd,
-                exit_code=exit_code,
-                duration_ms=0,
-                duration_str="0ms",
-                success=(exit_code == 0),
-                is_builtin=True,
-            )
-
-        # Builtin: config
-        if primary == "config":
-            from kapsel.ui.config_cmd import handle_config_command
-            exit_code = handle_config_command(parts[1:] if len(parts) > 1 else [])
-            return ExecutionSummary(
-                command=cmd,
-                exit_code=exit_code,
-                duration_ms=0,
-                duration_str="0ms",
-                success=(exit_code == 0),
+                success=(builtin_code == 0),
                 is_builtin=True,
             )
 

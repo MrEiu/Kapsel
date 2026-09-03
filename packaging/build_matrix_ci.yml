@@ -1,0 +1,82 @@
+name: 🚀 Build Multi-OS Standalone Binaries (Scenario 2)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }} (${{ matrix.target_name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target_name: windows
+            artifact_name: kapsel-windows-x86_64.zip
+            binary_kapsel: kapsel.exe
+            binary_kps: kps.exe
+          - os: ubuntu-latest
+            target_name: linux
+            artifact_name: kapsel-linux-x86_64.tar.gz
+            binary_kapsel: kapsel
+            binary_kps: kps
+          - os: macos-latest
+            target_name: macos
+            artifact_name: kapsel-macos-universal.tar.gz
+            binary_kapsel: kapsel
+            binary_kps: kps
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Build Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller rich prompt_toolkit pyyaml shellingham
+          pip install -e . --no-deps
+
+      - name: Compile Standalone Binaries via Packager
+        run: |
+          python packaging/build.py --target ${{ matrix.target_name }}
+
+      - name: Package Binary Artifact (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          Compress-Archive -Path dist/bin/windows/* -DestinationPath dist/${{ matrix.artifact_name }}
+
+      - name: Package Binary Artifact (Linux / macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cd dist/bin/${{ matrix.target_name }}
+          chmod +x ${{ matrix.binary_kapsel }} ${{ matrix.binary_kps }}
+          tar -czvf ../../${{ matrix.artifact_name }} ${{ matrix.binary_kapsel }} ${{ matrix.binary_kps }}
+
+      - name: Upload Artifacts to Workflow
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target_name }}-binaries
+          path: dist/${{ matrix.artifact_name }}
+
+      - name: Publish to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ matrix.artifact_name }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

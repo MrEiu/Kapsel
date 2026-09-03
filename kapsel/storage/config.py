@@ -60,15 +60,24 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "max_memory_entries": 2000,
         "frequency_learning": True,
     },
+    "cloud": {
+        "hub_repo_url": "https://raw.githubusercontent.com/kapsel/KPS-Hub/main",
+        "server_endpoint": "http://127.0.0.1:8000",
+        "auto_check_update": False,
+    },
+    "sync": {
+        "enable_auto_sync": False,
+        "sync_timeout_seconds": 5,
+    },
 }
 
 DEFAULT_CONFIG_COMMENTED_YAML = """# ==============================================================================
-#  💊 Kapsel 终端胶囊系统配置文件
+#  💊 Kapsel 终端胶囊系统全局总核心配置文件
 #  文件位置: ~/.kapsel/config.yaml
 #  说明: 修改本文件后可通过 'config reload' 即刻生效，无需重启终端。
 # ==============================================================================
 
-version: "1.1"
+version: "1.2"
 
 # ------------------------------------------------------------------------------
 # 1. 交互与右箭头灵敏度行为 (Interaction & Sensitivity)
@@ -162,6 +171,29 @@ history:
 
   # 是否开启高频命令智能权重学习 (高频命令在补全中优先置顶)
   frequency_learning: true
+
+# ------------------------------------------------------------------------------
+# 6. 云端服务与仓库源设置 (Cloud Hub & Service)
+# ------------------------------------------------------------------------------
+cloud:
+  # KPS-Hub 公共指令集源地址 (GitHub Raw 或加速 CDN)
+  hub_repo_url: "https://raw.githubusercontent.com/kapsel/KPS-Hub/main"
+
+  # KPS-Server 私有漫游用户服务网关地址
+  server_endpoint: "http://127.0.0.1:8000"
+
+  # 是否在客户端启动时异步检查指令库最新版本
+  auto_check_update: false
+
+# ------------------------------------------------------------------------------
+# 7. 跨端漫游与加密同步 (Sync Settings)
+# ------------------------------------------------------------------------------
+sync:
+  # 是否开启多设备配置与历史自动漫游
+  enable_auto_sync: false
+
+  # 同步网络请求超时秒数
+  sync_timeout_seconds: 5
 """
 
 

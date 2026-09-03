@@ -10,8 +10,8 @@ from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from kapsel.core.engine import DualStateEngine
 from kapsel.storage.config import KapselConfig
 from kapsel.storage.history import KapselPromptHistory
+from kapsel.core.completion import DualStateCompleter
 from kapsel.ui.card import get_prompt_tokens
-from kapsel.ui.completer import DualStateCompleter
 from kapsel.ui.theme import PT_STYLE
 
 
@@ -125,8 +125,6 @@ class KapselPrompt:
         self.config = engine.config
         self.history = KapselPromptHistory(engine.history_mgr)
         self.completer = DualStateCompleter(
-            registry=engine.registry,
-            history_mgr=engine.history_mgr,
             current_shell=engine.shell_name,
         )
         self.key_bindings = create_key_bindings(self.config)

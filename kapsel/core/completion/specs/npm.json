@@ -1,0 +1,66 @@
+{
+  "name": "npm",
+  "description": "JavaScript package manager",
+  "options": [
+    { "name": ["--version", "-v"], "description": "Print version" },
+    { "name": ["--help", "-h"], "description": "Print help manual" }
+  ],
+  "subcommands": [
+    {
+      "name": "install",
+      "description": "Install a package",
+      "options": [
+        { "name": ["-g", "--global"], "description": "Install packages globally" },
+        { "name": ["-D", "--save-dev"], "description": "Save package to devDependencies" },
+        { "name": ["-E", "--save-exact"], "description": "Saved dependencies will be configured with an exact version" },
+        { "name": ["--no-save"], "description": "Do not save package to package.json" }
+      ]
+    },
+    {
+      "name": "run",
+      "description": "Run arbitrary package scripts",
+      "options": [
+        { "name": ["--if-present"], "description": "Do not exit with error code if script is missing" },
+        { "name": ["--silent"], "description": "Ignore script errors and do not print log output" }
+      ]
+    },
+    {
+      "name": "test",
+      "description": "Test a package (alias of 'npm run test')"
+    },
+    {
+      "name": "start",
+      "description": "Start a package (alias of 'npm run start')"
+    },
+    {
+      "name": "init",
+      "description": "Create a package.json file",
+      "options": [
+        { "name": ["-y", "--yes"], "description": "Automatically answer yes to all prompts" }
+      ]
+    },
+    {
+      "name": "uninstall",
+      "description": "Remove a package",
+      "options": [
+        { "name": ["-g", "--global"], "description": "Operates in global mode" },
+        { "name": ["-D", "--save-dev"], "description": "Package will be removed from your devDependencies" }
+      ]
+    },
+    {
+      "name": "update",
+      "description": "Update packages",
+      "options": [
+        { "name": ["-g", "--global"], "description": "Update global packages" }
+      ]
+    },
+    {
+      "name": "publish",
+      "description": "Publish a package to registry",
+      "options": [
+        { "name": ["--access"], "description": "Tells registry whether this package should be published as public or restricted" },
+        { "name": ["--tag"], "description": "Registers the published package with the given tag" }
+      ]
+    }
+  ]
+}

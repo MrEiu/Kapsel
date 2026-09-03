@@ -1,0 +1,83 @@
+{
+  "name": "scoop",
+  "description": "A command-line installer for Windows",
+  "options": [
+    { "name": ["--version", "-v"], "description": "Display version information" },
+    { "name": ["--help", "-h"], "description": "Display help manual" }
+  ],
+  "subcommands": [
+    {
+      "name": "install",
+      "description": "Install apps",
+      "options": [
+        { "name": ["-g", "--global"], "description": "Install the app globally" },
+        { "name": ["-i", "--independent"], "description": "Don't install dependencies automatically" },
+        { "name": ["-k", "--no-cache"], "description": "Don't use the download cache" },
+        { "name": ["-s", "--skip"], "description": "Skip hash validation" },
+        { "name": ["-a", "--arch"], "description": "Use the specified architecture (32bit/64bit/arm64)" }
+      ]
+    },
+    {
+      "name": "update",
+      "description": "Update apps, or Scoop itself",
+      "options": [
+        { "name": ["-f", "--force"], "description": "Force update even if there isn't a new version" },
+        { "name": ["-a", "--all"], "description": "Update all apps" },
+        { "name": ["-k", "--no-cache"], "description": "Don't use the download cache" }
+      ]
+    },
+    {
+      "name": "status",
+      "description": "Show status and check for available app updates",
+      "options": [
+        { "name": ["-l", "--local"], "description": "Checks the status of locally installed apps only" }
+      ]
+    },
+    {
+      "name": "list",
+      "description": "List installed apps"
+    },
+    {
+      "name": "search",
+      "description": "Search available apps in buckets"
+    },
+    {
+      "name": "uninstall",
+      "description": "Uninstall an app",
+      "options": [
+        { "name": ["-g", "--global"], "description": "Uninstall a globally installed app" },
+        { "name": ["-p", "--purge"], "description": "Remove all persistent data" }
+      ]
+    },
+    {
+      "name": "bucket",
+      "description": "Manage Scoop buckets",
+      "subcommands": [
+        { "name": "add", "description": "Add a known bucket or custom Git URL" },
+        { "name": "list", "description": "List all installed buckets" },
+        { "name": "rm", "description": "Remove a bucket" },
+        { "name": "known", "description": "List all officially recognized community buckets" }
+      ]
+    },
+    {
+      "name": "cleanup",
+      "description": "Cleanup apps by removing old versions and caches",
+      "options": [
+        { "name": ["-a", "--all"], "description": "Cleanup all installed apps" },
+        { "name": ["-k", "--cache"], "description": "Remove outdated downloaded cache files" }
+      ]
+    },
+    {
+      "name": "info",
+      "description": "Display information about an app"
+    },
+    {
+      "name": "cache",
+      "description": "Show or clear the download cache",
+      "subcommands": [
+        { "name": "show", "description": "Show download cache contents" },
+        { "name": "rm", "description": "Remove cached downloads (* to clear all)" }
+      ]
+    }
+  ]
+}

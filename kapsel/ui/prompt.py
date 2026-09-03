@@ -80,18 +80,49 @@ def create_key_bindings(config: KapselConfig) -> KeyBindings:
         else:
             buffer.cursor_right()
 
-    # Up arrow (↑): 专注历史记录漫游 (如原上下键功能)，同时退出补全菜单
+    def is_at_origin_history(buf) -> bool:
+        """True if the buffer is at the origin (the line currently being typed)."""
+        return buf.working_index >= len(buf._working_lines) - 1
+
+    # Up arrow (↑):
+    # - In completion: browse UP through candidates until index 0 -> return to origin (unselect)
+    # - At origin: cancel completion and navigate BACKWARD into history
+    # - In history: continue moving backward to older commands
     @kb.add("up")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
+
+        # 1. If currently inside completion selection
+        if buffer.complete_state and buffer.complete_state.complete_index is not None:
+            curr_idx = buffer.complete_state.complete_index
+            if curr_idx == 0:
+                # Returned all the way to top -> go to origin (unselect, restoring original input)
+                buffer.go_to_completion(None)
+            else:
+                buffer.complete_previous()
+            return
+
+        # 2. At Origin (or completion not actively selected) -> enter/continue History backward
         if buffer.complete_state:
             buffer.cancel_completion()
         buffer.history_backward()
 
-    # Down arrow (↓): 唤起并循环切换自动补全候选词 (例如 git 的 status, add, commit, push)
+    # Down arrow (↓):
+    # - In history: browse DOWN through history until returning to origin (newest line)
+    # - At origin: enter completion mode (select first candidate)
+    # - In completion: browse DOWN through candidates
     @kb.add("down")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
+
+        # 1. If currently browsing older history -> move forward towards origin
+        if not is_at_origin_history(buffer):
+            buffer.history_forward()
+            # If this step returns the buffer to the origin, the user is back at center!
+            # The next 'down' press will smoothly transition into completion.
+            return
+
+        # 2. At Origin (or already in completion mode) -> browse DOWN into completions
         if buffer.complete_state:
             buffer.complete_next()
         else:

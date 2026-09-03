@@ -23,7 +23,8 @@ kapsel/core/executor.py
 kapsel/core/router.py
 kapsel/core/completion/__init__.py
 kapsel/core/completion/completer.py
-kapsel/core/completion/dynamic_subcmds.py
+kapsel/core/completion/fig_engine.py
+kapsel/core/completion/fig_schema.py
 kapsel/storage/__init__.py
 kapsel/storage/commands.py
 kapsel/storage/config.py

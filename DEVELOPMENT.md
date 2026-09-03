@@ -95,11 +95,11 @@ flowchart TD
 
 根据本原则，项目现有代码已全面执行以下重构标准：
 
-### 1. 工具子命令补全解耦 (`kapsel/ui/completer.py`)
-- **过去做法（反面案例）**：
-  在 `completer.py` 中写一个大字典 `CLI_SUBCOMMANDS = {"git": [...], "npm": [...]}`。
-- **规范做法（正面案例）**：
-  代码中不保留静态字典。补全器直接通过 `HubRepository.get_commands_for_software(cmd)` 从本地数据库动态按需加载，并加入内存快速缓存。当云仓库更新了新软件或新子命令时，补全功能**自动生效，源码一行不改**！
+### 1. 工具子命令与参数补全生态架构 (`kapsel/core/completion/`)
+- **规范做法**：
+  全面兼容并适配 `withfig/autocomplete` 的 `Fig.Spec` 树形规范，支持递归多级子命令与 Flags 选项补全。
+- > 🌟 **关于 Fig 生态兼容的特别致谢**：
+  > “Fig 是我制作完功能后意外发现的；之后全面兼容了该仓库，感谢各位先贤的贡献。”
 
 ### 2. 跨平台映射指令集解耦 (`kapsel/storage/commands.py`)
 - **过去做法（反面案例）**：

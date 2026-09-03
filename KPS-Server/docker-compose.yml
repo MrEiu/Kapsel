@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  kps-server:
+    build: .
+    container_name: kps-server-app
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PORT=8000

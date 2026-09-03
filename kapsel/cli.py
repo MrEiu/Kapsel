@@ -114,16 +114,35 @@ def kps_cli() -> int:
         print(f"Kapsel v{__version__}")
         return 0
 
-    if argv[0] in ("-h", "--help"):
-        print("💊 Kapsel: 跨平台自适应智能终端胶囊")
-        print("\n用法:")
-        print("  kps <linux-command> [args...]   在当前终端直接执行跨平台翻译命令")
-        print("  kapsel                          启动全屏交互式智能终端胶囊会话")
-        print("\n示例:")
-        print("  kps rm -rf node_modules")
-        print("  kps ls -la")
-        print("  kps ps")
+    if argv[0] in ("help", "-h", "--help"):
+        from kapsel.ui.info import render_help
+        render_help()
         return 0
+
+    if argv[0] in ("status", "info"):
+        from kapsel.ui.info import render_status
+        render_status()
+        return 0
+
+    if argv[0] == "config":
+        from kapsel.ui.config_cmd import handle_config_command
+        return handle_config_command(argv[1:])
+
+    if argv[0] == "register":
+        from kapsel.ui.user_cmd import handle_register_command
+        return handle_register_command(argv[1:])
+
+    if argv[0] in ("whoami", "user"):
+        from kapsel.ui.user_cmd import handle_whoami_command
+        return handle_whoami_command()
+
+    if argv[0] in ("repo", "hub"):
+        from kapsel.hub.hub_cmd import handle_repo_command
+        return handle_repo_command(argv[1:])
+
+    if argv[0] == "logout":
+        from kapsel.ui.user_cmd import handle_logout_command
+        return handle_logout_command()
 
     full_line = "kps " + " ".join(argv)
     engine = DualStateEngine()

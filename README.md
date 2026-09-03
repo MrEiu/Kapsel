@@ -108,14 +108,164 @@ pip install -e .
    kapsel
    ```
    进入 Kapsel 交互终端，即可体验双态补全、现代卡片包装和历史漫游。
+   - 输入 `help`：随时调出完整使用指南与指令速查手册。
+   - 输入 `status` 或 `info`：查看当前宿主 Shell、运行权限、数据沙箱与系统详细状态面板。
+   - 输入 `clear`：清除屏幕并重绘胶囊徽标。
+   - 输入 `exit`：无痕退出胶囊。
 
 2. **单次快速命令转换 (`kps`)**：
    ```bash
    kps rm -rf dist/
    kps ls -la
    kps ps
+   kps help
+   kps status
    ```
    直接在您现有的任意 Shell（PowerShell、CMD、Bash）中调用 `kps`，即刻转换并执行。
+
+---
+
+## 🛠️ 内置控制台指令
+
+| 指令 | 别名 | 功能说明 |
+| :--- | :--- | :--- |
+| `help` | `kps help`, `--help` | 显示详尽的使用指南、交互机制与常用指令速查手册 |
+| `status` | `info`, `kps status` | 查看当前宿主 Shell、运行权限、操作系统、数据沙箱与历史库统计 |
+| `config` | `kps config` | 查看系统核心配置看板、快速调节灵敏度与功能开关 |
+| `config path` | - | 打印配置文件 `~/.kapsel/config.yaml` 的完整绝对路径 |
+| `config edit` | - | 调用系统关联编辑器直接打开并编辑 `config.yaml` |
+| `config set <k> <v>` | - | 命令行快速修改某项配置（如 `config set sensitivity 0.2`） |
+| `config reload` | - | 即刻热重载最新配置文件，无需重启终端 |
+| `repo [subcmd]` | `kps repo`, `hub` | 📦 访问指令云仓库（支持 `list`, `search`, `info`, `pull`, `mappings`） |
+| `register [user]` | `kps register` | 注册胶囊用户身份，生成专属设备指纹与加密云同步秘钥 |
+| `whoami` | `user`, `kps whoami` | 查看当前设备登录的胶囊用户、绑定邮箱与云同步就绪状态 |
+| `logout` | `kps logout` | 安全退出当前用户身份并清除本地凭证 |
+| `cd` | - | 智能切换工作目录（支持 `cd ~` 家目录、`cd -` 快速返回、`cd ..` 上级目录） |
+| `clear` | `cls` | 清屏并重新绘制极简胶囊徽标 |
+| `exit` | `quit` | 安全退出 Kapsel，无痕返回当前原生 Shell |
+
+---
+
+## 📦 指令云仓库 (Hub Repository)：两层指令集与 PWSH 独立映射
+
+为了让终端开发者能像使用 `pip`、`scoop` 或 `brew` 那样轻松获取、共享和安装各类命令行工具指令集，Kapsel 内置了基于 SQLite 的指令云仓库体系 (`kapsel/hub/registry.db`)：
+
+```
+                           ┌── hub_packages (平台 -> 软件元数据)
+ Kapsel Hub (SQLite 仓库) ─┼── hub_commands (具体软件收录的丰富子命令集)
+                           └── hub_mappings (独立终端转义映射仓库，优先聚焦 pwsh)
+```
+
+### 1. 两层架构：平台 (Platform) ➜ 软件 (Software)
+- **第一层：平台环境**：如 `windows`、`universal`（跨平台通用）、`linux`。
+- **第二层：软件工具链**：
+  - 🧰 **`scoop`** (Windows 专属)：收录 `install`, `update`, `status`, `search`, `list`, `uninstall`, `bucket`, `cleanup`, `info`, `cache` 等常用指令与用例。
+  - 🌿 **`git`** (通用)：收录 `status`, `add`, `commit`, `push`, `pull`, `checkout`, `branch`, `diff`, `log`, `clone`, `init`, `stash` 等。
+  - 🐍 **`python`** (通用)：收录 `venv`, `pip-install`, `pip-freeze`, `http-server`, `run`, `pip-list`, `pip-show`。
+  - 📦 **`npm`** (通用)：收录 `install`, `run`, `dev`, `build`, `test`, `init`, `outdated`, `list`, `cache`。
+
+### 2. 独立映射仓库 (Focused on `pwsh`)
+- 独立于软件具体业务指令，专门收录 Linux 原生命令到 **PowerShell Core / Windows PowerShell** 的精准 Cmdlet 映射模板（当前收录 32+ 条核心系统转义）。
+
+### 3. 像 `pip` / `scoop` 一样使用云仓库指令
+| 指令 | 作用描述 | 类似 pip/scoop 概念 |
+| :--- | :--- | :--- |
+| **`kps repo list`** | 按平台分类展示所有可用的软件包清单 | `pip list` / `scoop bucket list` |
+| **`kps repo search <词>`** | 跨平台全局模糊搜索软件包、子命令或中文说明 | `pip search` / `scoop search` |
+| **`kps repo info <软件名>`** | 审查该软件收录的所有指令明细、语法与示例（如 `kps repo info scoop`） | `pip show` / `scoop info` |
+| **`kps repo pull <软件名>`** | **一键拉取并安装该软件指令集**至本地活跃 `commands.yaml` | **`pip install`** / **`scoop install`** |
+| **`kps repo mappings`** | 查看独立收录的面向 pwsh 的原生命令转义库 | 查看底层原生适配表 |
+| **`kps-hub`** / **`kps repo admin`** | **独立的云仓库 CRUD 运维管理工具**（增删改查软件包、指令、映射） | 仓库源管理员工具 |
+
+#### 独立云仓库运维工具 (`kps-hub`) 快速用法：
+```bash
+# 查看云仓库统计与数据库状态
+kps-hub status
+
+# 管理软件包 (增删查)
+kps-hub pkg list
+kps-hub pkg add docker -d "Docker 容器引擎" --platform universal --category container
+kps-hub pkg del docker
+
+# 管理具体软件的指令集 (增删查)
+kps-hub cmd list scoop
+kps-hub cmd add scoop bucket "scoop bucket" -d "管理扩展 Bucket 源" --example "scoop bucket add extras"
+kps-hub cmd del scoop bucket
+
+# 管理独立 pwsh 原生映射库 (增删查)
+kps-hub map list --shell pwsh
+kps-hub map add "docker-ps" "docker.exe ps" -d "Docker 进程列表" --shell pwsh
+
+# 整个仓库导出与导入
+kps-hub export -o backup.json
+kps-hub import backup.json
+```
+
+---
+
+## ☁️ 胶囊用户身份与多端云漫游体系
+
+为了在 Windows、macOS 和 Linux 之间实现**无缝的个人工作流漫游**，Kapsel 现已内置端到端加密的数字身份系统，为后续全量云端多系统同步提供基础支撑：
+
+### 1. 凭据与设备指纹
+- **存储路径**：`~/.kapsel/user.json`
+- **安全体系**：每个设备在注册时，均会基于硬件环境生成独立的 `device_id`，并签发专属的跨端加密同步秘钥（`kps_sync_...`），无需侵入系统密钥环。
+- **漫游就绪**：后续在任一台新设备（macOS / Linux / Windows）上通过您的秘钥接入，即可自动拉取并双向同步：
+  - 📂 您的自定义 Linux-First 指令映射表 (`commands.yaml`)
+  - ⚙️ 您量身定制的终端主题与交互灵敏度参数 (`config.yaml`)
+  - 🧠 跨 Shell 的历史输入库与高频频次学习权重 (`history.db`)
+
+### 2. 账号管理常用指令
+```bash
+# 1. 交互式或单行注册胶囊账号
+kps register meru --email user@example.com
+
+# 2. 查看当前登录用户信息与设备秘钥
+kps whoami
+
+# 3. 查看系统状态看板（联动显示当前用户）
+kps status
+
+# 4. 退出登录
+kps logout
+```
+
+---
+
+## ⚙️ 配置文件与右箭头灵敏交互
+
+### 1. 配置文件位置
+Kapsel 的所有个性化设置均集中在外部沙箱的 YAML 文件中：
+- **物理路径**：`~/.kapsel/config.yaml`（在 Windows 上通常为 `C:\Users\<当前用户>\.kapsel\config.yaml`）
+- 文件内部提供全中文详尽注释，涵盖：交互灵敏度、UI 主题调色板、提示行符号、终端路由降级规则及历史漫游深度。
+
+### 2. 右箭头 (`→`) 灵敏交互设计：单按 vs 长按
+为了解决传统终端“一次性填满整行无法部分复用”的痛点，Kapsel 引入了基于按键时间敏感度的多态采纳引擎：
+- **单次轻按 (Tap)**：**逐词采纳 (Word-by-word)**。例如历史命令为 `git commit -m "update" -a`，按一下输入 `git`，再按一下输入 `commit`，方便开发者精确截取历史参数并微调。
+- **长按 / 连按 (Hold)**：**一键整行采纳 (Full Accept)**。当连续击键或长按时，系统自动判定为连按意图，瞬间将剩余全部命令一键填满！
+- **可配参数**：
+  - `autosuggest_tap_mode`: 可设为 `"word"`（逐词，默认）或 `"full"`（单按直接整行）。
+  - `autosuggest_sensitivity`: 长按/连按判定敏感度阈值（单位秒，默认 `0.25`）。两次按键时间间隔在此阈值内即判定为连续长按。
+  - `consecutive_press_threshold`: 触发整行长按所需的连续击键次数（默认 `2` 次）。
+
+#### 快速调参示例
+```bash
+# 查看当前所有重要配置
+kps config
+
+# 快速打开配置文件编辑
+kps config edit
+
+### 3. 上下方向键重构：`↑` 历史漫游 vs `↓` 补全候选词切换
+为了让开发者的双手不离开方向键即可完成最核心的高频操作，Kapsel 重新定义了上下键的分工：
+- **`↑` (上方向键)**：**专注历史漫游**。向上调出 SQLite 历史库中的上一条输入，若当前有候选菜单则自动安全退出。
+- **`↓` (下方向键)**：**一键唤起并循环切换补全候选词**！
+  - **原生开发者工具子命令全量感知**：当您输入 `git ` 并按下 `↓`，候选菜单瞬间弹出并自动选中第一项，继续按 `↓` 可依次向下丝滑切换：
+    `status` ➔ `add` ➔ `commit` ➔ `push` ➔ `pull` ➔ `checkout` ➔ `branch` ➔ `diff` ...（支持循环切换）
+  - 同时支持 `npm` (`install`, `run`, `build`, `test`), `docker` (`ps`, `run`, `build`, `exec`), `pip`, `cargo` 等主流工具子命令补全！
+  - 在胶囊模式下输入 `kps ` 按 `↓` 同样可快速轮询 35+ 个 Linux 映射命令！
+  - 亦可配合 `Shift + Tab` 向上回退选中的候选词。
+
 
 ---
 
@@ -145,6 +295,24 @@ pip install -e .
 
 ---
 
+## 🔮 未来规划 (Roadmap)
+
+- **透传态交互看板 (Native Context Stream)**：
+  > *“那个透传态暂时不用做；以后可以用来显示一些关键信息”*
+  - 在后续版本中，计划将底栏演进为非侵入式的可插拔关键信息看板：
+    - **Git 状态流**：实时反映未暂存修改、未推送 Commit 计数
+    - **环境上下文**：Python 虚拟环境 (`venv`/`conda`)、Node 运行时版本自动感知
+    - **后台与性能监控**：耗时后台任务执行进度、系统资源告警
+    - **AI 智能建议**：基于历史错误码的自适应修复提示
+- **配置云漫游与团队共享**：支持通过用户数字凭据一键跨设备同步指令集与历史漫游。
+- **自定义指令热重载**：在外部修改 `~/.kapsel/commands.yaml` 时无感知热重载。
+- 📖 **深度技术白皮书**：详细架构与演进方案已整理至 [《Kapsel 指令存储与映射架构分析与全方位优化方案》](docs/command_storage_and_mapping_architecture.md)。
+- 🛠️ **开发架构规范 (DEVELOPMENT.md)**：开发守则与核心铁律已写入 [《Kapsel 架构设计与开发规范》](DEVELOPMENT.md)（坚决杜绝代码硬编码，杜绝配置文件堆叠，坚持云仓库集中、客户端同步、本地高速读取）。
+- 📡 **云端与本地通信架构提案**：详见 [《Kapsel 本地与云端通信方案调研与架构选型报告》](docs/local_cloud_communication_proposals.md)（深度对比 REST API、Git CDN、SQLite Changeset、gRPC 与混合架构五大方案）。
+
+---
+
 ## 📄 License
 
 MIT License.
+

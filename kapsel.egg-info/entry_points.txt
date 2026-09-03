@@ -1,3 +1,4 @@
 [console_scripts]
 kapsel = kapsel.cli:main
 kps = kapsel.cli:kps_cli
+kps-hub = kapsel.hub.admin:main

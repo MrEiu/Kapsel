@@ -1,0 +1,5 @@
+# KPS-Hub Optional High-Performance Dependencies
+# (Server runs out-of-the-box with Python standard library, but installing these enables FastAPI & Uvicorn)
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0

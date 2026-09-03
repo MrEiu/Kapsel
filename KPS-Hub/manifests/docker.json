@@ -1,0 +1,21 @@
+{
+  "platform": "universal",
+  "software": "docker",
+  "display_name": "Docker 容器化应用运行时与引擎",
+  "version": "26.0.0",
+  "desc": "现代化轻量级容器生命周期管理与编排工具",
+  "category": "container",
+  "author": "Docker Inc.",
+  "tags": "docker,container,devops,runtime",
+  "commands": [
+    {"command_name": "ps", "full_alias": "docker ps", "desc": "列出当前正在运行的容器实例", "usage": "docker ps [-a]", "example": "docker ps -a"},
+    {"command_name": "run", "full_alias": "docker run", "desc": "创建并在全新隔离容器中启动运行镜像", "usage": "docker run [opts] <image>", "example": "docker run -d -p 80:80 nginx"},
+    {"command_name": "build", "full_alias": "docker build", "desc": "根据 Dockerfile 构建容器镜像", "usage": "docker build -t <name> .", "example": "docker build -t myapp ."},
+    {"command_name": "exec", "full_alias": "docker exec", "desc": "进入并在运行中的容器内部执行命令", "usage": "docker exec -it <id> <sh>", "example": "docker exec -it web bash"},
+    {"command_name": "stop", "full_alias": "docker stop", "desc": "平稳停止一个或多个运行中的容器", "usage": "docker stop <id...>", "example": "docker stop myapp"},
+    {"command_name": "start", "full_alias": "docker start", "desc": "启动一个或多个已停止的容器", "usage": "docker start <id...>", "example": "docker start myapp"},
+    {"command_name": "images", "full_alias": "docker images", "desc": "查看本地已缓存或构建的镜像列表", "usage": "docker images", "example": "docker images"},
+    {"command_name": "logs", "full_alias": "docker logs", "desc": "实时查看并跟踪容器的标准输出日志", "usage": "docker logs -f <id>", "example": "docker logs -f web"},
+    {"command_name": "compose", "full_alias": "docker compose", "desc": "多容器编排定义与自动化部署工具", "usage": "docker compose [up|down]", "example": "docker compose up -d"}
+  ]
+}

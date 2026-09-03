@@ -1,3 +1,4 @@
+README.md
 pyproject.toml
 kapsel/__init__.py
 kapsel/cli.py
@@ -12,14 +13,22 @@ kapsel/core/detector.py
 kapsel/core/engine.py
 kapsel/core/executor.py
 kapsel/core/router.py
+kapsel/hub/admin.py
+kapsel/hub/db.py
+kapsel/hub/hub_cmd.py
+kapsel/hub/seed.py
 kapsel/storage/__init__.py
 kapsel/storage/commands.py
 kapsel/storage/config.py
 kapsel/storage/history.py
 kapsel/storage/logger.py
+kapsel/storage/user.py
 kapsel/ui/__init__.py
 kapsel/ui/banner.py
 kapsel/ui/card.py
 kapsel/ui/completer.py
+kapsel/ui/config_cmd.py
+kapsel/ui/info.py
 kapsel/ui/prompt.py
 kapsel/ui/theme.py
+kapsel/ui/user_cmd.py

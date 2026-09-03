@@ -34,6 +34,14 @@ def get_prompt_tokens(config: KapselConfig, shell_name: str) -> FormattedText:
     tokens.append(("class:prompt.top", f"{symbols.get('top', '╭─')} "))
     tokens.append(("class:prompt.capsule", f"{symbols.get('capsule', '💊')} kapsel  "))
 
+    try:
+        from kapsel.storage.user import UserManager
+        user = UserManager.get_current_user()
+        if user:
+            tokens.append(("class:prompt.branch", f"@{user.username}  "))
+    except Exception:
+        pass
+
     if config.ui.get("show_shell_badge", True):
         tokens.append(("class:prompt.shell", f"[{shell_name}]  "))
 

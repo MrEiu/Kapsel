@@ -1,8 +1,4 @@
-"""
-Kapsel interactive PromptSession manager.
-Integrates dual-state completer, SQLite history, autosuggestion, and rich keyboard bindings.
-"""
-
+import time
 from typing import Optional
 
 from prompt_toolkit import PromptSession
@@ -19,20 +15,94 @@ from kapsel.ui.completer import DualStateCompleter
 from kapsel.ui.theme import PT_STYLE
 
 
-def create_key_bindings() -> KeyBindings:
-    """Configures modern terminal hotkeys."""
+def extract_next_word(text: str) -> str:
+    """
+    Extracts the next token/word from suggestion text.
+    Handles leading whitespace followed by word characters or symbols.
+    e.g. 'commit -m fix' -> 'commit'
+         ' -m fix' -> ' -m'
+    """
+    if not text:
+        return ""
+    idx = 0
+    while idx < len(text) and text[idx].isspace():
+        idx += 1
+    if idx >= len(text):
+        return text
+    while idx < len(text) and not text[idx].isspace():
+        idx += 1
+    return text[:idx]
+
+
+def create_key_bindings(config: KapselConfig) -> KeyBindings:
+    """Configures modern terminal hotkeys with sensitivity-based right arrow tap vs hold."""
     kb = KeyBindings()
+    last_press_time = 0.0
+    consecutive_presses = 0
 
     # Right arrow accepts auto-suggestion when cursor is at the end of input
     @kb.add("right", filter=has_suggestion)
     def _(event: KeyPressEvent) -> None:
+        nonlocal last_press_time, consecutive_presses
         buffer = event.current_buffer
+
         if buffer.cursor_position == len(buffer.text):
             suggestion = buffer.suggestion
-            if suggestion:
+            if not suggestion or not suggestion.text:
+                buffer.cursor_right()
+                return
+
+            now = time.time()
+            sensitivity = config.autosuggest_sensitivity
+            threshold = config.consecutive_press_threshold
+
+            dt = now - last_press_time
+            last_press_time = now
+
+            if dt <= sensitivity:
+                consecutive_presses += 1
+            else:
+                consecutive_presses = 1
+
+            # Check if this is continuous / long press (连按或长按)
+            if consecutive_presses >= threshold:
+                # 长按/连续按: 直接一键采纳整行完整建议
                 buffer.insert_text(suggestion.text)
+                consecutive_presses = 0
+            else:
+                # 单次间断按 (Tap): 根据配置逐词或整行采纳
+                tap_mode = config.autosuggest_tap_mode
+                if tap_mode == "word":
+                    next_word = extract_next_word(suggestion.text)
+                    buffer.insert_text(next_word)
+                else:
+                    buffer.insert_text(suggestion.text)
         else:
             buffer.cursor_right()
+
+    # Up arrow (↑): 专注历史记录漫游 (如原上下键功能)，同时退出补全菜单
+    @kb.add("up")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.complete_state:
+            buffer.cancel_completion()
+        buffer.history_backward()
+
+    # Down arrow (↓): 唤起并循环切换自动补全候选词 (例如 git 的 status, add, commit, push)
+    @kb.add("down")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.complete_state:
+            buffer.complete_next()
+        else:
+            buffer.start_completion(select_first=True)
+
+    # Shift-Tab: 在补全菜单中向上回退前一个候选词
+    @kb.add("s-tab")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.complete_state:
+            buffer.complete_previous()
 
     return kb
 
@@ -59,7 +129,7 @@ class KapselPrompt:
             history_mgr=engine.history_mgr,
             current_shell=engine.shell_name,
         )
-        self.key_bindings = create_key_bindings()
+        self.key_bindings = create_key_bindings(self.config)
 
         self.session: PromptSession = PromptSession(
             history=self.history,
@@ -68,33 +138,8 @@ class KapselPrompt:
             key_bindings=self.key_bindings,
             style=PT_STYLE,
             complete_while_typing=True,
-            bottom_toolbar=self._get_bottom_toolbar,
             output=get_safe_output(),
         )
-
-    def _get_bottom_toolbar(self):
-        """Dynamically renders real-time state badge based on current input buffer."""
-        from prompt_toolkit.application.current import get_app
-        from prompt_toolkit.formatted_text import FormattedText
-
-        try:
-            app = get_app()
-            text = app.current_buffer.text.lstrip()
-        except Exception:
-            text = ""
-
-        shell = self.engine.shell_name
-
-        if text.startswith("kps ") or text == "kps":
-            return FormattedText([
-                ("class:toolbar.kps", " 💊 胶囊映射态 (Kapsel Mode) "),
-                ("class:toolbar.kps_info", f" Linux记忆 ➜ 自动转义至 {shell} | [Tab] 映射候选 | [Enter] 执行 "),
-            ])
-        else:
-            return FormattedText([
-                ("class:toolbar.native", f" ⚡ 原生透传态 (Native: {shell}) "),
-                ("class:toolbar.native_info", " 原生命令直通 | [Tab] 路径补全 | [→] 采纳历史 | 输入 'kps ' 激活胶囊 "),
-            ])
 
     def prompt(self) -> str:
         """Prompts the user for the next command line."""

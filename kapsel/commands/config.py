@@ -61,6 +61,10 @@ def handle_config_command(args: List[str], console: Optional[Console] = None) ->
         con.print(f"[bold #10b981]✔ 配置文件已成功重载生效！[/] (主题: {new_cfg.theme.get('name')}, Tap模式: {new_cfg.interaction.get('autosuggest_tap_mode')})")
         return 0
 
+    if sub in ("datadir", "migrate"):
+        from kapsel.commands.datadir import handle_datadir_command
+        return handle_datadir_command(args[1:], con)
+
     if sub == "get":
         if len(args) < 2:
             con.print("[bold #f43f5e]错误: 请指定要查询的配置项路径 (例如: config get interaction.autosuggest_tap_mode)[/]")

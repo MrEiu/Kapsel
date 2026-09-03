@@ -9,13 +9,36 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
+POINTER_FILE = Path.home() / ".kapsel_location"
+
+
+def get_default_kapsel_dir() -> Path:
+    return Path.home() / ".kapsel"
+
+
 def get_kapsel_dir() -> Path:
-    """Return the base ~/.kapsel directory, respecting KAPSEL_HOME if set."""
+    """
+    Return the base data storage directory.
+    Resolution priority:
+      1. os.environ['KAPSEL_HOME'] (Explicit environment variable override)
+      2. ~/.kapsel_location (Persistent custom data location pointer file)
+      3. Default: ~/.kapsel
+    """
     env_dir = os.environ.get("KAPSEL_HOME")
     if env_dir:
         path = Path(env_dir).expanduser().resolve()
+    elif POINTER_FILE.exists():
+        try:
+            custom_path = POINTER_FILE.read_text(encoding="utf-8").strip()
+            if custom_path:
+                path = Path(custom_path).expanduser().resolve()
+            else:
+                path = get_default_kapsel_dir()
+        except Exception:
+            path = get_default_kapsel_dir()
     else:
-        path = Path.home() / ".kapsel"
+        path = get_default_kapsel_dir()
+
     path.mkdir(parents=True, exist_ok=True)
     return path
 

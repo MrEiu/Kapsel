@@ -55,6 +55,12 @@ def handle_repo_command(args: List[str], console: Optional[Console] = None) -> i
         shell_filter = args[1] if len(args) > 1 else "pwsh"
         return do_mappings(indexer, shell_filter, con)
 
+    if sub in ("fig", "import-fig", "pull-fig"):
+        if len(args) < 2:
+            con.print("[bold #f43f5e]错误: 请指定要从 Fig 官方库拉取的工具名称 (例如: kps repo fig kubectl 或 kps repo fig gh)[/]")
+            return 1
+        return do_import_fig(args[1], con)
+
     con.print(f"[bold #f43f5e]未知 repo 子指令: '{sub}'[/]")
     render_repo_help(con)
     return 1
@@ -69,6 +75,7 @@ def render_repo_help(console: Console) -> None:
     table.add_row("repo search <query>", "在云仓库中跨平台模糊搜索软件包、子命令或中文说明")
     table.add_row("repo info <software>", "查看指定软件（如 scoop, git, python, npm）包含的完整指令清单")
     table.add_row("repo pull <software>", "像 pip install 一样，将云端软件指令集直接拉取并安装到本地")
+    table.add_row("repo fig <tool>", "从 withfig/autocomplete 官方开源库一键拉取并激活工具补全规范 (如 curl, kubectl)")
     table.add_row("repo mappings [shell]", "查看独立收录的终端原生命令映射库（默认聚焦 pwsh 原生转义）")
 
     console.print()
@@ -240,3 +247,25 @@ def do_mappings(indexer: RegistryIndexer, shell: str, console: Console) -> int:
     console.print(table)
     console.print()
     return 0
+
+
+def do_import_fig(tool_name: str, console: Console) -> int:
+    clean_name = tool_name.strip().lower()
+    console.print(f"\n[dim]正在连接 withfig/autocomplete 开源库拉取规范:[/] [bold #00f0ff]'{clean_name}'[/]")
+    try:
+        from kapsel.core.completion.fig_engine import get_fig_engine, get_user_specs_dir
+        from kapsel.core.completion.importer import import_fig_spec
+
+        user_specs = get_user_specs_dir()
+        success = import_fig_spec(clean_name, output_dir=user_specs)
+        if success:
+            get_fig_engine().reload_specs()
+            console.print(f"\n[bold #10b981]✔ 成功导入并激活 '{clean_name}' 的 Fig 补全规范！[/]")
+            console.print(f"[dim]您现在可以在终端中直接输入 '{clean_name} ' 体验多级子命令与 Flags 自动补全。[/]\n")
+            return 0
+        else:
+            console.print(f"\n[bold #f43f5e]✘ 导入失败: 未能从 withfig/autocomplete 找到 '{clean_name}' 或网络连接受阻。[/]\n")
+            return 1
+    except Exception as e:
+        console.print(f"\n[bold #f43f5e]✘ 导入过程发生异常: {e}[/]\n")
+        return 1

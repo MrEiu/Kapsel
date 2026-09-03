@@ -135,6 +135,35 @@ def create_key_bindings(config: KapselConfig) -> KeyBindings:
         if buffer.complete_state:
             buffer.complete_previous()
 
+    # Enter (回车键):
+    # - 若处于候选词选中状态 (向下选定指令后): 确认采纳该词条并自动追加空格，光标停在行尾供继续追加参数 (不直接执行!)
+    # - 若未在选词状态: 正常提交整行命令执行
+    @kb.add("enter")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.complete_state and buffer.complete_state.complete_index is not None:
+            buffer.complete_state = None
+            if not buffer.text.endswith(" "):
+                buffer.insert_text(" ")
+            return
+
+        buffer.validate_and_handle()
+
+    # Tab (制表键): 选定候选词时同样一键采纳并补空格留待追加输入；未在选词时唤起或循环
+    @kb.add("tab")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.complete_state and buffer.complete_state.complete_index is not None:
+            buffer.complete_state = None
+            if not buffer.text.endswith(" "):
+                buffer.insert_text(" ")
+            return
+
+        if buffer.complete_state:
+            buffer.complete_next()
+        else:
+            buffer.start_completion(select_first=True)
+
     return kb
 
 
@@ -154,7 +183,10 @@ class KapselPrompt:
     def __init__(self, engine: DualStateEngine):
         self.engine = engine
         self.config = engine.config
-        self.history = KapselPromptHistory(engine.history_mgr)
+        self.history = KapselPromptHistory(
+            manager=engine.history_mgr,
+            limit=self.config.history_entries,
+        )
         self.completer = DualStateCompleter(
             current_shell=engine.shell_name,
         )

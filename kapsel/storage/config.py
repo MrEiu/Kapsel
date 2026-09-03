@@ -57,7 +57,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         "auto_strip_spaces": True,
     },
     "history": {
-        "max_memory_entries": 2000,
+        "max_memory_entries": 20,
         "frequency_learning": True,
     },
     "cloud": {
@@ -166,8 +166,8 @@ routing:
 # 5. 独立历史记录漫游库 (History Storage)
 # ------------------------------------------------------------------------------
 history:
-  # 内存中加载的最大历史记录深度
-  max_memory_entries: 2000
+  # 跨会话保留与加载的最近历史记录条数 (默认 20 条，可自由配置)
+  max_memory_entries: 20
 
   # 是否开启高频命令智能权重学习 (高频命令在补全中优先置顶)
   frequency_learning: true
@@ -244,6 +244,10 @@ class KapselConfig:
     @property
     def consecutive_press_threshold(self) -> int:
         return int(self.interaction.get("consecutive_press_threshold", 2))
+
+    @property
+    def history_entries(self) -> int:
+        return int(self.raw.get("history", {}).get("max_memory_entries", 20))
 
 
 def get_config_path() -> Path:

@@ -77,6 +77,7 @@ class DualStateCompleter(Completer):
             ("register", "注册胶囊漫游账号并生成设备指纹"),
             ("whoami", "查看当前登录的漫游身份凭据"),
             ("logout", "退出当前登录的漫游账号"),
+            ("datadir", "查看或自定义迁移数据存储目录 (自动搬迁旧数据)"),
         ]
 
         if len(words) <= 1 and not query.endswith(" "):
@@ -132,6 +133,7 @@ class DualStateCompleter(Completer):
                 ("help", "查看帮助手册"),
                 ("status", "查看终端环境与沙箱运行状态"),
                 ("config", "查看与修改全局配置文件"),
+                ("datadir", "查看或自定义迁移数据存储位置"),
                 ("repo", "指令云仓库管理 (list/search/pull)"),
                 ("clear", "清除终端屏幕"),
                 ("exit", "退出胶囊会话"),

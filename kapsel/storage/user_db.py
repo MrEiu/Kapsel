@@ -27,11 +27,13 @@ class UserDatabase:
 
     def __init__(self, db_path: Optional[Path] = None):
         self.db_path = db_path or get_user_db_path()
+        self._active_conns: List[sqlite3.Connection] = []
         self._init_db()
 
     def _get_connection(self) -> sqlite3.Connection:
         conn = sqlite3.connect(str(self.db_path))
         conn.row_factory = sqlite3.Row
+        self._active_conns.append(conn)
         return conn
 
     def _init_db(self) -> None:
@@ -209,6 +211,22 @@ class UserDatabase:
         except Exception as e:
             logger.error(f"Failed to logout user: {e}")
             return False
+
+    def close(self) -> None:
+        """Flushes and releases all database connections."""
+        for conn in list(self._active_conns):
+            try:
+                conn.close()
+            except Exception:
+                pass
+        self._active_conns.clear()
+        import gc
+        gc.collect()
+
+    def reset_path(self, new_path: Optional[Path] = None) -> None:
+        """Re-points database path to new location and re-initializes."""
+        self.db_path = new_path or get_user_db_path()
+        self._init_db()
 
 
 # Global singleton instance accessor

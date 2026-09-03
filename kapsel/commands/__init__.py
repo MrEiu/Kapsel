@@ -27,6 +27,12 @@ def dispatch_builtin(command_line: str, console: Optional[Console] = None) -> Op
     if not stripped:
         return 0
 
+    # Strip optional leading 'kps' prefix if entered inside interactive capsule shell
+    if stripped.startswith("kps "):
+        stripped = stripped[4:].strip()
+    elif stripped == "kps":
+        return handle_help([], console)
+
     parts = stripped.split()
     cmd = parts[0].lower()
     args = parts[1:]
@@ -59,6 +65,11 @@ def dispatch_builtin(command_line: str, console: Optional[Console] = None) -> Op
     if cmd == "logout":
         return handle_logout_command(args, console)
 
+    # datadir / migrate (custom storage relocation)
+    if cmd in ("datadir", "migrate"):
+        from kapsel.commands.datadir import handle_datadir_command
+        return handle_datadir_command(args, console)
+
     return None
 
 
@@ -72,4 +83,5 @@ __all__ = [
     "handle_register_command",
     "handle_whoami_command",
     "handle_logout_command",
+    "handle_datadir_command",
 ]

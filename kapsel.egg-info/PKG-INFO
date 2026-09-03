@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: kapsel
+Version: 0.1.0
+Summary: 💊 跨平台自适应智能终端胶囊 (Cross-platform adaptive smart terminal capsule)
+Author: Kapsel Team
+License: MIT
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: prompt_toolkit>=3.0.40
+Requires-Dist: rich>=13.0.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: psutil>=5.9.0
+Requires-Dist: shellingham>=1.5.0
+Provides-Extra: test
+Requires-Dist: pytest>=7.0.0; extra == "test"

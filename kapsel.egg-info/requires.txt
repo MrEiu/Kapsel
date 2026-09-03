@@ -1,0 +1,8 @@
+prompt_toolkit>=3.0.40
+rich>=13.0.0
+pyyaml>=6.0
+psutil>=5.9.0
+shellingham>=1.5.0
+
+[test]
+pytest>=7.0.0

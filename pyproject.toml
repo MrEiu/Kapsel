@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kapsel"
+version = "0.1.0"
+description = "💊 跨平台自适应智能终端胶囊 (Cross-platform adaptive smart terminal capsule)"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Kapsel Team" }
+]
+dependencies = [
+    "prompt_toolkit>=3.0.40",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "psutil>=5.9.0",
+    "shellingham>=1.5.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+]
+
+[project.scripts]
+kapsel = "kapsel.cli:main"
+kps = "kapsel.cli:kps_cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kapsel*"]

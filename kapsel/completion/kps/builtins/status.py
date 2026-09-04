@@ -82,14 +82,20 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
     registry = get_kps_registry()
     commands = registry.list_commands()
 
-    # Count Fig Specs
-    specs_dir = Path(__file__).resolve().parent.parent.parent / "specs"
-    spec_count = len(list(specs_dir.glob("*.json"))) if specs_dir.exists() else 0
+    from kapsel.completion.carapace_engine import get_carapace_engine
+    carapace_eng = get_carapace_engine()
+    if carapace_eng.is_available():
+        tools_count = len(carapace_eng.get_supported_tools())
+        completer_label = f"[bold #10b981]{tools_count}+[/] 个 Carapace 动态规范"
+    else:
+        specs_dir = Path(__file__).resolve().parent.parent.parent / "specs"
+        spec_count = len(list(specs_dir.glob("*.json"))) if specs_dir.exists() else 0
+        completer_label = f"[dim]{spec_count} 个 Fig 备用规范[/]"
 
     is_active = os.environ.get("KAPSEL_ACTIVE") == "1"
     grid.add_row(
-        "🎯 自动补全规则库:",
-        f"[bold #10b981]{spec_count}[/] 个内置 Fig 工具规范",
+        "🎯 自动补全引擎:",
+        completer_label,
         "⚙️ 终端默认模式:",
         f"[bold #10b981]🟢 已托管 (kapsel active)[/]" if is_active else "[dim]⚪ 未托管 (kapsel toggle 开启)[/]",
     )

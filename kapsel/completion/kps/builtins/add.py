@@ -31,6 +31,16 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         return 1
 
     target_raw = args[0].strip()
+
+    # Handle 'kapsel add update' to scan and refresh catalog subcommands dictionary
+    if target_raw.lower() == "update":
+        from kapsel.core.plugin.catalog import update_plugin_catalog, render_catalog_table
+        con.print("[bold #00f0ff]🔄 Scanning repository plugins and updating catalog dictionary...[/]")
+        updated_catalog = update_plugin_catalog(con)
+        render_catalog_table(updated_catalog, con)
+        con.print("[bold #10b981]✔ Plugin catalog and subcommands completion dictionary successfully updated![/]\n")
+        return 0
+
     source_path = Path(target_raw).expanduser()
 
     global_plugins_dir = get_kapsel_dir() / "plugins"

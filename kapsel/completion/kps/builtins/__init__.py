@@ -64,21 +64,14 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
     )
 
     # 5. add <plugin_name>
+    from kapsel.core.plugin.catalog import load_plugin_catalog
+
     registry.register(
         name="add",
         handler=handle_add_command,
         help_text="Enable and register a plugin into Kapsel environment (e.g. kapsel add autopilot)",
-        subcommands={
-            "autopilot": "Enable background task queue and autonomous execution plugin (Pueue)",
-            "install": "Enable unified cross-platform package manager plugin (mpm)",
-            "rec": "Enable snippet recorder and interactive runner plugin (pet)",
-            "alias": "Enable cross-platform Linux command alias mapper plugin",
-            "profile": "Enable dotfiles and workspace sync roaming plugin (chezmoi)",
-            "fuck": "Enable intelligent console command error correction plugin (thefuck)",
-            "help": "Enable fast interactive command cheat sheets plugin (tealdeer)",
-            "ai": "Enable terminal AI assistant and setup wizard plugin (aichat)",
-        },
-        usage="kapsel add <plugin_name>",
+        subcommands=load_plugin_catalog(),
+        usage="kapsel add <plugin_name> (or: kapsel add update)",
     )
 
     # 6. toggle

@@ -30,7 +30,8 @@ class KpsCommandRegistry:
     """Central registry storing and categorizing commands by scope."""
 
     def __init__(self):
-        self._commands: Dict[str, KpsCommand] = {}
+        # Keyed by (scope, name) tuple to allow distinct commands across system and feature scopes
+        self._commands: Dict[Any, KpsCommand] = {}
 
     def register(
         self,
@@ -52,17 +53,17 @@ class KpsCommandRegistry:
             plugin_id=plugin_id,
             scope=scope,
         )
-        self._commands[cmd.name] = cmd
+        self._commands[(cmd.scope, cmd.name)] = cmd
         return cmd
 
     def get(self, name: str, scope: Optional[str] = None) -> Optional[KpsCommand]:
         """
         Retrieves a command by name, optionally filtering by scope.
         """
-        cmd = self._commands.get(name.lower().strip())
-        if cmd and scope and cmd.scope != scope:
-            return None
-        return cmd
+        clean_name = name.lower().strip()
+        if scope:
+            return self._commands.get((scope, clean_name))
+        return self._commands.get(("feature", clean_name)) or self._commands.get(("system", clean_name))
 
     def list_commands(self) -> List[KpsCommand]:
         """Returns all registered commands sorted by name."""

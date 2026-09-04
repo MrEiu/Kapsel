@@ -370,6 +370,99 @@ def _silently_install_thefuck() -> bool:
     return bool(shutil.which("thefuck") or local_launcher.exists())
 
 
+def _silently_install_tealdeer() -> bool:
+    """
+    Silently installs tealdeer (tldr CLI) using package managers or official standalone binaries:
+    1. macOS / Linux: Homebrew if available (brew install tealdeer)
+    2. Windows: Scoop or Winget if available
+    3. Direct official standalone binary download from GitHub Releases to ~/.kapsel/bin/tldr
+    4. Automatically initializes page cache via 'tldr --update'
+    """
+    bin_dir = get_kapsel_dir() / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    is_win = sys.platform == "win32"
+    local_tldr = bin_dir / ("tldr.exe" if is_win else "tldr")
+
+    if shutil.which("tldr") or shutil.which("tealdeer") or local_tldr.exists():
+        # Ensure cache directory is initialized if empty
+        return True
+
+    # 1. Homebrew on macOS / Linux
+    if (sys.platform == "darwin" or sys.platform.startswith("linux")) and shutil.which("brew"):
+        try:
+            res = subprocess.run(
+                ["brew", "install", "tealdeer"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if res.returncode == 0:
+                tldr_bin = shutil.which("tldr") or shutil.which("tealdeer")
+                if tldr_bin:
+                    subprocess.run([tldr_bin, "--update"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+                    return True
+        except Exception:
+            pass
+
+    # 2. Windows Package Managers
+    if is_win:
+        if shutil.which("scoop"):
+            try:
+                res = subprocess.run(
+                    ["scoop", "install", "tealdeer"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0 and shutil.which("tldr"):
+                    subprocess.run(["tldr", "--update"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+                    return True
+            except Exception:
+                pass
+        if shutil.which("winget"):
+            try:
+                res = subprocess.run(
+                    ["winget", "install", "--id", "dbrgn.tealdeer", "-e", "--silent", "--accept-source-agreements", "--accept-package-agreements"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0 and shutil.which("tldr"):
+                    subprocess.run(["tldr", "--update"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+                    return True
+            except Exception:
+                pass
+
+    # 3. Direct official standalone binary download from GitHub Releases
+    try:
+        machine = platform.machine().lower()
+        is_arm = "arm" in machine or "aarch64" in machine
+
+        if is_win:
+            arch = "aarch64" if is_arm else "x86_64"
+            url = f"https://github.com/tealdeer-rs/tealdeer/releases/download/v1.9.0/tealdeer-windows-{arch}-msvc.exe"
+        elif sys.platform == "darwin":
+            arch = "aarch64" if is_arm else "x86_64"
+            url = f"https://github.com/tealdeer-rs/tealdeer/releases/download/v1.9.0/tealdeer-macos-{arch}"
+        elif sys.platform.startswith("linux"):
+            arch = "aarch64" if is_arm else "x86_64"
+            url = f"https://github.com/tealdeer-rs/tealdeer/releases/download/v1.9.0/tealdeer-linux-{arch}-musl"
+        else:
+            url = None
+
+        if url:
+            urllib.request.urlretrieve(url, local_tldr)
+            if not is_win:
+                os.chmod(local_tldr, 0o755)
+            if local_tldr.exists():
+                subprocess.run([str(local_tldr), "--update"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=60)
+                return True
+    except Exception:
+        pass
+
+    return bool(shutil.which("tldr") or shutil.which("tealdeer") or local_tldr.exists())
+
+
 def handle_add_command(args: List[str], console: Optional[Console] = None) -> int:
     """
     Handles 'kapsel add <plugin_name>' system command.
@@ -444,6 +537,8 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         _silently_install_chezmoi()
     elif target_name == "fuck":
         _silently_install_thefuck()
+    elif target_name == "help":
+        _silently_install_tealdeer()
 
     msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
     msg += f"[dim]Location: {plugin_dir}[/]"

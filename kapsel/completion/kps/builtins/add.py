@@ -14,6 +14,92 @@ from kapsel.storage.config import get_kapsel_dir, load_config, update_config_val
 from kapsel.ui.banner import ensure_utf8_io
 
 
+import os
+import platform
+import subprocess
+import urllib.request
+
+
+def _silently_install_mpm() -> bool:
+    """
+    Silently installs meta-package-manager using best available methods:
+    1. Native package managers (Scoop on Windows, Homebrew on macOS/Linux)
+    2. Python pip (if Python environment is available)
+    3. Official standalone binary download from GitHub Releases
+    """
+    bin_dir = get_kapsel_dir() / "bin"
+    is_win = sys.platform == "win32"
+    local_mpm = bin_dir / ("mpm.exe" if is_win else "mpm")
+
+    if shutil.which("mpm") or local_mpm.exists():
+        return True
+
+    # 1. Native package managers (Scoop / Homebrew)
+    if is_win and shutil.which("scoop"):
+        try:
+            res = subprocess.run(
+                ["scoop", "install", "main/meta-package-manager"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if res.returncode == 0 and shutil.which("mpm"):
+                return True
+        except Exception:
+            pass
+    elif (sys.platform == "darwin" or sys.platform.startswith("linux")) and shutil.which("brew"):
+        try:
+            res = subprocess.run(
+                ["brew", "install", "meta-package-manager"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if res.returncode == 0 and shutil.which("mpm"):
+                return True
+        except Exception:
+            pass
+
+    # 2. Python pip
+    try:
+        res = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "meta-package-manager", "--quiet"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=120,
+        )
+        if res.returncode == 0:
+            return True
+    except Exception:
+        pass
+
+    # 3. Direct official standalone binary download (Zero-dependency fallback)
+    try:
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        machine = platform.machine().lower()
+        is_arm = "arm" in machine or "aarch64" in machine
+
+        if is_win:
+            url = "https://github.com/kdeldycke/meta-package-manager/releases/latest/download/meta-package-manager-windows-x64.exe"
+        elif sys.platform == "darwin":
+            url = f"https://github.com/kdeldycke/meta-package-manager/releases/latest/download/meta-package-manager-macos-{'arm64' if is_arm else 'x64'}.bin"
+        elif sys.platform.startswith("linux"):
+            url = f"https://github.com/kdeldycke/meta-package-manager/releases/latest/download/meta-package-manager-linux-{'arm64' if is_arm else 'x64'}.bin"
+        else:
+            url = None
+
+        if url:
+            urllib.request.urlretrieve(url, local_mpm)
+            if not is_win:
+                os.chmod(local_mpm, 0o755)
+            if local_mpm.exists():
+                return True
+    except Exception:
+        pass
+
+    return bool(shutil.which("mpm") or local_mpm.exists())
+
+
 def handle_add_command(args: List[str], console: Optional[Console] = None) -> int:
     """
     Handles 'kapsel add <plugin_name>' system command.
@@ -78,19 +164,13 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         new_enabled = current_enabled + [target_name]
         update_config_value("plugins", "enabled", new_enabled)
 
-    # Check known plugin dependencies (e.g. for install plugin)
-    dep_notes = []
+    # Silent official dependency installation for 'install' plugin
     if target_name == "install":
         if not shutil.which("mpm"):
-            dep_notes.append(
-                "Note: Plugin 'install' recommends [bold #00f0ff]meta-package-manager[/].\n"
-                "Install it via: [bold #38bdf8]pip install meta-package-manager[/]"
-            )
+            _silently_install_mpm()
 
     msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
-    msg += f"[dim]Location: {plugin_dir}[/]\n"
-    if dep_notes:
-        msg += "\n" + "\n".join(dep_notes)
+    msg += f"[dim]Location: {plugin_dir}[/]"
 
     con.print(Panel(msg, title="[bold #00f0ff]🔌 Plugin System[/]", border_style="#0891b2", expand=False))
     return 0

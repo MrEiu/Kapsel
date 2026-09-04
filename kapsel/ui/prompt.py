@@ -164,13 +164,13 @@ def create_key_bindings(
             else:
                 consecutive_presses = 1
 
-            # Check if this is continuous / long press (连按或长按)
+            # Check if this is continuous / long press
             if consecutive_presses >= threshold:
-                # 长按/连续按: 直接一键采纳整行完整建议
+                # Continuous press: accept entire suggestion line
                 buffer.insert_text(suggestion.text)
                 consecutive_presses = 0
             else:
-                # 单次间断按 (Tap): 根据配置逐词或整行采纳
+                # Single tap: word-by-word or full line per config
                 tap_mode = config.autosuggest_tap_mode
                 if tap_mode == "word":
                     next_word = extract_next_word(suggestion.text)
@@ -231,16 +231,16 @@ def create_key_bindings(
         else:
             buffer.start_completion(select_first=True)
 
-    # Shift-Tab: 在补全菜单中向上回退前一个候选词
+    # Shift-Tab: cycle backwards in completion menu
     @kb.add("s-tab")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
         if buffer.complete_state:
             buffer.complete_previous()
 
-    # Enter (回车键):
-    # - 若处于候选词选中状态 (向下选定指令后): 确认采纳该词条并自动追加空格，光标停在行尾供继续追加参数 (不直接执行!)
-    # - 若未在选词状态: 正常提交整行命令执行
+    # Enter:
+    # - If selecting a completion candidate: accept candidate and append trailing space
+    # - Otherwise: submit current command line for execution
     @kb.add("enter")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
@@ -252,7 +252,7 @@ def create_key_bindings(
 
         buffer.validate_and_handle()
 
-    # Tab (制表键): 选定候选词时同样一键采纳并补空格留待追加输入；未在选词时唤起或循环
+    # Tab: accept completion candidate if selected; otherwise trigger/cycle completions
     @kb.add("tab")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer

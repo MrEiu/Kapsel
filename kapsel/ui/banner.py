@@ -11,6 +11,8 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from kapsel import __version__
+
 def ensure_utf8_io() -> None:
     """Ensure standard input and output streams use utf-8 encoding."""
     try:
@@ -41,9 +43,8 @@ def render_banner(
     grid.add_column(style="default")
 
     info_lines = (
-        "[bold #00f0ff]💊 KAPSEL[/] [dim]v0.1.0[/]  ·  [#e4e4e7]跨平台自适应智能终端胶囊[/]\n"
-        "[dim italic]Wrap complexity, expose simplicity.[/]\n"
-        "[dim]输入 [/][bold #00f0ff]'kapsel help'[/][dim] 使用指南  │  [/][bold #38bdf8]'kapsel status'[/][dim] 运行状态  │  [/][dim]'exit' 退出[/]"
+        f"[bold #00f0ff]💊 KAPSEL[/] [dim]v{__version__}[/]\n"
+        "[dim italic]Wrap complexity, expose simplicity.[/]"
     )
     grid.add_row(ascii_logo, info_lines)
 

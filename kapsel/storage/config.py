@@ -16,10 +16,10 @@ from kapsel.storage.logger import get_kapsel_dir, logger
 DEFAULT_CONFIG: Dict[str, Any] = {
     "version": "1.1",
     "interaction": {
-        "autosuggest_tap_mode": "word",        # "word" (逐词采纳) 或 "full" (一键采纳整行)
-        "autosuggest_hold_action": "full",     # "full" (长按/连按整行采纳)
-        "autosuggest_sensitivity": 0.25,       # 连按/长按判定时间敏感度阈值 (秒)
-        "consecutive_press_threshold": 2,      # 判定为连续长按的击键次数
+        "autosuggest_tap_mode": "word",        # "word" (word-by-word) or "full" (entire line)
+        "autosuggest_hold_action": "full",     # "full" (continuous press accepts entire line)
+        "autosuggest_sensitivity": 0.25,       # Continuous press threshold in seconds
+        "consecutive_press_threshold": 2,      # Keypress count to trigger hold action
     },
     "ui": {
         "enable_banner": True,

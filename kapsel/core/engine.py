@@ -114,7 +114,7 @@ class DualStateEngine:
                 )
             else:
                 # Not a recognized builtin command
-                print(f"kapsel: 未知指令 '{user_input}'。输入 'kapsel help' 查看可用指令。")
+                print(f"kapsel: unknown command '{user_input}'. See 'kapsel help'.", file=sys.stderr)
                 exec_summary = ExecutionSummary(
                     command=user_input,
                     exit_code=1,

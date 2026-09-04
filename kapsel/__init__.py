@@ -1,5 +1,5 @@
 """
-💊 Kapsel：跨平台自适应智能终端胶囊
+Kapsel: Cross-platform adaptive smart terminal capsule.
 Wrap complexity, expose simplicity.
 """
 

@@ -54,13 +54,13 @@ class DualStateCompleter(Completer):
                 text="kapsel",
                 start_position=-len(stripped),
                 display="kapsel",
-                display_meta="💊 胶囊交互指令 (help, status, config, ai, install...)",
+                display_meta="Kapsel command (help, status, config, add, ...)",
             )
             yield Completion(
                 text="kps",
                 start_position=-len(stripped),
                 display="kps",
-                display_meta="💊 胶囊交互指令 (快捷缩写: kps)",
+                display_meta="Kapsel command alias (kps)",
             )
             return
         if stripped in ("kp", "kps"):
@@ -68,7 +68,7 @@ class DualStateCompleter(Completer):
                 text="kps",
                 start_position=-len(stripped),
                 display="kps",
-                display_meta="💊 胶囊交互指令 (快捷缩写: kps)",
+                display_meta="Kapsel command alias (kps)",
             )
             return
 
@@ -139,7 +139,7 @@ class DualStateCompleter(Completer):
                     text=cand.get("text", ""),
                     start_position=cand.get("start_position", -len(prefix)),
                     display=cand.get("display", cand.get("text", "")),
-                    display_meta=cand.get("display_meta", "🔌 插件提供"),
+                    display_meta=cand.get("display_meta", "Plugin"),
                 )
 
         # D. If user ran a native tool prefixed with kapsel/kps (e.g. 'kps git checkout')
@@ -170,18 +170,18 @@ class DualStateCompleter(Completer):
         if len(parts) <= 1 and not stripped.endswith(" "):
             curr_word = parts[0] if parts else ""
             native_builtins = [
-                ("cd", "切换工作目录 (支持 cd ~, cd -)"),
-                ("clear", "清除终端屏幕"),
-                ("exit", "退出胶囊会话"),
-                ("git", "Git 分布式版本控制 (Carapace 动态感知就绪)"),
-                ("docker", "Docker 容器生命周期管理 (Carapace 动态感知就绪)"),
-                ("scoop", "Windows 命令行包管理器 (Carapace 动态感知就绪)"),
-                ("npm", "Node.js 包管理器 (Carapace 动态感知就绪)"),
-                ("cargo", "Rust 包与编译管理 (Carapace 动态感知就绪)"),
-                ("python", "Python 解释器 (Carapace 动态感知就绪)"),
-                ("kubectl", "Kubernetes 集群控制 CLI (Carapace 就绪)"),
-                ("pnpm", "快速高效的磁盘节约型包管理器"),
-                ("yarn", "Node 依赖管理工具"),
+                ("cd", "Change directory"),
+                ("clear", "Clear terminal screen"),
+                ("exit", "Exit session"),
+                ("git", "Git version control"),
+                ("docker", "Docker container platform"),
+                ("scoop", "Windows command-line installer"),
+                ("npm", "Node.js package manager"),
+                ("cargo", "Rust package manager"),
+                ("python", "Python interpreter"),
+                ("kubectl", "Kubernetes cluster CLI"),
+                ("pnpm", "Fast disk space efficient package manager"),
+                ("yarn", "Node.js package manager"),
             ]
             for cmd, desc in native_builtins:
                 if cmd.startswith(curr_word.lower()):

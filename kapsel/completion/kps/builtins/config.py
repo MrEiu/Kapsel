@@ -42,7 +42,7 @@ def handle_config_command(args: List[str], console: Optional[Console] = None) ->
         return 0
 
     if sub == "edit":
-        con.print(f"[dim]正在打开配置文件:[/] [bold #00f0ff]{config_path}[/]")
+        con.print(f"[dim]Opening configuration file:[/] [bold #00f0ff]{config_path}[/]")
         try:
             if platform.system() == "Windows":
                 os.startfile(str(config_path))
@@ -50,15 +50,15 @@ def handle_config_command(args: List[str], console: Optional[Console] = None) ->
                 subprocess.run(["open", str(config_path)])
             else:
                 subprocess.run(["xdg-open", str(config_path)])
-            con.print("[bold #10b981]✔ 已在外部编辑器中打开[/]")
+            con.print("[bold #10b981]✔ Opened in external editor[/]")
         except Exception as e:
-            con.print(f"[bold #f43f5e]无法打开编辑器: {e}[/]")
-            con.print(f"[dim]您可以手动用记事本或 VSCode 编辑: {config_path}[/]")
+            con.print(f"[bold #f43f5e]Failed to open editor: {e}[/]")
+            con.print(f"[dim]You can edit it manually at: {config_path}[/]")
         return 0
 
     if sub == "reload":
         new_cfg = load_config(force_reload=True)
-        con.print(f"[bold #10b981]✔ 配置文件已成功重载生效！[/] (主题: {new_cfg.theme.get('name')}, Tap模式: {new_cfg.interaction.get('autosuggest_tap_mode')})")
+        con.print(f"[bold #10b981]✔ Configuration reloaded.[/] (Theme: {new_cfg.theme.get('name')}, Tap: {new_cfg.interaction.get('autosuggest_tap_mode')})")
         return 0
 
     if sub in ("datadir", "migrate"):
@@ -67,21 +67,21 @@ def handle_config_command(args: List[str], console: Optional[Console] = None) ->
 
     if sub == "get":
         if len(args) < 2:
-            con.print("[bold #f43f5e]错误: 请指定要查询的配置项路径 (例如: config get interaction.autosuggest_tap_mode)[/]")
+            con.print("[bold #f43f5e]Error: Please specify configuration key (e.g. config get interaction.autosuggest_tap_mode)[/]")
             return 1
         key_path = args[1]
         val = get_nested_val(cfg.raw, key_path)
         if val is None:
-            con.print(f"[dim]配置项 '{key_path}' 未设置或不存在 (当前使用默认值)[/]")
+            con.print(f"[dim]Config key '{key_path}' is not set (using default)[/]")
         else:
             con.print(f"[bold #00f0ff]{key_path}[/] = [bold #10b981]{val}[/]")
         return 0
 
     if sub == "set":
         if len(args) < 3:
-            con.print("[bold #f43f5e]错误: 格式错误。用法: config set <key.path> <value>[/]")
-            con.print("[dim]例如: config set interaction.autosuggest_tap_mode full[/]")
-            con.print("[dim]例如: config set interaction.autosuggest_sensitivity 0.15[/]")
+            con.print("[bold #f43f5e]Error: Invalid format. Usage: config set <key.path> <value>[/]")
+            con.print("[dim]Example: config set interaction.autosuggest_tap_mode full[/]")
+            con.print("[dim]Example: config set interaction.autosuggest_sensitivity 0.15[/]")
             return 1
         key_path = args[1]
         val_str = args[2]
@@ -102,15 +102,14 @@ def handle_config_command(args: List[str], console: Optional[Console] = None) ->
 
         success = update_config_value(key_path, parsed_val)
         if success:
-            con.print(f"[bold #10b981]✔ 配置修改成功:[/] [bold #00f0ff]{key_path}[/] = [bold #10b981]{parsed_val}[/]")
-            con.print("[dim]已自动持久化写入 ~/.kapsel/config.yaml 并即刻热重载生效。[/]")
+            con.print(f"[bold #10b981]✔ Config updated:[/] [bold #00f0ff]{key_path}[/] = [bold #10b981]{parsed_val}[/]")
+            con.print("[dim]Saved to ~/.kapsel/config.yaml and reloaded.[/]")
             return 0
         else:
-            con.print(f"[bold #f43f5e]✘ 配置更新失败，请检查键名: '{key_path}'[/]")
+            con.print(f"[bold #f43f5e]✘ Failed to update config. Check key path: '{key_path}'[/]")
             return 1
 
-    con.print(f"[bold #f43f5e]未知 config 子指令: '{sub}'[/]")
-    con.print("[dim]可用指令: config, config path, config edit, config get <key>, config set <key> <val>, config reload[/]")
+    con.print(f"[bold #f43f5e]Unknown config subcommand: '{sub}'.[/] See 'kapsel config --help'.")
     return 1
 
 
@@ -138,27 +137,27 @@ def render_config_dashboard(cfg: KapselConfig, config_path: Path, console: Conso
     grid.add_column(style="#e4e4e7")
 
     grid.add_row(
-        "🎯 右箭头点按模式 (Tap):",
-        f"[bold #10b981]{inter.get('autosuggest_tap_mode', 'word')}[/] [dim]('word':逐词 / 'full':整行)[/]",
-        "🎨 UI 活跃配色主题:",
+        "🎯 Autosuggest Tap:",
+        f"[bold #10b981]{inter.get('autosuggest_tap_mode', 'word')}[/]",
+        "🎨 Active Theme:",
         f"[bold #00f0ff]{theme_cfg.get('name', 'cyber_dark')}[/]",
     )
     grid.add_row(
-        "⚡ 连按/长按行为 (Hold):",
-        f"[bold #10b981]{inter.get('autosuggest_hold_action', 'full')}[/] [dim](采纳整行)[/]",
-        "⏱ 耗时与卡片封装:",
-        f"[bold #10b981]{'开启' if ui_cfg.get('enable_card_border') else '关闭'}[/]",
+        "⚡ Hold Action:",
+        f"[bold #10b981]{inter.get('autosuggest_hold_action', 'full')}[/]",
+        "⏱ Card Border:",
+        f"[bold #10b981]{'On' if ui_cfg.get('enable_card_border') else 'Off'}[/]",
     )
     grid.add_row(
-        "⏲ 敏感度时间阈值:",
-        f"[bold #10b981]{inter.get('autosuggest_sensitivity', 0.25)}s[/] [dim](阈值内判为长按)[/]",
-        " Git 与 Shell 徽标:",
-        f"[bold #10b981]{'开启' if ui_cfg.get('show_git_branch') else '关闭'}[/]",
+        "⏲ Sensitivity:",
+        f"[bold #10b981]{inter.get('autosuggest_sensitivity', 0.25)}s[/]",
+        " Git Badge:",
+        f"[bold #10b981]{'On' if ui_cfg.get('show_git_branch') else 'Off'}[/]",
     )
     grid.add_row(
-        "🔢 连续按键判定次数:",
-        f"[bold #10b981]{inter.get('consecutive_press_threshold', 2)}[/] [dim](达标后触发长按)[/]",
-        "🌐 云端服务地址:",
+        "🔢 Threshold Count:",
+        f"[bold #10b981]{inter.get('consecutive_press_threshold', 2)}[/]",
+        "🌐 Cloud Endpoint:",
         f"[dim]{cloud_cfg.get('server_endpoint', 'http://127.0.0.1:8000')}[/]",
     )
 
@@ -166,9 +165,9 @@ def render_config_dashboard(cfg: KapselConfig, config_path: Path, console: Conso
     content.add_column()
 
     header = Text()
-    header.append("⚙️ KAPSEL 全局总核心配置面板\n", style="bold #00f0ff")
-    header.append(f"配置文件路径: {config_path}\n", style="dim #6b7280")
-    header.append("支持交互热重载 · 运行 'config edit' 在编辑器中打开 · 运行 'config set <key> <val>' 快速修改", style="italic #9ca3af")
+    header.append("⚙️ KAPSEL Configuration Dashboard\n", style="bold #00f0ff")
+    header.append(f"Config path: {config_path}\n", style="dim #6b7280")
+    header.append("Run 'config edit' to open editor · Run 'config set <key> <val>' to update", style="italic #9ca3af")
 
     content.add_row(header)
     content.add_row(grid)

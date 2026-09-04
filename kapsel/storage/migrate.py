@@ -1,8 +1,7 @@
 """
 Kapsel Data Migration Service.
 Allows CLI users to relocate Kapsel's data storage directory to any custom location,
-automatically moving existing databases, configs, logs, and registry manifests,
-leaving nothing behind in the old directory ("原来不留").
+automatically moving existing databases, configs, logs, and registry manifests.
 """
 
 import os
@@ -27,7 +26,7 @@ def migrate_kapsel_data(target_path_str: str) -> Tuple[bool, str]:
     # Sanitize input: strip whitespace and any surrounding quotation marks
     cleaned = target_path_str.strip().strip('"\'').strip()
     if not cleaned:
-        return False, "目标路径不能为空。"
+        return False, "Target path cannot be empty."
 
     current_dir = get_kapsel_dir().resolve()
     default_dir = get_default_kapsel_dir().resolve()
@@ -38,19 +37,19 @@ def migrate_kapsel_data(target_path_str: str) -> Tuple[bool, str]:
         target_dir = Path(cleaned).expanduser().resolve()
 
     if current_dir == target_dir:
-        return False, f"目标路径与当前数据目录相同 ({current_dir})，无需迁移。"
+        return False, f"Target path is the same as current data directory ({current_dir}). No migration needed."
 
     # Check if target is inside current or vice versa
     try:
         if target_dir.is_relative_to(current_dir):
-            return False, "目标路径不能位于当前数据目录内部，请指定外部独立路径。"
+            return False, "Target path cannot be located inside the current data directory."
     except Exception:
         pass
 
     try:
         target_dir.mkdir(parents=True, exist_ok=True)
     except Exception as e:
-        return False, f"无法创建目标目录 '{target_dir}': {e}"
+        return False, f"Failed to create target directory '{target_dir}': {e}"
 
     # 1. Release open file handles and connections
     for h in list(logger.handlers):
@@ -76,9 +75,9 @@ def migrate_kapsel_data(target_path_str: str) -> Tuple[bool, str]:
     except Exception as e:
         # Re-setup logger in case of error
         setup_logger()
-        return False, f"数据复制迁移过程中发生异常: {e}"
+        return False, f"Exception occurred while copying data files: {e}"
 
-    # 3. Clean up source directory ("原来不留")
+    # 3. Clean up source directory
     import gc
     gc.collect()
 
@@ -108,14 +107,13 @@ def migrate_kapsel_data(target_path_str: str) -> Tuple[bool, str]:
             POINTER_FILE.write_text(str(target_dir), encoding="utf-8")
     except Exception as e:
         setup_logger()
-        return False, f"更新存储指针文件失败: {e}"
+        return False, f"Failed to update storage pointer file: {e}"
 
     # 5. Reinitialize subsystems with the new location
     setup_logger()
-    user_db.reset_path()
 
-    msg = f"成功将全部数据完整迁移至: {target_dir} (原有旧数据已彻底清理)"
+    msg = f"Successfully migrated all data to: {target_dir}"
     if cleanup_errors:
-        msg += f" (注: 个别临时文件清理有延迟: {', '.join(cleanup_errors)})"
+        msg += f" (Notice: delayed cleanup for temporary files: {', '.join(cleanup_errors)})"
 
     return True, msg

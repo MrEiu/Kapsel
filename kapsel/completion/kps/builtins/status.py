@@ -45,36 +45,37 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
     priv_badge = (
         f"[bold #10b981][{elevated_label}][/]"
         if not is_elevated
-        else f"[bold #f59e0b][{elevated_label} (管理员)][/]"
+        else f"[bold #f59e0b][{elevated_label} (Admin)][/]"
     )
 
     grid.add_row(
-        "🖥️ 操作系统平台:",
+        "🖥️ Platform:",
         f"{platform.system()} {platform.release()} ({platform.machine()})",
-        "🐚 宿主终端 (Shell):",
+        "🐚 Host Shell:",
         f"[bold #38bdf8]{shell_name}[/] [dim]({shell_path})[/]",
     )
 
     grid.add_row(
-        "⚡ 权限运行等级:",
+        "⚡ Privilege:",
         priv_badge,
-        "🌿 Git 工作分支:",
-        f"[bold #10b981]{branch}[/]" if branch else "[dim]非 Git 仓库[/]",
+        "🌿 Git Branch:",
+        f"[bold #10b981]{branch}[/]" if branch else "[dim]None[/]",
     )
 
     grid.add_row(
-        "📂 当前工作目录:",
+        "📂 Working Dir:",
         f"[dim]{cwd_fmt}[/]",
-        "💊 胶囊内核版本:",
+        "💊 Kapsel Version:",
         f"[bold #00f0ff]v{__version__}[/] (Python {sys.version.split()[0]})",
     )
 
     theme_name = cfg.theme.get("name", "cyber_dark") if isinstance(cfg.theme, dict) else str(cfg.theme)
+    border_status = "On" if cfg.enable_card_border else "Off"
     grid.add_row(
-        "📦 数据沙箱根目录:",
+        "📦 Sandbox Dir:",
         f"[dim]{sandbox_dir}[/]",
-        "🎨 当前激活主题:",
-        f"[bold #a855f7]{theme_name}[/] [dim](边框: {'开启' if cfg.enable_card_border else '关闭'})[/]",
+        "🎨 Active Theme:",
+        f"[bold #a855f7]{theme_name}[/] [dim](Border: {border_status})[/]",
     )
 
     # Completion & Plugins info
@@ -86,23 +87,23 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
     carapace_eng = get_carapace_engine()
     if carapace_eng.is_available():
         tools_count = len(carapace_eng.get_supported_tools())
-        completer_label = f"[bold #10b981]{tools_count}+[/] 个 Carapace 动态规范"
+        completer_label = f"[bold #10b981]{tools_count}+[/] Carapace specs"
     else:
         specs_dir = Path(__file__).resolve().parent.parent.parent / "specs"
         spec_count = len(list(specs_dir.glob("*.json"))) if specs_dir.exists() else 0
-        completer_label = f"[dim]{spec_count} 个 Fig 备用规范[/]"
+        completer_label = f"[dim]{spec_count} Fig specs[/]"
 
     is_active = os.environ.get("KAPSEL_ACTIVE") == "1"
     grid.add_row(
-        "🎯 自动补全引擎:",
+        "🎯 Completer:",
         completer_label,
-        "⚙️ 终端默认模式:",
-        f"[bold #10b981]🟢 已托管 (kapsel active)[/]" if is_active else "[dim]⚪ 未托管 (kapsel toggle 开启)[/]",
+        "⚙️ Session Mode:",
+        f"[bold #10b981]🟢 Active[/]" if is_active else "[dim]⚪ Standby[/]",
     )
 
     panel = Panel(
         grid,
-        title="[bold #00f0ff]💊 KAPSEL 系统运行与环境状态看板[/]",
+        title="[bold #00f0ff]💊 KAPSEL System & Environment Status[/]",
         title_align="left",
         border_style="#0891b2",
         padding=(1, 2),

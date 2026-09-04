@@ -73,16 +73,7 @@ def main(args: Optional[List[str]] = None) -> int:
     os.environ["KAPSEL_ACTIVE"] = "1"
 
     if is_toggle_start:
-        console.print(
-            Panel(
-                "[bold #10b981]✔ Kapsel 终端默认模式已开启！[/]\n\n"
-                "[white]当前终端已将 Kapsel 作为默认交互环境，享受智能补全与命令转译。\n"
-                "在终端中输入 '[bold #00f0ff]kapsel toggle[/]' 或 '[bold #00f0ff]toggle[/]' 即可关闭退出并切回宿主终端。[/]",
-                title="[bold #00f0ff]💊 Kapsel Default Mode[/]",
-                border_style="#0891b2",
-                expand=False,
-            )
-        )
+        console.print("[bold #10b981]✔ Kapsel active.[/] [dim]Type 'toggle' or 'exit' to quit.[/]\n")
     elif engine.config.enable_banner and not no_banner:
         render_banner()
 
@@ -109,15 +100,7 @@ def main(args: Optional[List[str]] = None) -> int:
         normalized = " ".join(stripped.lower().split())
         if normalized in ("exit", "quit", "toggle", "kapsel toggle", "kps toggle"):
             os.environ.pop("KAPSEL_ACTIVE", None)
-            console.print(
-                Panel(
-                    "[bold #00f0ff]🔌 Kapsel 终端默认模式已关闭，已退出并切回宿主终端。[/]\n"
-                    "[dim]随时输入 '[white]kapsel toggle[/]' 即可重新开启。[/]",
-                    title="[bold #00f0ff]💊 Kapsel Deactivated[/]",
-                    border_style="#0891b2",
-                    expand=False,
-                )
-            )
+            console.print("[dim]Exited Kapsel.[/]")
             break
 
         try:

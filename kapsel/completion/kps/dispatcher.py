@@ -58,6 +58,6 @@ def dispatch_kps(command_line: str, console: Optional[Console] = None) -> Option
     if cmd:
         return cmd.handler(args, con)
 
-    con.print(f"[bold #f43f5e]kapsel: 未知指令 '{cmd_name}'。[/] 输入 'kapsel help' 查阅可用指令。")
+    con.print(f"[bold #f43f5e]kapsel: unknown command '{cmd_name}'.[/] See 'kapsel help'.")
     return 1
 

@@ -463,6 +463,124 @@ def _silently_install_tealdeer() -> bool:
     return bool(shutil.which("tldr") or shutil.which("tealdeer") or local_tldr.exists())
 
 
+def _silently_install_aichat() -> bool:
+    """
+    Silently installs aichat CLI tool using package managers or official standalone binaries:
+    1. Check existing PATH, Scoop, Kapsel bin, Cargo bin, WinGet
+    2. macOS / Linux: Homebrew if available (brew install aichat)
+    3. Windows: Scoop or Winget if available
+    4. Direct official standalone binary download from GitHub Releases to ~/.kapsel/bin/aichat
+    """
+    bin_dir = get_kapsel_dir() / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    is_win = sys.platform == "win32"
+    local_aichat = bin_dir / ("aichat.exe" if is_win else "aichat")
+
+    if shutil.which("aichat") or local_aichat.exists():
+        return True
+
+    # Check Scoop shims / Cargo bin / WinGet links
+    if is_win:
+        user_profile = Path(os.environ.get("USERPROFILE", Path.home()))
+        for candidate in [
+            user_profile / "scoop/shims/aichat.exe",
+            user_profile / "scoop/apps/aichat/current/aichat.exe",
+            user_profile / ".cargo/bin/aichat.exe",
+            user_profile / "AppData/Local/Microsoft/WinGet/Links/aichat.exe",
+        ]:
+            if candidate.exists():
+                try:
+                    shutil.copy2(candidate, local_aichat)
+                    return True
+                except Exception:
+                    return True
+
+    # 1. Homebrew on macOS / Linux
+    if (sys.platform == "darwin" or sys.platform.startswith("linux")) and shutil.which("brew"):
+        try:
+            res = subprocess.run(
+                ["brew", "install", "aichat"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if res.returncode == 0 and shutil.which("aichat"):
+                return True
+        except Exception:
+            pass
+
+    # 2. Windows Package Managers
+    if is_win:
+        if shutil.which("scoop"):
+            try:
+                res = subprocess.run(
+                    ["scoop", "install", "aichat"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0 and shutil.which("aichat"):
+                    return True
+            except Exception:
+                pass
+        if shutil.which("winget"):
+            try:
+                res = subprocess.run(
+                    ["winget", "install", "--id", "sigoden.aichat", "-e", "--silent", "--accept-source-agreements", "--accept-package-agreements"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0 and shutil.which("aichat"):
+                    return True
+            except Exception:
+                pass
+
+    # 3. Direct official standalone binary download from GitHub Releases
+    try:
+        import zipfile
+        import tarfile
+        machine = platform.machine().lower()
+        is_arm = "arm" in machine or "aarch64" in machine
+
+        if is_win:
+            arch = "aarch64" if is_arm else "x86_64"
+            url = f"https://github.com/sigoden/aichat/releases/download/v0.30.0/aichat-v0.30.0-{arch}-pc-windows-msvc.zip"
+            zip_path = bin_dir / "aichat.zip"
+            urllib.request.urlretrieve(url, zip_path)
+            with zipfile.ZipFile(zip_path, "r") as zf:
+                zf.extractall(bin_dir)
+            zip_path.unlink(missing_ok=True)
+            if local_aichat.exists():
+                return True
+        elif sys.platform == "darwin":
+            arch = "aarch64" if is_arm else "x86_64"
+            url = f"https://github.com/sigoden/aichat/releases/download/v0.30.0/aichat-v0.30.0-{arch}-apple-darwin.tar.gz"
+            tar_path = bin_dir / "aichat.tar.gz"
+            urllib.request.urlretrieve(url, tar_path)
+            with tarfile.open(tar_path, "r:gz") as tf:
+                tf.extractall(bin_dir)
+            tar_path.unlink(missing_ok=True)
+            if local_aichat.exists():
+                os.chmod(local_aichat, 0o755)
+                return True
+        elif sys.platform.startswith("linux"):
+            arch = "aarch64" if is_arm else "x86_64"
+            url = f"https://github.com/sigoden/aichat/releases/download/v0.30.0/aichat-v0.30.0-{arch}-unknown-linux-musl.tar.gz"
+            tar_path = bin_dir / "aichat.tar.gz"
+            urllib.request.urlretrieve(url, tar_path)
+            with tarfile.open(tar_path, "r:gz") as tf:
+                tf.extractall(bin_dir)
+            tar_path.unlink(missing_ok=True)
+            if local_aichat.exists():
+                os.chmod(local_aichat, 0o755)
+                return True
+    except Exception:
+        pass
+
+    return bool(shutil.which("aichat") or local_aichat.exists())
+
+
 def handle_add_command(args: List[str], console: Optional[Console] = None) -> int:
     """
     Handles 'kapsel add <plugin_name>' system command.
@@ -539,6 +657,8 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         _silently_install_thefuck()
     elif target_name == "help":
         _silently_install_tealdeer()
+    elif target_name == "ai":
+        _silently_install_aichat()
 
     msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
     msg += f"[dim]Location: {plugin_dir}[/]"

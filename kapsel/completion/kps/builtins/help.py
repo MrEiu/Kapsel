@@ -26,63 +26,44 @@ def handle_help(args: Optional[List[str]] = None, console: Optional[Console] = N
     header = Text()
     header.append("💊 KAPSEL  ", style="bold #00f0ff")
     header.append(f"v{__version__}  ·  使用指南与命令速查手册\n", style="dim #6b7280")
-    header.append("核心架构: kapsel (系统管理指令)  │  kps (插件扩展与功能指令)\n", style="italic #9ca3af")
+    header.append("核心架构: kapsel / kps (统一胶囊交互管道，kps 为官方快捷缩写)\n", style="italic #9ca3af")
     con.print(header)
 
     # 1. 核心交互机制
     mode_table = Table(title="🚀 核心交互双态", box=None, title_justify="left", padding=(0, 2))
     mode_table.add_column("模式", style="bold #00f0ff", width=18)
-    mode_table.add_column("触发方式", style="#e4e4e7", width=22)
+    mode_table.add_column("触发方式", style="#e4e4e7", width=24)
     mode_table.add_column("行为描述", style="dim #9ca3af")
 
     mode_table.add_row(
         "默认态 (Native Mode)",
         "直接输入原生系统命令",
-        "100% 原生命令透传执行（git, npm, vim, python 等）；Tab 补全本地路径与原生工具",
+        "100% 原生命令透传执行（git, docker, npm, vim, python 等）；Carapace 深度上下文感知补全",
     )
     mode_table.add_row(
-        "系统态 (System Mode)",
-        "输入 'kapsel '",
-        "管理胶囊自身环境与配置（help, status, config, datadir）；Tab 展开管理指令",
-    )
-    mode_table.add_row(
-        "功能态 (Feature Mode)",
-        "输入 'kps '",
-        "执行插件扩展功能与工具（install, update, search, sync 等）；Tab 展开功能指令",
+        "胶囊态 (Kapsel Mode)",
+        "输入 'kapsel ' 或 'kps '",
+        "统一胶囊指令（help, status, config, datadir, add, toggle 及插件扩展）；Tab 展开候选",
     )
     con.print(mode_table)
     con.print()
 
     registry = get_kps_registry()
-    system_cmds = registry.list_system_commands()
-    feature_cmds = registry.list_feature_commands()
+    all_cmds = registry.list_commands()
 
-    # 2. 系统管理指令 (kapsel <cmd>)
-    sys_table = Table(title="⚙️ kapsel 系统管理指令 (System Commands)", box=None, title_justify="left", padding=(0, 2))
-    sys_table.add_column("指令", style="bold #00f0ff", width=22)
-    sys_table.add_column("功能说明", style="#e4e4e7")
-    sys_table.add_column("类型", style="dim #9ca3af", width=12)
+    # 2. 胶囊指令列表
+    cmd_table = Table(title="⚙️ 胶囊指令集 (Kapsel Commands - 支持 kapsel / kps 互通调用)", box=None, title_justify="left", padding=(0, 2))
+    cmd_table.add_column("指令", style="bold #00f0ff", width=22)
+    cmd_table.add_column("功能说明", style="#e4e4e7")
+    cmd_table.add_column("来源", style="dim #9ca3af", width=14)
 
-    for cmd in system_cmds:
-        sys_table.add_row(f"kapsel {cmd.name}", cmd.help_text, "Core 核心")
+    for cmd in all_cmds:
+        origin = f"[{cmd.plugin_id}]" if cmd.plugin_id else "Core 核心"
+        cmd_table.add_row(f"kps {cmd.name}", cmd.help_text, origin)
 
-    sys_table.add_row("exit / quit", "安全退出 Kapsel 终端胶囊，无痕返回宿主原生 Shell", "Core 核心")
-    con.print(sys_table)
+    cmd_table.add_row("exit / quit", "安全退出 Kapsel 终端胶囊，无痕返回宿主原生 Shell", "Core 核心")
+    con.print(cmd_table)
     con.print()
-
-    # 3. 扩展功能指令 (kps <cmd>)
-    if feature_cmds:
-        feat_table = Table(title="🚀 kps 扩展功能指令 (Feature & Plugin Commands)", box=None, title_justify="left", padding=(0, 2))
-        feat_table.add_column("指令", style="bold #a855f7", width=22)
-        feat_table.add_column("功能说明", style="#e4e4e7")
-        feat_table.add_column("提供插件", style="dim #9ca3af", width=12)
-
-        for cmd in feature_cmds:
-            origin = f"[{cmd.plugin_id}]" if cmd.plugin_id else "[builtin]"
-            feat_table.add_row(f"kps {cmd.name}", cmd.help_text, origin)
-
-        con.print(feat_table)
-        con.print()
 
     # 4. 快捷键指南
     key_table = Table(title="⌨️ 常用快捷键与灵敏交互", box=None, title_justify="left", padding=(0, 2))

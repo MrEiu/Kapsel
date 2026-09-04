@@ -1,7 +1,7 @@
 """
 Kapsel Core Built-in Commands Registration.
-Registers fundamental system management commands: help, status, config, datadir, add.
-These are invoked via 'kapsel <cmd>'.
+Registers fundamental core commands: help, status, config, datadir, add, toggle.
+These can be invoked interchangeably via 'kapsel <cmd>' or 'kps <cmd>'.
 All comments and descriptions are in English.
 """
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 def register_builtins(registry: "KpsCommandRegistry") -> None:
-    """Registers core system commands into the KpsCommandRegistry."""
+    """Registers core commands into the KpsCommandRegistry."""
     from kapsel.completion.kps.builtins.add import handle_add_command
     from kapsel.completion.kps.builtins.config import handle_config_command
     from kapsel.completion.kps.builtins.datadir import handle_datadir_command
@@ -20,25 +20,23 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
     from kapsel.completion.kps.builtins.status import handle_status
     from kapsel.completion.kps.builtins.toggle import handle_toggle_command
 
-    # 1. kapsel help
+    # 1. help
     registry.register(
         name="help",
         handler=handle_help,
         help_text="Display Kapsel manual, interaction mechanisms, and command cheatsheet",
-        usage="kapsel help",
-        scope="system",
+        usage="kapsel help (or kps help)",
     )
 
-    # 2. kapsel status
+    # 2. status
     registry.register(
         name="status",
         handler=handle_status,
         help_text="Display OS environment, active shell, Git branch, and sandbox status",
-        usage="kapsel status",
-        scope="system",
+        usage="kapsel status (or kps status)",
     )
 
-    # 3. kapsel config
+    # 3. config
     registry.register(
         name="config",
         handler=handle_config_command,
@@ -51,10 +49,9 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
             "reload": "Hot-reload configuration from disk",
         },
         usage="kapsel config [path|edit|get|set|reload]",
-        scope="system",
     )
 
-    # 4. kapsel datadir
+    # 4. datadir
     registry.register(
         name="datadir",
         handler=handle_datadir_command,
@@ -64,26 +61,30 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
             "path": "Print current data directory path",
         },
         usage="kapsel datadir [path]",
-        scope="system",
     )
 
-    # 5. kapsel add <plugin_name>
+    # 5. add <plugin_name>
     registry.register(
         name="add",
         handler=handle_add_command,
-        help_text="Enable and register a plugin into Kapsel environment (e.g. kapsel add install)",
+        help_text="Enable and register a plugin into Kapsel environment (e.g. kapsel add autopilot)",
         subcommands={
-            "install": "Enable the official cross-platform package installer plugin",
+            "autopilot": "Enable background task queue and autonomous execution plugin (Pueue)",
+            "install": "Enable unified cross-platform package manager plugin (mpm)",
+            "rec": "Enable snippet recorder and interactive runner plugin (pet)",
+            "alias": "Enable cross-platform Linux command alias mapper plugin",
+            "profile": "Enable dotfiles and workspace sync roaming plugin (chezmoi)",
+            "fuck": "Enable intelligent console command error correction plugin (thefuck)",
+            "help": "Enable fast interactive command cheat sheets plugin (tealdeer)",
+            "ai": "Enable terminal AI assistant and setup wizard plugin (aichat)",
         },
         usage="kapsel add <plugin_name>",
-        scope="system",
     )
 
-    # 6. kapsel toggle
+    # 6. toggle
     registry.register(
         name="toggle",
         handler=handle_toggle_command,
         help_text="Toggle Kapsel as default terminal mode (open on first call, close on second)",
-        usage="kapsel toggle",
-        scope="system",
+        usage="kapsel toggle (or kps toggle)",
     )

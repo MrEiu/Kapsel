@@ -14,8 +14,7 @@ from rich.console import Console
 class KpsCommand:
     """
     Represents a registered command in the Kapsel ecosystem.
-    scope: 'system' for core capsule management (kapsel <cmd>),
-           'feature' for plugin/tooling extensions (kps <cmd>).
+    Shared uniformly across 'kapsel <cmd>' and 'kps <cmd>'.
     """
     name: str
     help_text: str
@@ -23,15 +22,15 @@ class KpsCommand:
     subcommands: Dict[str, str] = field(default_factory=dict)
     usage: Optional[str] = None
     plugin_id: Optional[str] = None
-    scope: str = "feature"  # "system" or "feature"
+    scope: str = "default"
 
 
 class KpsCommandRegistry:
-    """Central registry storing and categorizing commands by scope."""
+    """Central registry storing all Kapsel commands uniformly."""
 
     def __init__(self):
-        # Keyed by (scope, name) tuple to allow distinct commands across system and feature scopes
-        self._commands: Dict[Any, KpsCommand] = {}
+        # Keyed by command name (lowercase) to provide a unified command pipeline
+        self._commands: Dict[str, KpsCommand] = {}
 
     def register(
         self,
@@ -41,11 +40,12 @@ class KpsCommandRegistry:
         subcommands: Optional[Dict[str, str]] = None,
         usage: Optional[str] = None,
         plugin_id: Optional[str] = None,
-        scope: str = "feature",
+        scope: str = "default",
     ) -> KpsCommand:
-        """Registers a command into the registry."""
+        """Registers a command into the unified registry."""
+        clean_name = name.lower().strip()
         cmd = KpsCommand(
-            name=name.lower().strip(),
+            name=clean_name,
             help_text=help_text,
             handler=handler,
             subcommands=subcommands or {},
@@ -53,33 +53,29 @@ class KpsCommandRegistry:
             plugin_id=plugin_id,
             scope=scope,
         )
-        self._commands[(cmd.scope, cmd.name)] = cmd
+        self._commands[clean_name] = cmd
         return cmd
 
     def get(self, name: str, scope: Optional[str] = None) -> Optional[KpsCommand]:
-        """
-        Retrieves a command by name, optionally filtering by scope.
-        """
+        """Retrieves a command by name from the unified registry."""
         clean_name = name.lower().strip()
-        if scope:
-            return self._commands.get((scope, clean_name))
-        return self._commands.get(("feature", clean_name)) or self._commands.get(("system", clean_name))
+        return self._commands.get(clean_name)
 
     def list_commands(self) -> List[KpsCommand]:
         """Returns all registered commands sorted by name."""
         return sorted(self._commands.values(), key=lambda c: c.name)
 
     def list_system_commands(self) -> List[KpsCommand]:
-        """Returns commands belonging to the 'system' scope ('kapsel <cmd>')."""
+        """Backward-compatibility alias returning all core built-in commands."""
         return sorted(
-            [c for c in self._commands.values() if c.scope == "system"],
+            [c for c in self._commands.values() if not c.plugin_id],
             key=lambda c: c.name,
         )
 
     def list_feature_commands(self) -> List[KpsCommand]:
-        """Returns commands belonging to the 'feature' scope ('kps <cmd>')."""
+        """Backward-compatibility alias returning all plugin-provided commands."""
         return sorted(
-            [c for c in self._commands.values() if c.scope == "feature"],
+            [c for c in self._commands.values() if c.plugin_id],
             key=lambda c: c.name,
         )
 
@@ -99,7 +95,7 @@ def get_kps_registry() -> KpsCommandRegistry:
     global _GLOBAL_REGISTRY
     if _GLOBAL_REGISTRY is None:
         _GLOBAL_REGISTRY = KpsCommandRegistry()
-        # Auto-register core built-in system commands
+        # Auto-register core built-in commands
         from kapsel.completion.kps.builtins import register_builtins
         register_builtins(_GLOBAL_REGISTRY)
     return _GLOBAL_REGISTRY

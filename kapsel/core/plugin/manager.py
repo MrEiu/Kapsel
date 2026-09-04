@@ -73,11 +73,16 @@ class PluginManager:
         try:
             init_file = plugin_path / "__init__.py"
             module_name = f"kapsel_plugin_{plugin_name}"
-            spec = importlib.util.spec_from_file_location(module_name, init_file)
+            spec = importlib.util.spec_from_file_location(
+                module_name,
+                init_file,
+                submodule_search_locations=[str(plugin_path)],
+            )
             if not spec or not spec.loader:
                 return
 
             module = importlib.util.module_from_spec(spec)
+            module.__package__ = module_name
             sys.modules[module_name] = module
             spec.loader.exec_module(module)
 

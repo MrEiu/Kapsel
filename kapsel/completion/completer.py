@@ -20,8 +20,8 @@ class DualStateCompleter(Completer):
     Dual-State Carapace-Powered Completer:
     - Native Mode: Deep multi-level context-aware autocompletion powered by Carapace
                    (1,000+ tools: git branches/tags, docker flags/containers, npm scripts, etc.).
-    - System Mode ('kapsel <cmd>'): System management commands (help, status, config, datadir, add, toggle).
-    - Feature Mode ('kps <cmd>'): Functional plugin commands (ai, alias, fuck, help, install, profile, rec, etc.).
+    - Kapsel Mode ('kapsel <cmd>' / 'kps <cmd>'): Unified capsule commands (help, status, config,
+                   datadir, add, toggle, and plugin extensions).
     """
 
     def __init__(
@@ -48,49 +48,46 @@ class DualStateCompleter(Completer):
         text_before = document.text_before_cursor
         stripped = text_before.lstrip()
 
-        # 1. User is typing 'kapsel' or 'kps' (offer transition)
+        # 1. User is typing 'kapsel' or 'kps' (offer transition without trailing space)
         if stripped in ("k", "ka", "kap", "kaps", "kapse", "kapsel"):
             yield Completion(
-                text="kapsel ",
+                text="kapsel",
                 start_position=-len(stripped),
-                display="kapsel ",
-                display_meta="⚙️ 胶囊系统管理 (help, status, config, datadir, add, toggle)",
+                display="kapsel",
+                display_meta="💊 胶囊交互指令 (help, status, config, ai, install...)",
             )
             yield Completion(
-                text="kps ",
+                text="kps",
                 start_position=-len(stripped),
-                display="kps ",
-                display_meta="🚀 胶囊功能扩展 (ai, alias, fuck, help, install, profile, rec)",
+                display="kps",
+                display_meta="💊 胶囊交互指令 (快捷缩写: kps)",
             )
             return
         if stripped in ("kp", "kps"):
             yield Completion(
-                text="kps ",
+                text="kps",
                 start_position=-len(stripped),
-                display="kps ",
-                display_meta="🚀 胶囊功能扩展 (ai, alias, fuck, help, install, profile, rec)",
+                display="kps",
+                display_meta="💊 胶囊交互指令 (快捷缩写: kps)",
             )
             return
 
-        # 2. System Management Mode: 'kapsel <cmd>'
+        # 2. Unified Kapsel Command Mode: 'kapsel <cmd>' or 'kps <cmd>'
         if stripped.startswith("kapsel "):
             sub = stripped[7:]
-            yield from self._complete_scoped_mode(sub, scope="system")
+            yield from self._complete_kapsel_mode(sub)
             return
 
-        # 3. Feature/Plugin Mode: 'kps <cmd>'
         if stripped.startswith("kps "):
             sub = stripped[4:]
-            yield from self._complete_scoped_mode(sub, scope="feature")
+            yield from self._complete_kapsel_mode(sub)
             return
 
-        # 4. Native Mode: Carapace (1000+ tools), Fig fallback, builtins, & paths
+        # 3. Native Mode: Carapace (1000+ tools), Fig fallback, builtins, & paths
         yield from self._complete_native_mode(stripped, document, complete_event)
 
-    def _complete_scoped_mode(
-        self, query: str, scope: str
-    ) -> Iterable[Completion]:
-        """Completes commands under 'kapsel ' (system) or 'kps ' (feature) scope."""
+    def _complete_kapsel_mode(self, query: str) -> Iterable[Completion]:
+        """Completes commands under unified 'kapsel ' and 'kps ' pipeline."""
         ends_with_space = query.endswith(" ")
         words = query.split()
 
@@ -99,17 +96,13 @@ class DualStateCompleter(Completer):
         else:
             prefix = words[-1] if words else ""
 
-        # Filter commands matching the requested scope ('system' or 'feature')
-        if scope == "system":
-            available_cmds = self.kps_registry.list_system_commands()
-        else:
-            available_cmds = self.kps_registry.list_feature_commands()
+        available_cmds = self.kps_registry.list_commands()
 
-        # A. Completing the primary command name (e.g. 'kapsel conf' or 'kps rec')
+        # A. Completing primary command name (e.g. 'kapsel conf', 'kps ai', etc.)
         if len(words) == 0 or (len(words) == 1 and not ends_with_space):
             for cmd in available_cmds:
                 if cmd.name.startswith(prefix.lower()):
-                    icon = "⚙️ " if scope == "system" else "🚀 "
+                    icon = "🚀 " if cmd.plugin_id else "⚙️ "
                     yield Completion(
                         text=cmd.name,
                         start_position=-len(prefix),
@@ -120,7 +113,7 @@ class DualStateCompleter(Completer):
         # B. Completing subcommands (e.g. 'kapsel config [edit|path|get|set]')
         elif len(words) >= 1:
             first_cmd_name = words[0].lower()
-            cmd = self.kps_registry.get(first_cmd_name, scope=scope)
+            cmd = self.kps_registry.get(first_cmd_name)
             if cmd and cmd.subcommands:
                 if len(words) == 1 and ends_with_space:
                     sub_prefix = ""
@@ -138,8 +131,8 @@ class DualStateCompleter(Completer):
                             display_meta=f"🔹 {subdesc}",
                         )
 
-        # C. Plugin-provided dynamic completions (for feature scope, e.g. tldr cheat sheet caching)
-        if scope == "feature" and self.plugin_manager:
+        # C. Plugin-provided dynamic completions (e.g. tldr cheat sheet caching)
+        if self.plugin_manager:
             plugin_cands = self.plugin_manager.get_plugin_completions("kps " + query)
             for cand in plugin_cands:
                 yield Completion(
@@ -149,8 +142,8 @@ class DualStateCompleter(Completer):
                     display_meta=cand.get("display_meta", "🔌 插件提供"),
                 )
 
-        # D. If user ran a native tool prefixed with kps (e.g. 'kps git checkout')
-        if scope == "feature" and words:
+        # D. If user ran a native tool prefixed with kapsel/kps (e.g. 'kps git checkout')
+        if words:
             first_tool = words[0].lower()
             if self.carapace_engine.is_available() and self.carapace_engine.has_completer_for(first_tool):
                 yield from self._yield_carapace_completions(query)

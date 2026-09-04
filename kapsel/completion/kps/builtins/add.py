@@ -581,6 +581,86 @@ def _silently_install_aichat() -> bool:
     return bool(shutil.which("aichat") or local_aichat.exists())
 
 
+def _silently_install_pueue() -> bool:
+    """
+    Silently installs pueue & pueued CLI tools using package managers or binary detection:
+    1. Check existing PATH, Scoop, Kapsel bin, Cargo bin, WinGet
+    2. macOS / Linux: Homebrew if available (brew install pueue)
+    3. Windows: Scoop or Winget if available
+    4. Cargo if available (cargo install --locked pueue)
+    """
+    is_win = sys.platform == "win32"
+
+    if shutil.which("pueue"):
+        return True
+
+    # Check Scoop shims / Cargo bin / WinGet links
+    if is_win:
+        user_profile = Path(os.environ.get("USERPROFILE", Path.home()))
+        for candidate in [
+            user_profile / "scoop/shims/pueue.exe",
+            user_profile / "scoop/apps/pueue/current/pueue.exe",
+            user_profile / ".cargo/bin/pueue.exe",
+            user_profile / "AppData/Local/Microsoft/WinGet/Links/pueue.exe",
+        ]:
+            if candidate.exists():
+                return True
+
+        if shutil.which("scoop"):
+            try:
+                res = subprocess.run(
+                    ["scoop", "install", "pueue"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0:
+                    return True
+            except Exception:
+                pass
+
+        if shutil.which("winget"):
+            try:
+                res = subprocess.run(
+                    ["winget", "install", "-e", "--id", "arnstn.pueue", "--accept-source-agreements", "--accept-package-agreements"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0:
+                    return True
+            except Exception:
+                pass
+
+    if (sys.platform == "darwin" or sys.platform.startswith("linux")) and shutil.which("brew"):
+        try:
+            res = subprocess.run(
+                ["brew", "install", "pueue"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if res.returncode == 0:
+                return True
+        except Exception:
+            pass
+
+    if shutil.which("cargo"):
+        try:
+            res = subprocess.run(
+                ["cargo", "install", "--locked", "pueue"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=180,
+            )
+            if res.returncode == 0:
+                return True
+        except Exception:
+            pass
+
+    return bool(shutil.which("pueue"))
+
+
 def handle_add_command(args: List[str], console: Optional[Console] = None) -> int:
     """
     Handles 'kapsel add <plugin_name>' system command.
@@ -659,6 +739,8 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         _silently_install_tealdeer()
     elif target_name == "ai":
         _silently_install_aichat()
+    elif target_name == "autopilot":
+        _silently_install_pueue()
 
     msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
     msg += f"[dim]Location: {plugin_dir}[/]"

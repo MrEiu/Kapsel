@@ -34,9 +34,109 @@ def extract_next_word(text: str) -> str:
     return text[:idx]
 
 
-def create_key_bindings(config: KapselConfig) -> KeyBindings:
+def is_at_origin_history(buf) -> bool:
+    """True if the buffer is at the origin (the active line currently being typed)."""
+    return buf.working_index >= len(buf._working_lines) - 1
+
+
+class HistoryEditTracker:
+    """
+    Tracks navigation into history and promotes modified historical commands
+    to the origin buffer state, enabling immediate completion with the down arrow.
+    """
+
+    def __init__(self):
+        self.recalled_history_index: Optional[int] = None
+        self.recalled_history_text: Optional[str] = None
+        self.is_navigating: bool = False
+        self.is_promoting: bool = False
+
+    def navigate_backward(self, buffer) -> None:
+        """Navigates backward into history while tracking the recalled line."""
+        self.is_navigating = True
+        try:
+            buffer.history_backward()
+            origin_index = len(buffer._working_lines) - 1
+            if buffer.working_index < origin_index:
+                self.recalled_history_index = buffer.working_index
+                self.recalled_history_text = buffer.text
+            else:
+                self.recalled_history_index = None
+                self.recalled_history_text = None
+        finally:
+            self.is_navigating = False
+
+    def navigate_forward(self, buffer) -> None:
+        """Navigates forward through history towards the origin."""
+        self.is_navigating = True
+        try:
+            buffer.history_forward()
+            origin_index = len(buffer._working_lines) - 1
+            if buffer.working_index < origin_index:
+                self.recalled_history_index = buffer.working_index
+                self.recalled_history_text = buffer.text
+            else:
+                self.recalled_history_index = None
+                self.recalled_history_text = None
+        finally:
+            self.is_navigating = False
+
+    def on_text_changed(self, buffer) -> None:
+        """
+        Called on any text edit. If the user modified a recalled history entry,
+        promote the modified text to the origin (current buffer state) and
+        restore the original history entry.
+        """
+        if self.is_navigating or self.is_promoting:
+            return
+
+        origin_index = len(buffer._working_lines) - 1
+        if buffer.working_index < origin_index:
+            if self.recalled_history_text is not None and buffer.text != self.recalled_history_text:
+                try:
+                    self.is_promoting = True
+                    edited_text = buffer.text
+                    cursor_pos = buffer.cursor_position
+                    old_idx = self.recalled_history_index
+                    orig_text = self.recalled_history_text
+
+                    # Restore unmodified historical line in history buffer
+                    if old_idx is not None and 0 <= old_idx < len(buffer._working_lines):
+                        buffer._working_lines[old_idx] = orig_text
+
+                    # Set edited text as the current origin state
+                    buffer._working_lines[origin_index] = edited_text
+                    buffer.working_index = origin_index
+                    buffer.cursor_position = cursor_pos
+
+                    self.recalled_history_index = None
+                    self.recalled_history_text = None
+                finally:
+                    self.is_promoting = False
+
+    def promote_if_modified(self, buffer) -> bool:
+        """Explicitly checks and promotes if text was modified while in history."""
+        origin_index = len(buffer._working_lines) - 1
+        if buffer.working_index < origin_index:
+            if self.recalled_history_text is not None and buffer.text != self.recalled_history_text:
+                self.on_text_changed(buffer)
+                return True
+        return False
+
+    def reset_prompt(self) -> None:
+        """Resets tracking state at the beginning of each prompt cycle."""
+        self.recalled_history_index = None
+        self.recalled_history_text = None
+        self.is_navigating = False
+        self.is_promoting = False
+
+
+def create_key_bindings(
+    config: KapselConfig, tracker: Optional[HistoryEditTracker] = None
+) -> KeyBindings:
     """Configures modern terminal hotkeys with sensitivity-based right arrow tap vs hold."""
     kb = KeyBindings()
+    hist_tracker = tracker or HistoryEditTracker()
     last_press_time = 0.0
     consecutive_presses = 0
 
@@ -80,10 +180,6 @@ def create_key_bindings(config: KapselConfig) -> KeyBindings:
         else:
             buffer.cursor_right()
 
-    def is_at_origin_history(buf) -> bool:
-        """True if the buffer is at the origin (the line currently being typed)."""
-        return buf.working_index >= len(buf._working_lines) - 1
-
     # Up arrow (↑):
     # - In completion: browse UP through candidates until index 0 -> return to origin (unselect)
     # - At origin: cancel completion and navigate BACKWARD into history
@@ -105,9 +201,10 @@ def create_key_bindings(config: KapselConfig) -> KeyBindings:
         # 2. At Origin (or completion not actively selected) -> enter/continue History backward
         if buffer.complete_state:
             buffer.cancel_completion()
-        buffer.history_backward()
+        hist_tracker.navigate_backward(buffer)
 
     # Down arrow (↓):
+    # - If modified history: immediately promotes to origin and enters completion mode!
     # - In history: browse DOWN through history until returning to origin (newest line)
     # - At origin: enter completion mode (select first candidate)
     # - In completion: browse DOWN through candidates
@@ -115,14 +212,20 @@ def create_key_bindings(config: KapselConfig) -> KeyBindings:
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
 
-        # 1. If currently browsing older history -> move forward towards origin
-        if not is_at_origin_history(buffer):
-            buffer.history_forward()
-            # If this step returns the buffer to the origin, the user is back at center!
-            # The next 'down' press will smoothly transition into completion.
+        # 1. If currently browsing older history but user modified it -> promote to origin!
+        if hist_tracker.promote_if_modified(buffer):
+            if buffer.complete_state:
+                buffer.complete_next()
+            else:
+                buffer.start_completion(select_first=True)
             return
 
-        # 2. At Origin (or already in completion mode) -> browse DOWN into completions
+        # 2. If currently browsing older history -> move forward towards origin
+        if not is_at_origin_history(buffer):
+            hist_tracker.navigate_forward(buffer)
+            return
+
+        # 3. At Origin (or already in completion mode) -> browse DOWN into completions
         if buffer.complete_state:
             buffer.complete_next()
         else:
@@ -191,7 +294,8 @@ class KapselPrompt:
             current_shell=engine.shell_name,
             plugin_manager=getattr(engine, "plugin_manager", None),
         )
-        self.key_bindings = create_key_bindings(self.config)
+        self.history_tracker = HistoryEditTracker()
+        self.key_bindings = create_key_bindings(self.config, tracker=self.history_tracker)
 
         self.session: PromptSession = PromptSession(
             history=self.history,
@@ -202,8 +306,10 @@ class KapselPrompt:
             complete_while_typing=True,
             output=get_safe_output(),
         )
+        self.session.default_buffer.on_text_changed += self.history_tracker.on_text_changed
 
     def prompt(self) -> str:
         """Prompts the user for the next command line."""
+        self.history_tracker.reset_prompt()
         formatted_message = get_prompt_tokens(self.config, self.engine.shell_name)
         return self.session.prompt(formatted_message)

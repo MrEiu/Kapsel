@@ -204,3 +204,99 @@ class CloudPlugin(KapselPlugin):
 
 Plugin = CloudPlugin
 ```
+
+---
+
+## 7. 插件外部依赖与安装脚本规范 (Dependency Installation Specification)
+
+若插件需要调用底层第三方 CLI 工具（如 `thefuck`, `pet`, `tealdeer`, `pueue`, `chezmoi` 等），必须遵守以下**依赖链安装准则**：
+
+### 7.1 核心依赖设计准则 (Core Principles)
+
+> 📌 **核心原则：**
+> 1. **优先使用统一包管理**：虽然**绝大部分工具直接使用 `kps install <tool>` 都能解决**（依托底层 MPM 统一调动系统的各大官方包管理器）。
+> 2. **链式正规安装，严禁虚拟环境**：对于需要专用包管理器的工具（如 Python CLI 工具需要 `pipx`，或 Rust 工具需要 `cargo`），**若缺乏该包管理工具，就必须“先安装该包管理工具，再安装该目标工具”**。**严禁使用局部虚拟环境之类乱七八糟的临时方案**，确保用户系统环境的干净、正规与全局全局一致性。
+> 3. **多平台差异化适配**：安装脚本必须**针对不同操作系统平台（Windows / macOS / Linux）分别设置定制化的安装方案与回退链路**。
+
+---
+
+### 7.2 跨平台方案矩阵 (Cross-Platform Strategies)
+
+| 目标平台 | 首选方案 | 次选/专用工具链方案 | 零配置兜底方案 |
+| :--- | :--- | :--- | :--- |
+| **Windows** | `kps install <tool>` 或 Scoop / Winget | 若依赖 pipx：`pip install pipx` -> `pipx install <tool>` | 官方 Release 独立二进制包下载到 `~/.kapsel/bin/` |
+| **macOS** | `kps install <tool>` 或 Homebrew (`brew install`) | 若依赖 pipx：`brew install pipx` -> `pipx install <tool>` | 官方 Release (x86_64 / arm64) 独立二进制 |
+| **Linux** | `kps install <tool>` 或系统包管 (apt/dnf/pacman) | 若依赖 pipx：发行版包管安装 pipx -> `pipx install <tool>` | 官方 musl/glibc 静态二进制 |
+
+---
+
+### 7.3 独立安装脚本规范 (`install.py`)
+
+依赖的检测与安装逻辑应与 Kapsel 核心完全解耦，编写在插件根目录的 `install.py` 中。
+
+```text
+plugins/<plugin_name>/
+├── __init__.py           # 插件入口
+├── plugin.py             # 命令与钩子业务
+├── install.py            # 【独立安装脚本】处理平台判断与正规包管理器链式安装
+├── README.md
+└── pyproject.toml
+```
+
+#### `install.py` 标准接口示例：
+```python
+"""
+Installer for Example Plugin.
+Ensures required package manager exists first, then installs the target tool.
+"""
+
+from pathlib import Path
+import platform
+import shutil
+import subprocess
+import sys
+from rich.console import Console
+
+
+def install(console: Console, bin_dir: Path) -> bool:
+    """
+    Standard plugin installation entrypoint:
+    1. Check if tool is already available
+    2. Try 'kps install' / native package manager
+    3. If tool requires a specific manager (e.g. pipx for python tools):
+       Install that package manager first, then install the target tool!
+    """
+    tool_name = "thefuck"
+    if shutil.which(tool_name):
+        console.print(f"[dim]✔ {tool_name} is already available in PATH.[/]")
+        return True
+
+    system = platform.system().lower()
+    console.print(f"[bold #00f0ff]📦 Installing {tool_name} for platform: {system}...[/]")
+
+    # 方案 A: macOS / Linux (优先尝试正规 Homebrew)
+    if system in ("darwin", "linux") and shutil.which("brew"):
+        res = subprocess.run(["brew", "install", tool_name], stdout=subprocess.DEVNULL)
+        if res.returncode == 0 and shutil.which(tool_name):
+            return True
+
+    # 方案 B: 工具依赖专用包管理器 (如 pipx) -> 先检测/安装 pipx，再通过 pipx 安装目标工具
+    if not shutil.which("pipx"):
+        console.print("[dim]  Missing required package manager 'pipx'. Installing pipx first...[/]")
+        if system == "windows":
+            subprocess.run([sys.executable, "-m", "pip", "install", "pipx", "--quiet"])
+        elif shutil.which("brew"):
+            subprocess.run(["brew", "install", "pipx"])
+        else:
+            subprocess.run([sys.executable, "-m", "pip", "install", "pipx", "--quiet"])
+
+    # 确保 pipx 路径生效并安装目标工具
+    if shutil.which("pipx") or shutil.which("pipx.exe"):
+        console.print(f"[dim]  Installing {tool_name} via pipx...[/]")
+        subprocess.run(["pipx", "install", tool_name])
+        return bool(shutil.which(tool_name))
+
+    console.print(f"[bold #f43f5e]✘ Failed to install {tool_name} automatically.[/]")
+    return False
+```
+

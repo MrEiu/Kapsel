@@ -267,6 +267,109 @@ def _silently_install_chezmoi() -> bool:
     return bool(shutil.which("chezmoi") or local_chezmoi.exists())
 
 
+def _silently_install_thefuck() -> bool:
+    """
+    Silently installs thefuck CLI tool:
+    1. macOS / Linux: Homebrew if available (brew install thefuck)
+    2. Python pip: sys.executable -m pip install thefuck --quiet
+    3. Post-installation Python 3.12+ compatibility patch for conf.py and types.py
+    4. Creates thefuck executable launcher in ~/.kapsel/bin/
+    """
+    bin_dir = get_kapsel_dir() / "bin"
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    is_win = sys.platform == "win32"
+    local_launcher = bin_dir / ("thefuck.cmd" if is_win else "thefuck")
+
+    # 1. Homebrew on macOS / Linux
+    if (sys.platform == "darwin" or sys.platform.startswith("linux")) and shutil.which("brew"):
+        try:
+            res = subprocess.run(
+                ["brew", "install", "thefuck"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if res.returncode == 0 and shutil.which("thefuck"):
+                return True
+        except Exception:
+            pass
+
+    # 2. Python pip install
+    try:
+        subprocess.run(
+            [sys.executable, "-m", "pip", "install", "thefuck", "--quiet"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=120,
+        )
+    except Exception:
+        pass
+
+    # 3. Apply Python 3.12+ compatibility patch to thefuck installation if imp was removed
+    try:
+        site_packages_dirs = [
+            Path(p) for p in sys.path if "site-packages" in p and Path(p).exists()
+        ]
+        replacement = (
+            "import importlib.util\n"
+            "import importlib.machinery\n"
+            "def load_source(modname, filename):\n"
+            "    loader = importlib.machinery.SourceFileLoader(modname, str(filename))\n"
+            "    spec = importlib.util.spec_from_file_location(modname, str(filename), loader=loader)\n"
+            "    module = importlib.util.module_from_spec(spec)\n"
+            "    loader.exec_module(module)\n"
+            "    return module\n"
+        )
+        for sp in site_packages_dirs:
+            tf_dir = sp / "thefuck"
+            if tf_dir.exists():
+                for filename in ("conf.py", "types.py"):
+                    target_file = tf_dir / filename
+                    if target_file.exists():
+                        content = target_file.read_text(encoding="utf-8", errors="ignore")
+                        if "from imp import load_source" in content:
+                            new_content = content.replace("from imp import load_source", replacement)
+                            target_file.write_text(new_content, encoding="utf-8")
+    except Exception:
+        pass
+
+    # 4. Generate standalone launcher in ~/.kapsel/bin/
+    try:
+        runner_py = bin_dir / "thefuck_runner.py"
+        runner_content = (
+            "import importlib.machinery\n"
+            "import importlib.util\n"
+            "import sys\n"
+            "import types\n"
+            "if 'imp' not in sys.modules:\n"
+            "    imp = types.ModuleType('imp')\n"
+            "    def _load_source(modname, filename):\n"
+            "        loader = importlib.machinery.SourceFileLoader(modname, str(filename))\n"
+            "        spec = importlib.util.spec_from_file_location(modname, str(filename), loader=loader)\n"
+            "        module = importlib.util.module_from_spec(spec)\n"
+            "        loader.exec_module(module)\n"
+            "        return module\n"
+            "    imp.load_source = _load_source\n"
+            "    sys.modules['imp'] = imp\n"
+            "from thefuck.entrypoints.main import main\n"
+            "if __name__ == '__main__':\n"
+            "    main()\n"
+        )
+        runner_py.write_text(runner_content, encoding="utf-8")
+
+        if is_win:
+            cmd_content = f'@echo off\n"{sys.executable}" "{runner_py}" %*\n'
+            local_launcher.write_text(cmd_content, encoding="utf-8")
+        else:
+            sh_content = f'#!/bin/sh\nexec "{sys.executable}" "{runner_py}" "$@"\n'
+            local_launcher.write_text(sh_content, encoding="utf-8")
+            os.chmod(local_launcher, 0o755)
+    except Exception:
+        pass
+
+    return bool(shutil.which("thefuck") or local_launcher.exists())
+
+
 def handle_add_command(args: List[str], console: Optional[Console] = None) -> int:
     """
     Handles 'kapsel add <plugin_name>' system command.
@@ -339,6 +442,8 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         _silently_install_pet()
     elif target_name == "profile":
         _silently_install_chezmoi()
+    elif target_name == "fuck":
+        _silently_install_thefuck()
 
     msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
     msg += f"[dim]Location: {plugin_dir}[/]"

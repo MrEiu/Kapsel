@@ -30,7 +30,7 @@ class HistoryManager:
         return conn
 
     def _init_db(self) -> None:
-        """Initializes SQLite database and tables."""
+        """Initializes SQLite database and tables with automatic schema migration."""
         try:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
             with self._get_connection() as conn:
@@ -40,7 +40,8 @@ class HistoryManager:
                     CREATE TABLE IF NOT EXISTS history (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         command TEXT NOT NULL,
-                        working_dir TEXT NOT NULL,
+                        working_dir TEXT DEFAULT '',
+                        cwd TEXT DEFAULT '',
                         exit_code INTEGER DEFAULT 0,
                         duration_ms INTEGER DEFAULT 0,
                         shell TEXT DEFAULT 'pwsh',
@@ -48,6 +49,19 @@ class HistoryManager:
                     )
                     """
                 )
+                # Check existing columns and migrate if necessary
+                cols = [row[1] for row in cur.execute("PRAGMA table_info(history)").fetchall()]
+                if "working_dir" not in cols:
+                    cur.execute("ALTER TABLE history ADD COLUMN working_dir TEXT DEFAULT ''")
+                if "cwd" not in cols:
+                    cur.execute("ALTER TABLE history ADD COLUMN cwd TEXT DEFAULT ''")
+                if "exit_code" not in cols:
+                    cur.execute("ALTER TABLE history ADD COLUMN exit_code INTEGER DEFAULT 0")
+                if "duration_ms" not in cols:
+                    cur.execute("ALTER TABLE history ADD COLUMN duration_ms INTEGER DEFAULT 0")
+                if "shell" not in cols:
+                    cur.execute("ALTER TABLE history ADD COLUMN shell TEXT DEFAULT 'pwsh'")
+
                 cur.execute("CREATE INDEX IF NOT EXISTS idx_hist_cmd ON history(command)")
                 cur.execute("CREATE INDEX IF NOT EXISTS idx_hist_ts ON history(timestamp DESC)")
                 conn.commit()
@@ -66,15 +80,17 @@ class HistoryManager:
         if not cmd:
             return
         try:
+            import time
             with self._get_connection() as conn:
                 cur = conn.cursor()
-                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                now_ts = time.time()
+                target_dir = working_dir or str(Path.cwd())
                 cur.execute(
                     """
-                    INSERT INTO history (command, working_dir, exit_code, duration_ms, shell, timestamp)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO history (command, translated_cmd, mode, cwd, working_dir, exit_code, duration_ms, shell, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (cmd, working_dir or str(Path.cwd()), exit_code, duration_ms, shell, now),
+                    (cmd, None, "native", target_dir, target_dir, exit_code, duration_ms, shell, now_ts),
                 )
                 conn.commit()
         except Exception as e:

@@ -1,25 +1,58 @@
 """
-Kapsel Command History & Persistence Storage (Facade).
-Delegates directly to centralized UserDatabase (~/.kapsel/user.db) for cross-session retention.
+Kapsel Command History & Persistence Storage.
+Directly uses local SQLite database (~/.kapsel/history.db) for cross-session retention.
 """
 
+from datetime import datetime
 from pathlib import Path
+import sqlite3
 from typing import Any, Dict, Iterable, List, Optional
 
 from prompt_toolkit.history import History
 
-from kapsel.storage.user_db import get_user_db
+from kapsel.storage.logger import get_kapsel_dir, logger
 
 
 def get_history_db_path() -> Path:
-    return get_user_db().db_path
+    return get_kapsel_dir() / "history.db"
 
 
 class HistoryManager:
-    """Manages cross-session command history through centralized UserDatabase."""
+    """Manages cross-session command history through local SQLite database."""
 
     def __init__(self, db_path: Optional[Path] = None):
-        self.user_db = get_user_db()
+        self.db_path = db_path or get_history_db_path()
+        self._init_db()
+
+    def _get_connection(self) -> sqlite3.Connection:
+        conn = sqlite3.connect(str(self.db_path), timeout=10.0)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def _init_db(self) -> None:
+        """Initializes SQLite database and tables."""
+        try:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            with self._get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS history (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        command TEXT NOT NULL,
+                        working_dir TEXT NOT NULL,
+                        exit_code INTEGER DEFAULT 0,
+                        duration_ms INTEGER DEFAULT 0,
+                        shell TEXT DEFAULT 'pwsh',
+                        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+                    )
+                    """
+                )
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_hist_cmd ON history(command)")
+                cur.execute("CREATE INDEX IF NOT EXISTS idx_hist_ts ON history(timestamp DESC)")
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to initialize history database: {e}")
 
     def record_command(
         self,
@@ -32,13 +65,20 @@ class HistoryManager:
         cmd = command.strip()
         if not cmd:
             return
-        self.user_db.record_history(
-            command=cmd,
-            working_dir=working_dir or str(Path.cwd()),
-            exit_code=exit_code,
-            duration_ms=duration_ms,
-            shell=shell,
-        )
+        try:
+            with self._get_connection() as conn:
+                cur = conn.cursor()
+                now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                cur.execute(
+                    """
+                    INSERT INTO history (command, working_dir, exit_code, duration_ms, shell, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (cmd, working_dir or str(Path.cwd()), exit_code, duration_ms, shell, now),
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Failed to record history: {e}")
 
     def add_record(
         self,
@@ -51,7 +91,7 @@ class HistoryManager:
         duration_ms: int = 0,
         exit_code: int = 0,
     ) -> None:
-        """Called by DualStateEngine to persist executed commands with duration and exit status."""
+        """Called by Engine to persist executed commands with duration and exit status."""
         self.record_command(
             command=command,
             working_dir=cwd,
@@ -64,22 +104,28 @@ class HistoryManager:
         """Increments usage count for ranking."""
         pass
 
-    def get_command_weights(self) -> Dict[str, int]:
-        return self.user_db.get_command_weights()
-
-    def get_recent_history_strings(self, limit: int = 20) -> List[str]:
+    def get_recent_history_strings(self, limit: int = 50) -> List[str]:
         """
-        Retrieves recent command strings from user.db.
-        Returns entries in reverse chronological order (latest / most recent first),
-        as expected by prompt_toolkit.history.History.
+        Retrieves recent command strings.
+        Returns entries in reverse chronological order (latest / most recent first).
         """
-        hist = self.user_db.get_recent_history(limit)
-        results: List[str] = []
-        for r in hist:
-            cmd = r.get("command", "").strip()
-            if cmd and (not results or results[-1] != cmd):
-                results.append(cmd)
-        return results
+        try:
+            with self._get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT command FROM history ORDER BY id DESC LIMIT ?",
+                    (limit,),
+                )
+                rows = cur.fetchall()
+                results: List[str] = []
+                for r in rows:
+                    cmd = r["command"].strip()
+                    if cmd and (not results or results[-1] != cmd):
+                        results.append(cmd)
+                return results
+        except Exception as e:
+            logger.error(f"Failed to fetch history strings: {e}")
+            return []
 
 
 class KapselPromptHistory(History):
@@ -88,7 +134,7 @@ class KapselPromptHistory(History):
     Ensures full command lines are loaded across sessions and persisted on every entry.
     """
 
-    def __init__(self, manager: Optional[HistoryManager] = None, limit: int = 20):
+    def __init__(self, manager: Optional[HistoryManager] = None, limit: int = 50):
         super().__init__()
         self.manager = manager or HistoryManager()
         self.limit = limit
@@ -98,7 +144,7 @@ class KapselPromptHistory(History):
         return self.manager.get_recent_history_strings(limit=self.limit)
 
     def store_string(self, string: str) -> None:
-        """Immediately persists newly entered command line to ~/.kapsel/user.db."""
+        """Immediately persists newly entered command line to local SQLite history."""
         cmd = string.strip()
         if cmd:
             self.manager.record_command(command=cmd)

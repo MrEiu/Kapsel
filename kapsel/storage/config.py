@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 import yaml
 
 from kapsel.storage.logger import get_kapsel_dir, logger
@@ -68,6 +68,10 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "sync": {
         "enable_auto_sync": False,
         "sync_timeout_seconds": 5,
+    },
+    "plugins": {
+        "enabled": [],
+        "extra_dirs": [],
     },
 }
 
@@ -248,6 +252,17 @@ class KapselConfig:
     @property
     def history_entries(self) -> int:
         return int(self.raw.get("history", {}).get("max_memory_entries", 20))
+
+    @property
+    def enabled_plugins(self) -> List[str]:
+        return list(self.raw.get("plugins", {}).get("enabled", []))
+
+    @property
+    def plugin_dirs(self) -> List[str]:
+        return list(self.raw.get("plugins", {}).get("extra_dirs", []))
+
+    def get_data_dir(self) -> Path:
+        return get_kapsel_dir()
 
 
 def get_config_path() -> Path:

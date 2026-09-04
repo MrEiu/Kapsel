@@ -5,14 +5,13 @@ Encloses command input and output in modern terminal block cards.
 
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 from prompt_toolkit.formatted_text import FormattedText
 from rich.console import Console
 
 from kapsel.core.detector import detector
 from kapsel.core.executor import ExecutionSummary
-from kapsel.core.router import TranslationResult
 from kapsel.storage.config import KapselConfig
 from kapsel.ui.banner import ensure_utf8_io
 
@@ -64,7 +63,7 @@ def get_prompt_tokens(config: KapselConfig, shell_name: str) -> FormattedText:
 
 def render_execution_footer(
     summary: ExecutionSummary,
-    translation: Optional[TranslationResult] = None,
+    translation: Optional[Any] = None,
     config: Optional[KapselConfig] = None,
     console: Optional[Console] = None,
 ) -> None:
@@ -99,8 +98,11 @@ def render_execution_footer(
     meta_parts = [f"[bold #0891b2]{bottom_sym}[/]", badge, timing]
 
     # If it was a Kapsel Mode translated command, display the real command that executed
-    if translation and translation.translated_cmd != translation.original_input:
-        meta_parts.append(f"[dim #4b5563]·[/] [italic #a855f7]{translation.translated_cmd}[/]")
+    if translation:
+        real_cmd = getattr(translation, "translated_cmd", str(translation))
+        orig_cmd = getattr(translation, "original_input", "")
+        if real_cmd and real_cmd != orig_cmd:
+            meta_parts.append(f"[dim #4b5563]·[/] [italic #a855f7]{real_cmd}[/]")
 
     footer_line = "  ".join(meta_parts)
     console.print(footer_line)

@@ -10,7 +10,7 @@ from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from kapsel.core.engine import DualStateEngine
 from kapsel.storage.config import KapselConfig
 from kapsel.storage.history import KapselPromptHistory
-from kapsel.core.completion import DualStateCompleter
+from kapsel.completion import DualStateCompleter
 from kapsel.ui.card import get_prompt_tokens
 from kapsel.ui.theme import PT_STYLE
 
@@ -189,6 +189,7 @@ class KapselPrompt:
         )
         self.completer = DualStateCompleter(
             current_shell=engine.shell_name,
+            plugin_manager=getattr(engine, "plugin_manager", None),
         )
         self.key_bindings = create_key_bindings(self.config)
 

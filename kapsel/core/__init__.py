@@ -3,17 +3,26 @@ Kapsel core engine package.
 """
 
 from kapsel.core.detector import EnvironmentDetector, detector
-from kapsel.core.router import CommandRouter, TranslationResult
+from kapsel.core.engine import DispatchResult, DualStateEngine
 from kapsel.core.executor import CommandExecutor, ExecutionSummary
-from kapsel.core.engine import DualStateEngine, DispatchResult
+from kapsel.core.plugin import (
+    HookType,
+    KapselPlugin,
+    PluginContext,
+    PluginManager,
+    PluginManifest,
+)
 
 __all__ = [
     "EnvironmentDetector",
     "detector",
-    "CommandRouter",
-    "TranslationResult",
     "CommandExecutor",
     "ExecutionSummary",
     "DualStateEngine",
     "DispatchResult",
+    "KapselPlugin",
+    "PluginManifest",
+    "PluginContext",
+    "HookType",
+    "PluginManager",
 ]

@@ -17,7 +17,6 @@ from kapsel.storage.logger import (
     logger,
     setup_logger,
 )
-from kapsel.storage.user_db import get_user_db
 
 
 def migrate_kapsel_data(target_path_str: str) -> Tuple[bool, str]:
@@ -61,8 +60,8 @@ def migrate_kapsel_data(target_path_str: str) -> Tuple[bool, str]:
         except Exception:
             pass
 
-    user_db = get_user_db()
-    user_db.close()
+    import gc
+    gc.collect()
 
     # 2. Copy all files and subdirectories to target
     copied_items = []

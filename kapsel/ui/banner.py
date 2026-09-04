@@ -11,9 +11,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from kapsel.storage.commands import CommandRegistry
-
-
 def ensure_utf8_io() -> None:
     """Ensure standard input and output streams use utf-8 encoding."""
     try:
@@ -27,7 +24,6 @@ def ensure_utf8_io() -> None:
 
 def render_banner(
     console: Optional[Console] = None,
-    registry: Optional[CommandRegistry] = None,
 ) -> None:
     """Renders a concise, modern ASCII capsule logo banner on startup."""
     ensure_utf8_io()

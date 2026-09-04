@@ -99,9 +99,9 @@ class CommandExecutor:
                 is_builtin=True,
             )
 
-        # Check unified commands package (help, status, config, repo, user, install)
-        from kapsel.commands import dispatch_builtin
-        builtin_code = dispatch_builtin(cmd)
+        # Check unified kps commands
+        from kapsel.completion.kps import dispatch_kps
+        builtin_code = dispatch_kps(cmd)
         if builtin_code is not None:
             return ExecutionSummary(
                 command=cmd,

@@ -64,10 +64,16 @@ class DualStateEngine:
         self.plugin_manager.unload_all()
         self.plugin_manager.load_all_plugins()
 
-    def is_kps_mode(self, text: str) -> bool:
-        """Determines if the current text line represents Kapsel Mode."""
+    def is_kapsel_mode(self, text: str) -> bool:
+        """Determines if the current text line represents Kapsel Command Mode."""
         stripped = text.strip()
-        return stripped == "kps" or stripped.startswith("kps ")
+        return (
+            stripped in ("kapsel", "kps")
+            or stripped.startswith("kapsel ")
+            or stripped.startswith("kps ")
+        )
+
+    is_kps_mode = is_kapsel_mode
 
     def dispatch(self, user_input: str) -> DispatchResult:
         """
@@ -82,16 +88,16 @@ class DualStateEngine:
         is_filtered, transformed_cmd = self.plugin_manager.filter_command(user_input)
 
         if is_filtered:
-            mode = "kps"
+            mode = "kapsel"
             cmd_to_run = transformed_cmd
             exec_summary = self.executor.execute(cmd_to_run)
             translated_cmd = cmd_to_run
 
-        elif self.is_kps_mode(user_input):
-            mode = "kps"
+        elif self.is_kapsel_mode(user_input):
+            mode = "kapsel"
             translated_cmd = None
 
-            # Try dispatching to core/plugin kps subcommands
+            # Try dispatching to core/plugin kps/kapsel subcommands
             t0 = time.perf_counter()
             handled_code = dispatch_kps(user_input)
             t1 = time.perf_counter()
@@ -108,7 +114,7 @@ class DualStateEngine:
                 )
             else:
                 # Not a recognized builtin command
-                print(f"kapsel: 未知指令 '{user_input}'。输入 'kps help' 查看可用指令。")
+                print(f"kapsel: 未知指令 '{user_input}'。输入 'kapsel help' 查看可用指令。")
                 exec_summary = ExecutionSummary(
                     command=user_input,
                     exit_code=1,

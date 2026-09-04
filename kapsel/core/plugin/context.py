@@ -47,10 +47,11 @@ class PluginContext:
         help_text: str,
         subcommands: Optional[Dict[str, str]] = None,
         usage: Optional[str] = None,
+        scope: str = "feature",
     ) -> None:
         """
-        Registers a new 'kps <name>' subcommand.
-        Automatically exposes it to both autocompletion and CLI dispatching.
+        Registers a new functional 'kps <name>' command (or system command if scope='system').
+        Automatically exposes it to autocompletion and CLI dispatching.
         """
         self._kps_command_register_fn(
             name=name,
@@ -59,6 +60,7 @@ class PluginContext:
             subcommands=subcommands,
             usage=usage,
             plugin_id=self.plugin_id,
+            scope=scope,
         )
 
     def register_hook(self, hook_type: HookType, callback: Callable) -> None:

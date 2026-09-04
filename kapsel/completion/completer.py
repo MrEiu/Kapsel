@@ -43,36 +43,62 @@ class DualStateCompleter(Completer):
         text_before = document.text_before_cursor
         stripped = text_before.lstrip()
 
-        # 1. User is typing 'kps' (offer transition to Kapsel Mode)
-        if stripped in ("k", "kp", "kps"):
+        # 1. User is typing 'kapsel' or 'kps' (offer transition)
+        if stripped in ("k", "ka", "kap", "kaps", "kapse", "kapsel"):
+            yield Completion(
+                text="kapsel ",
+                start_position=-len(stripped),
+                display="kapsel ",
+                display_meta="⚙️ 胶囊系统管理 (help, status, config, datadir)",
+            )
             yield Completion(
                 text="kps ",
                 start_position=-len(stripped),
                 display="kps ",
-                display_meta="💊 进入跨平台智能胶囊模式",
+                display_meta="🚀 胶囊功能扩展 (install, add, update, search, sync)",
+            )
+            return
+        if stripped in ("kp", "kps"):
+            yield Completion(
+                text="kps ",
+                start_position=-len(stripped),
+                display="kps ",
+                display_meta="🚀 胶囊功能扩展 (install, add, update, search, sync)",
             )
             return
 
-        # 2. Kapsel Mode: Active when line starts with 'kps '
-        if stripped.startswith("kps "):
-            sub = stripped[4:]
-            yield from self._complete_kapsel_mode(sub, document, complete_event)
+        # 2. System Management Mode: 'kapsel <cmd>'
+        if stripped.startswith("kapsel "):
+            sub = stripped[7:]
+            yield from self._complete_scoped_mode(sub, scope="system")
             return
 
-        # 3. Native Mode: Fig.Spec multi-level subcommands, flags, builtins & paths
+        # 3. Feature/Plugin Mode: 'kps <cmd>'
+        if stripped.startswith("kps "):
+            sub = stripped[4:]
+            yield from self._complete_scoped_mode(sub, scope="feature")
+            return
+
+        # 4. Native Mode: Fig.Spec multi-level subcommands, flags, builtins & paths
         yield from self._complete_native_mode(stripped, document, complete_event)
 
-    def _complete_kapsel_mode(
-        self, query: str, document: Document, complete_event: CompleteEvent
+    def _complete_scoped_mode(
+        self, query: str, scope: str
     ) -> Iterable[Completion]:
         words = query.split()
         first_word = words[0] if words else ""
 
-        # A. If typing the primary kps command name (e.g. 'kps st' -> 'kps status')
+        # Filter commands matching the requested scope ('system' or 'feature')
+        if scope == "system":
+            available_cmds = self.kps_registry.list_system_commands()
+        else:
+            available_cmds = self.kps_registry.list_feature_commands()
+
+        # A. Completing the primary command name
         if len(words) <= 1 and not query.endswith(" "):
-            for cmd in self.kps_registry.list_commands():
+            for cmd in available_cmds:
                 if cmd.name.startswith(first_word.lower()):
-                    icon = "🔌 " if cmd.plugin_id else "⚙️ "
+                    icon = "⚙️ " if scope == "system" else "🚀 "
                     yield Completion(
                         text=cmd.name,
                         start_position=-len(first_word),
@@ -80,9 +106,9 @@ class DualStateCompleter(Completer):
                         display_meta=f"{icon}{cmd.help_text}",
                     )
 
-        # B. If command is typed and user is typing subarguments (e.g. 'kps config ed')
+        # B. Completing subarguments
         elif len(words) >= 1:
-            cmd = self.kps_registry.get(first_word.lower())
+            cmd = self.kps_registry.get(first_word.lower(), scope=scope)
             if cmd and cmd.subcommands:
                 sub_query = words[1] if len(words) > 1 and not query.endswith(" ") else ""
                 if len(words) == 1 and query.endswith(" "):
@@ -96,8 +122,8 @@ class DualStateCompleter(Completer):
                             display_meta=f"🔹 {subdesc}",
                         )
 
-        # C. Plugin-provided completions for kps mode
-        if self.plugin_manager:
+        # C. Plugin-provided completions (for feature scope)
+        if scope == "feature" and self.plugin_manager:
             plugin_cands = self.plugin_manager.get_plugin_completions("kps " + query)
             for cand in plugin_cands:
                 yield Completion(
@@ -107,8 +133,8 @@ class DualStateCompleter(Completer):
                     display_meta=cand.get("display_meta", "🔌 插件提供"),
                 )
 
-        # D. If user is entering a tool under kps (e.g. 'kps git commit'), also offer Fig completions
-        if words and self.fig_engine.has_spec_for_tool(first_word):
+        # D. Fig completions for tools entered under kps
+        if scope == "feature" and words and self.fig_engine.has_spec_for_tool(first_word):
             yield from self._yield_fig_completions(query)
 
     def _complete_native_mode(
@@ -128,10 +154,6 @@ class DualStateCompleter(Completer):
             curr_word = parts[0] if parts else ""
             native_builtins = [
                 ("cd", "切换工作目录 (支持 cd ~, cd -)"),
-                ("help", "查看帮助手册"),
-                ("status", "查看终端环境与沙箱运行状态"),
-                ("config", "查看与修改全局配置文件"),
-                ("datadir", "查看或自定义迁移数据存储位置"),
                 ("clear", "清除终端屏幕"),
                 ("exit", "退出胶囊会话"),
                 ("git", "Git 分布式版本控制 (Fig感知就绪)"),

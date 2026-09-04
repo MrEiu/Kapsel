@@ -99,18 +99,19 @@ class CommandExecutor:
                 is_builtin=True,
             )
 
-        # Check unified kps commands
-        from kapsel.completion.kps import dispatch_kps
-        builtin_code = dispatch_kps(cmd)
-        if builtin_code is not None:
-            return ExecutionSummary(
-                command=cmd,
-                exit_code=builtin_code,
-                duration_ms=0,
-                duration_str="0ms",
-                success=(builtin_code == 0),
-                is_builtin=True,
-            )
+        # Check kapsel/kps prefixed commands
+        if primary in ("kapsel", "kps"):
+            from kapsel.completion.kps import dispatch_kps
+            builtin_code = dispatch_kps(cmd)
+            if builtin_code is not None:
+                return ExecutionSummary(
+                    command=cmd,
+                    exit_code=builtin_code,
+                    duration_ms=0,
+                    duration_str="0ms",
+                    success=(builtin_code == 0),
+                    is_builtin=True,
+                )
 
         # Builtin: clear / cls
         if primary in ("clear", "cls"):

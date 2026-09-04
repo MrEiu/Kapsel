@@ -43,7 +43,7 @@ def render_banner(
     info_lines = (
         "[bold #00f0ff]💊 KAPSEL[/] [dim]v0.1.0[/]  ·  [#e4e4e7]跨平台自适应智能终端胶囊[/]\n"
         "[dim italic]Wrap complexity, expose simplicity.[/]\n"
-        "[dim]输入 [/][bold #a855f7]'help'[/][dim] 使用指南  │  [/][bold #38bdf8]'status'[/][dim] 运行状态  │  [/][bold #00f0ff]'kps <cmd>'[/][dim] 胶囊指令  │  [/][dim]'exit' 退出[/]"
+        "[dim]输入 [/][bold #00f0ff]'kapsel help'[/][dim] 使用指南  │  [/][bold #38bdf8]'kapsel status'[/][dim] 运行状态  │  [/][dim]'exit' 退出[/]"
     )
     grid.add_row(ascii_logo, info_lines)
 

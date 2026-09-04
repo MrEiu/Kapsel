@@ -89,6 +89,11 @@ def dispatch_kps(command_line: str, console: Optional[Console] = None) -> Option
 
     # Feature Scope ('kps <cmd>')
     if prefix == "kps":
+        if cmd_name == "toggle":
+            sys_cmd = registry.get("toggle", scope="system")
+            if sys_cmd:
+                return sys_cmd.handler(args, con)
+
         feat_cmd = registry.get(cmd_name, scope="feature")
         if feat_cmd:
             return feat_cmd.handler(args, con)

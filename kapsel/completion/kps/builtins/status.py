@@ -4,6 +4,7 @@ Renders comprehensive runtime environment, shell sniffing, and sandbox status da
 """
 
 from datetime import datetime
+import os
 from pathlib import Path
 import platform
 import sys
@@ -85,11 +86,12 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
     specs_dir = Path(__file__).resolve().parent.parent.parent / "specs"
     spec_count = len(list(specs_dir.glob("*.json"))) if specs_dir.exists() else 0
 
+    is_active = os.environ.get("KAPSEL_ACTIVE") == "1"
     grid.add_row(
         "🎯 自动补全规则库:",
         f"[bold #10b981]{spec_count}[/] 个内置 Fig 工具规范",
-        "⚙️ 控制台注册指令:",
-        f"[bold #38bdf8]{len(commands)}[/] 个可用指令",
+        "⚙️ 终端默认模式:",
+        f"[bold #10b981]🟢 已托管 (kapsel active)[/]" if is_active else "[dim]⚪ 未托管 (kapsel toggle 开启)[/]",
     )
 
     panel = Panel(

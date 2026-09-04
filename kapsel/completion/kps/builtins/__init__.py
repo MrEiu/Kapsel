@@ -18,6 +18,7 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
     from kapsel.completion.kps.builtins.datadir import handle_datadir_command
     from kapsel.completion.kps.builtins.help import handle_help
     from kapsel.completion.kps.builtins.status import handle_status
+    from kapsel.completion.kps.builtins.toggle import handle_toggle_command
 
     # 1. kapsel help
     registry.register(
@@ -75,5 +76,14 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
             "install": "Enable the official cross-platform package installer plugin",
         },
         usage="kapsel add <plugin_name>",
+        scope="system",
+    )
+
+    # 6. kapsel toggle
+    registry.register(
+        name="toggle",
+        handler=handle_toggle_command,
+        help_text="Toggle Kapsel as default terminal mode (open on first call, close on second)",
+        usage="kapsel toggle",
         scope="system",
     )

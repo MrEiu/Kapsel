@@ -1,11 +1,16 @@
 """
 Kapsel CLI entry point.
 Provides both the interactive TUI capsule shell (`kapsel`) and one-shot translator tool (`kps`).
+Includes 'kapsel toggle' to toggle Kapsel as the default terminal environment.
+All comments and descriptions are in English.
 """
 
-import argparse
+import os
 import sys
 from typing import List, Optional
+
+from rich.console import Console
+from rich.panel import Panel
 
 from kapsel import __version__
 from kapsel.completion.kps import dispatch_kps
@@ -16,39 +21,25 @@ from kapsel.ui.card import render_execution_footer
 from kapsel.ui.prompt import KapselPrompt
 
 
-def parse_args(args: Optional[List[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        prog="kapsel",
-        description="💊 Kapsel：跨平台自适应智能终端胶囊 (Cross-platform adaptive smart terminal capsule)",
-    )
-    parser.add_argument(
-        "-v", "--version",
-        action="version",
-        version=f"Kapsel v{__version__}",
-    )
-    parser.add_argument(
-        "--no-banner",
-        action="store_true",
-        help="禁用启动欢迎面板",
-    )
-    parser.add_argument(
-        "-c", "--command",
-        type=str,
-        help="直接执行单条指令并退出",
-    )
-    return parser.parse_args(args)
-
-
 def main(args: Optional[List[str]] = None) -> int:
-    """Main interactive capsule shell loop."""
+    """Main interactive capsule shell loop and command runner."""
     ensure_utf8_io()
-    parsed = parse_args(args)
+    if args is None:
+        args = sys.argv[1:]
 
-    engine = DualStateEngine()
+    # Handle quick flags
+    if args and args[0] in ("-v", "--version"):
+        print(f"Kapsel v{__version__}")
+        return 0
 
-    # One-shot command execution via -c
-    if parsed.command:
-        result = engine.dispatch(parsed.command)
+    no_banner = "--no-banner" in args
+    clean_args = [a for a in args if a != "--no-banner"]
+
+    # Handle -c / --command
+    if clean_args and clean_args[0] in ("-c", "--command"):
+        cmd_str = " ".join(clean_args[1:])
+        engine = DualStateEngine()
+        result = engine.dispatch(cmd_str)
         if engine.config.enable_card_border and not result.execution.is_builtin:
             render_execution_footer(
                 summary=result.execution,
@@ -57,8 +48,42 @@ def main(args: Optional[List[str]] = None) -> int:
             )
         return result.execution.exit_code
 
-    # Render startup banner if enabled
-    if engine.config.enable_banner and not parsed.no_banner:
+    is_toggle_start = False
+    if clean_args and clean_args[0] == "toggle":
+        is_toggle_start = True
+        clean_args = clean_args[1:]
+
+    # If other positional subcommands passed (e.g. kapsel status, kapsel help, kapsel add, kapsel config, kapsel datadir)
+    if clean_args and not is_toggle_start:
+        engine = DualStateEngine()
+        full_cmd = "kapsel " + " ".join(clean_args)
+        result = engine.dispatch(full_cmd)
+        if engine.config.enable_card_border and not result.execution.is_builtin:
+            render_execution_footer(
+                summary=result.execution,
+                translation=result.translated_cmd,
+                config=engine.config,
+            )
+        return result.execution.exit_code
+
+    # Launch interactive shell (Kapsel Default Mode)
+    engine = DualStateEngine()
+    console = Console(legacy_windows=False)
+
+    os.environ["KAPSEL_ACTIVE"] = "1"
+
+    if is_toggle_start:
+        console.print(
+            Panel(
+                "[bold #10b981]✔ Kapsel 终端默认模式已开启！[/]\n\n"
+                "[white]当前终端已将 Kapsel 作为默认交互环境，享受智能补全与命令转译。\n"
+                "在终端中输入 '[bold #00f0ff]kapsel toggle[/]' 或 '[bold #00f0ff]toggle[/]' 即可关闭退出并切回宿主终端。[/]",
+                title="[bold #00f0ff]💊 Kapsel Default Mode[/]",
+                border_style="#0891b2",
+                expand=False,
+            )
+        )
+    elif engine.config.enable_banner and not no_banner:
         render_banner()
 
     prompt_session = KapselPrompt(engine)
@@ -73,6 +98,7 @@ def main(args: Optional[List[str]] = None) -> int:
             continue
         except EOFError:
             # User pressed Ctrl+D, cleanly exit
+            os.environ.pop("KAPSEL_ACTIVE", None)
             print("\nExiting Kapsel. Bye! 💊")
             break
 
@@ -80,8 +106,18 @@ def main(args: Optional[List[str]] = None) -> int:
         if not stripped:
             continue
 
-        if stripped.lower() in ("exit", "quit"):
-            print("Exiting Kapsel. Bye! 💊")
+        normalized = " ".join(stripped.lower().split())
+        if normalized in ("exit", "quit", "toggle", "kapsel toggle", "kps toggle"):
+            os.environ.pop("KAPSEL_ACTIVE", None)
+            console.print(
+                Panel(
+                    "[bold #00f0ff]🔌 Kapsel 终端默认模式已关闭，已退出并切回宿主终端。[/]\n"
+                    "[dim]随时输入 '[white]kapsel toggle[/]' 即可重新开启。[/]",
+                    title="[bold #00f0ff]💊 Kapsel Deactivated[/]",
+                    border_style="#0891b2",
+                    expand=False,
+                )
+            )
             break
 
         try:
@@ -114,6 +150,9 @@ def kps_cli() -> int:
     if argv[0] in ("-v", "--version"):
         print(f"Kapsel v{__version__}")
         return 0
+
+    if argv[0] == "toggle":
+        return main(["toggle"])
 
     # 1. Fast dispatch to registered built-in or plugin kps commands
     cmd_line = " ".join(argv)

@@ -17,6 +17,7 @@ from kapsel.ui.banner import ensure_utf8_io
 import os
 import platform
 import subprocess
+import sys
 import urllib.request
 
 
@@ -100,6 +101,77 @@ def _silently_install_mpm() -> bool:
     return bool(shutil.which("mpm") or local_mpm.exists())
 
 
+def _silently_install_pet() -> bool:
+    """
+    Silently installs the pet CLI snippet manager:
+    1. Homebrew on macOS / Linux (if available)
+    2. Official standalone tar.gz release from GitHub extracted to ~/.kapsel/bin/
+    """
+    bin_dir = get_kapsel_dir() / "bin"
+    is_win = sys.platform == "win32"
+    local_pet = bin_dir / ("pet.exe" if is_win else "pet")
+
+    if shutil.which("pet") or local_pet.exists():
+        return True
+
+    # 1. Homebrew on macOS / Linux
+    if (sys.platform == "darwin" or sys.platform.startswith("linux")) and shutil.which("brew"):
+        try:
+            res = subprocess.run(
+                ["brew", "install", "pet"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if res.returncode == 0 and shutil.which("pet"):
+                return True
+        except Exception:
+            pass
+
+    # 2. Direct official standalone binary download (GitHub release tar.gz)
+    try:
+        bin_dir.mkdir(parents=True, exist_ok=True)
+        machine = platform.machine().lower()
+        is_arm = "arm" in machine or "aarch64" in machine
+
+        if is_win:
+            arch = "arm64" if is_arm else "amd64"
+            url = f"https://github.com/knqyf263/pet/releases/download/v1.0.1/pet_1.0.1_windows_{arch}.tar.gz"
+        elif sys.platform == "darwin":
+            arch = "arm64" if is_arm else "amd64"
+            url = f"https://github.com/knqyf263/pet/releases/download/v1.0.1/pet_1.0.1_darwin_{arch}.tar.gz"
+        elif sys.platform.startswith("linux"):
+            arch = "arm64" if is_arm else "amd64"
+            url = f"https://github.com/knqyf263/pet/releases/download/v1.0.1/pet_1.0.1_linux_{arch}.tar.gz"
+        else:
+            url = None
+
+        if url:
+            archive_path = bin_dir / "pet.tar.gz"
+            # Try curl first for robust network connection
+            curl_res = subprocess.run(
+                ["curl", "-sL", url, "-o", str(archive_path)],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=60,
+            )
+            if curl_res.returncode != 0 or not archive_path.exists():
+                urllib.request.urlretrieve(url, archive_path)
+
+            import tarfile
+            with tarfile.open(archive_path, "r:gz") as tar:
+                tar.extractall(path=bin_dir)
+            archive_path.unlink(missing_ok=True)
+
+            if not is_win and local_pet.exists():
+                os.chmod(local_pet, 0o755)
+            return local_pet.exists()
+    except Exception:
+        pass
+
+    return bool(shutil.which("pet") or local_pet.exists())
+
+
 def handle_add_command(args: List[str], console: Optional[Console] = None) -> int:
     """
     Handles 'kapsel add <plugin_name>' system command.
@@ -164,10 +236,12 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         new_enabled = current_enabled + [target_name]
         update_config_value("plugins", "enabled", new_enabled)
 
-    # Silent official dependency installation for 'install' plugin
+    # Silent official dependency installation
     if target_name == "install":
         if not shutil.which("mpm"):
             _silently_install_mpm()
+    elif target_name == "rec":
+        _silently_install_pet()
 
     msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
     msg += f"[dim]Location: {plugin_dir}[/]"

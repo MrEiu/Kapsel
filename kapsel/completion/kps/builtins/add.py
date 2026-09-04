@@ -172,6 +172,101 @@ def _silently_install_pet() -> bool:
     return bool(shutil.which("pet") or local_pet.exists())
 
 
+def _silently_install_chezmoi() -> bool:
+    """
+    Silently installs the chezmoi CLI tool using official one-line scripts and package managers:
+    1. Windows: Scoop, Winget, or official one-line PowerShell script (get.chezmoi.io/ps1)
+    2. Linux/macOS: Homebrew or official one-line curl script (get.chezmoi.io)
+    """
+    bin_dir = get_kapsel_dir() / "bin"
+    is_win = sys.platform == "win32"
+    local_chezmoi = bin_dir / ("chezmoi.exe" if is_win else "chezmoi")
+
+    if shutil.which("chezmoi") or local_chezmoi.exists():
+        return True
+
+    # Windows methods
+    if is_win:
+        # 1. Scoop
+        if shutil.which("scoop"):
+            try:
+                res = subprocess.run(
+                    ["scoop", "install", "chezmoi"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0 and shutil.which("chezmoi"):
+                    return True
+            except Exception:
+                pass
+
+        # 2. Winget
+        if shutil.which("winget"):
+            try:
+                res = subprocess.run(
+                    ["winget", "install", "--id", "twpayne.chezmoi", "-e", "--silent", "--accept-source-agreements", "--accept-package-agreements"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=120,
+                )
+                if res.returncode == 0 and shutil.which("chezmoi"):
+                    return True
+            except Exception:
+                pass
+
+        # 3. Official PowerShell one-liner script (get.chezmoi.io/ps1)
+        try:
+            bin_dir.mkdir(parents=True, exist_ok=True)
+            cmd = f'powershell -NoProfile -ExecutionPolicy Bypass -Command "iex \\"&{{$(irm \'https://get.chezmoi.io/ps1\')}}\\" -b \'{bin_dir}\'"'
+            res = subprocess.run(
+                cmd,
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if local_chezmoi.exists():
+                return True
+        except Exception:
+            pass
+
+    else:
+        # Unix / macOS / Linux methods
+        # 1. Homebrew
+        if shutil.which("brew"):
+            try:
+                res = subprocess.run(
+                    ["brew", "install", "chezmoi"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    timeout=90,
+                )
+                if res.returncode == 0 and shutil.which("chezmoi"):
+                    return True
+            except Exception:
+                pass
+
+        # 2. Official curl one-liner script (get.chezmoi.io)
+        try:
+            bin_dir.mkdir(parents=True, exist_ok=True)
+            cmd = f'sh -c "$(curl -fsLS https://get.chezmoi.io)" -- -b "{bin_dir}"'
+            res = subprocess.run(
+                cmd,
+                shell=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=90,
+            )
+            if local_chezmoi.exists():
+                os.chmod(local_chezmoi, 0o755)
+                return True
+        except Exception:
+            pass
+
+    return bool(shutil.which("chezmoi") or local_chezmoi.exists())
+
+
 def handle_add_command(args: List[str], console: Optional[Console] = None) -> int:
     """
     Handles 'kapsel add <plugin_name>' system command.
@@ -242,6 +337,8 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
             _silently_install_mpm()
     elif target_name == "rec":
         _silently_install_pet()
+    elif target_name == "profile":
+        _silently_install_chezmoi()
 
     msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
     msg += f"[dim]Location: {plugin_dir}[/]"

@@ -23,14 +23,17 @@ class KpsCommand:
     usage: Optional[str] = None
     plugin_id: Optional[str] = None
     scope: str = "default"
+    hidden: bool = False
 
 
 class KpsCommandRegistry:
-    """Central registry storing all Kapsel commands uniformly."""
+    """Central registry storing Kapsel commands with distinct system and feature scopes."""
 
     def __init__(self):
-        # Keyed by command name (lowercase) to provide a unified command pipeline
+        # Keyed by command name (lowercase)
         self._commands: Dict[str, KpsCommand] = {}
+        self._system_commands: Dict[str, KpsCommand] = {}
+        self._feature_commands: Dict[str, KpsCommand] = {}
 
     def register(
         self,
@@ -41,8 +44,9 @@ class KpsCommandRegistry:
         usage: Optional[str] = None,
         plugin_id: Optional[str] = None,
         scope: str = "default",
+        hidden: bool = False,
     ) -> KpsCommand:
-        """Registers a command into the unified registry."""
+        """Registers a command into the registry under its designated scope."""
         clean_name = name.lower().strip()
         cmd = KpsCommand(
             name=clean_name,
@@ -52,38 +56,67 @@ class KpsCommandRegistry:
             usage=usage,
             plugin_id=plugin_id,
             scope=scope,
+            hidden=hidden,
         )
+
+        is_system = (scope == "system") or (scope == "default" and not plugin_id)
+        if is_system:
+            self._system_commands[clean_name] = cmd
+        else:
+            self._feature_commands[clean_name] = cmd
+
         self._commands[clean_name] = cmd
         return cmd
 
-    def get(self, name: str, scope: Optional[str] = None) -> Optional[KpsCommand]:
-        """Retrieves a command by name from the unified registry."""
+    def get_system_command(self, name: str) -> Optional[KpsCommand]:
+        """Retrieves a system management command (kapsel <cmd>)."""
         clean_name = name.lower().strip()
-        return self._commands.get(clean_name)
+        return self._system_commands.get(clean_name)
 
-    def list_commands(self) -> List[KpsCommand]:
+    def get_feature_command(self, name: str) -> Optional[KpsCommand]:
+        """Retrieves a plugin tool command (kps <cmd>)."""
+        clean_name = name.lower().strip()
+        return self._feature_commands.get(clean_name)
+
+    def get(self, name: str, scope: Optional[str] = None) -> Optional[KpsCommand]:
+        """Retrieves a command by name from the registry, respecting scope if given."""
+        clean_name = name.lower().strip()
+        if scope == "system":
+            return self._system_commands.get(clean_name)
+        elif scope == "feature":
+            return self._feature_commands.get(clean_name)
+        return self._feature_commands.get(clean_name) or self._system_commands.get(clean_name)
+
+    def list_commands(self, include_hidden: bool = False) -> List[KpsCommand]:
         """Returns all registered commands sorted by name."""
-        return sorted(self._commands.values(), key=lambda c: c.name)
+        cmds = self._commands.values()
+        if not include_hidden:
+            cmds = [c for c in cmds if not c.hidden]
+        return sorted(cmds, key=lambda c: c.name)
 
-    def list_system_commands(self) -> List[KpsCommand]:
-        """Backward-compatibility alias returning all core built-in commands."""
-        return sorted(
-            [c for c in self._commands.values() if not c.plugin_id],
-            key=lambda c: c.name,
-        )
+    def list_system_commands(self, include_hidden: bool = False) -> List[KpsCommand]:
+        """Returns all system platform commands (kapsel <cmd>)."""
+        cmds = self._system_commands.values()
+        if not include_hidden:
+            cmds = [c for c in cmds if not c.hidden]
+        return sorted(cmds, key=lambda c: c.name)
 
-    def list_feature_commands(self) -> List[KpsCommand]:
-        """Backward-compatibility alias returning all plugin-provided commands."""
-        return sorted(
-            [c for c in self._commands.values() if c.plugin_id],
-            key=lambda c: c.name,
-        )
+    def list_feature_commands(self, include_hidden: bool = False) -> List[KpsCommand]:
+        """Returns all plugin/tool feature commands (kps <cmd>)."""
+        cmds = self._feature_commands.values()
+        if not include_hidden:
+            cmds = [c for c in cmds if not c.hidden]
+        return sorted(cmds, key=lambda c: c.name)
 
     def remove_by_plugin(self, plugin_id: str) -> None:
         """Removes all commands registered by a specific plugin."""
         self._commands = {
             k: v for k, v in self._commands.items() if v.plugin_id != plugin_id
         }
+        self._feature_commands = {
+            k: v for k, v in self._feature_commands.items() if v.plugin_id != plugin_id
+        }
+
 
 
 # Global registry singleton

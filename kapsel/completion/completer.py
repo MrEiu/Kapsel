@@ -70,35 +70,41 @@ class DualStateCompleter(Completer):
             )
             return
 
-        # 2. Unified Kapsel Command Mode: 'kapsel <cmd>' or 'kps <cmd>'
+        # 2. Command Modes: 'kapsel <cmd>' (System) or 'kps <cmd>' (Tools)
         if stripped.startswith("kapsel "):
             sub = stripped[7:]
-            yield from self._complete_kapsel_mode(sub)
+            yield from self._complete_kapsel_mode(sub, mode="kapsel")
             return
 
         if stripped.startswith("kps "):
             sub = stripped[4:]
-            yield from self._complete_kapsel_mode(sub)
+            yield from self._complete_kapsel_mode(sub, mode="kps")
             return
 
         # 3. Native Mode: Carapace (1000+ tools), Fig fallback, builtins, & paths
         yield from self._complete_native_mode(stripped, document, complete_event)
 
-    def _complete_kapsel_mode(self, query: str) -> Iterable[Completion]:
-        """Completes commands under unified 'kapsel ' and 'kps ' pipeline."""
+    def _complete_kapsel_mode(self, query: str, mode: str = "kps") -> Iterable[Completion]:
+        """Completes commands under scoped 'kapsel ' (system) or 'kps ' (tools) pipeline."""
         ends_with_space = query.endswith(" ")
         words = query.split()
 
-        # 1. Primary: Carapace unified root tree completion for 'kps <query>'
-        if self.carapace_engine.is_available() and self.carapace_engine.has_completer_for("kps"):
-            # If user ran a native tool prefixed with kapsel/kps (e.g. 'kps git checkout')
-            if words and not self.kps_registry.get(words[0].lower()):
+        # 1. Primary: Carapace root tree completion for 'kapsel <query>' or 'kps <query>'
+        root_cmd = "kapsel" if mode == "kapsel" else "kps"
+        if self.carapace_engine.is_available() and self.carapace_engine.has_completer_for(root_cmd):
+            # If user ran a native tool prefixed with kapsel/kps
+            if words:
                 first_tool = words[0].lower()
-                if self.carapace_engine.has_completer_for(first_tool):
+                target_cmd = (
+                    self.kps_registry.get_system_command(first_tool)
+                    if mode == "kapsel"
+                    else self.kps_registry.get_feature_command(first_tool)
+                )
+                if not target_cmd and self.carapace_engine.has_completer_for(first_tool):
                     yield from self._yield_carapace_completions(query)
                     return
 
-            cands = list(self._yield_carapace_completions("kps " + query))
+            cands = list(self._yield_carapace_completions(f"{root_cmd} {query}"))
             if cands:
                 yield from cands
                 return
@@ -109,13 +115,16 @@ class DualStateCompleter(Completer):
         else:
             prefix = words[-1] if words else ""
 
-        available_cmds = self.kps_registry.list_commands()
+        if mode == "kapsel":
+            available_cmds = self.kps_registry.list_system_commands()
+        else:
+            available_cmds = self.kps_registry.list_feature_commands()
 
-        # A. Completing primary command name (e.g. 'kapsel conf', 'kps ai', etc.)
+        # A. Completing primary command name
         if len(words) == 0 or (len(words) == 1 and not ends_with_space):
             for cmd in available_cmds:
                 if cmd.name.startswith(prefix.lower()):
-                    icon = "🚀 " if cmd.plugin_id else "⚙️ "
+                    icon = "⚙️ " if mode == "kapsel" else "🚀 "
                     yield Completion(
                         text=cmd.name,
                         start_position=-len(prefix),
@@ -126,7 +135,8 @@ class DualStateCompleter(Completer):
         # B. Completing subcommands (e.g. 'kapsel config [edit|path|get|set]')
         elif len(words) >= 1:
             first_cmd_name = words[0].lower()
-            cmd = self.kps_registry.get(first_cmd_name)
+            cmd = self.kps_registry.get_system_command(first_cmd_name) if mode == "kapsel" else self.kps_registry.get_feature_command(first_cmd_name)
+
             if cmd and cmd.subcommands:
                 if len(words) == 1 and ends_with_space:
                     sub_prefix = ""

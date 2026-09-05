@@ -120,7 +120,10 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         except Exception as e:
             con.print(f"[yellow]Warning: Failed to execute installer for '{target_name}':[/] {e}")
 
-    msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' successfully added and enabled![/]\n\n"
+    from kapsel.core.plugin.catalog import _extract_plugin_version
+    ver = _extract_plugin_version(plugin_dir)
+
+    msg = f"[bold #10b981]✔ Plugin '[#00f0ff]{target_name}[/]' (v{ver}) successfully added and enabled![/]\n\n"
     msg += f"[dim]Location: {plugin_dir}[/]"
 
     con.print(Panel(msg, title="[bold #00f0ff]🔌 Plugin System[/]", border_style="#0891b2", expand=False))

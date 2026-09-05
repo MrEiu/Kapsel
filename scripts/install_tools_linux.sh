@@ -13,6 +13,15 @@
 
 set -e
 
+INSTALL_ULTRA=false
+for arg in "$@"; do
+    case "${arg}" in
+        --ultra|-u)
+            INSTALL_ULTRA=true
+            ;;
+    esac
+done
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -177,6 +186,29 @@ for t in fzf tealdeer; do
 done
 
 # ------------------------------------------------------------------------------
+# 4g. Optional: Ultra Modern CLI Tools (if --ultra passed)
+# ------------------------------------------------------------------------------
+if [ "${INSTALL_ULTRA}" = true ]; then
+    log_step "Installing Ultra Modern CLI Tools (--ultra)"
+    case "${PKG_MGR}" in
+        apt)
+            sudo apt-get install -y -qq ripgrep fd-find bat jq || true
+            ;;
+        pacman)
+            if [ -n "${AUR_HELPER:-}" ]; then
+                ${AUR_HELPER} -S --needed --noconfirm eza bat ripgrep fd procs dust bottom gping jq sd lazygit hyperfine kondo || true
+            else
+                sudo pacman -Sy --noconfirm --needed ripgrep fd bat eza procs dust bottom gping jq sd lazygit hyperfine || true
+            fi
+            ;;
+        dnf)
+            sudo dnf install -y -q ripgrep fd-find bat eza procs jq || true
+            ;;
+    esac
+    log_ok "Ultra modern CLI tools processed."
+fi
+
+# ------------------------------------------------------------------------------
 # 5. Install Python Tools (mpm, thefuck)
 # ------------------------------------------------------------------------------
 log_step "Installing Python CLI Tools (mpm, thefuck)"
@@ -232,4 +264,5 @@ fi
 echo -e "\n${GREEN}${BOLD}============================================================${RESET}"
 echo -e "${GREEN}${BOLD}   All Kapsel Tools Installation Complete!                  ${RESET}"
 echo -e "${GREEN}${BOLD}============================================================${RESET}"
-echo -e "You can now run 'kapsel' or 'kps status' to enjoy the full experience.\n"
+echo -e "You can now run 'kapsel' or 'kps status' to enjoy the full experience."
+echo -e "Tip: Run 'kps alias ultra' or rerun with '--ultra' to install modern tools (eza, bat, rg, fd, etc.).\n"

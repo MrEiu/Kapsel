@@ -12,6 +12,15 @@
 
 set -e
 
+INSTALL_ULTRA=false
+for arg in "$@"; do
+    case "${arg}" in
+        --ultra|-u)
+            INSTALL_ULTRA=true
+            ;;
+    esac
+done
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 CYAN='\033[0;36m'
@@ -92,6 +101,35 @@ for tool in "${BREW_TOOLS[@]}"; do
 done
 
 # ------------------------------------------------------------------------------
+# 2b. Optional: Ultra Modern CLI Tools (if --ultra passed)
+# ------------------------------------------------------------------------------
+if [ "${INSTALL_ULTRA}" = true ]; then
+    log_step "Installing Ultra Modern CLI Tools (--ultra via Homebrew)"
+    ULTRA_TOOLS=(
+        "eza"
+        "bat"
+        "ripgrep"
+        "fd"
+        "procs"
+        "dust"
+        "bottom"
+        "gping"
+        "jq"
+        "sd"
+        "lazygit"
+        "hyperfine"
+    )
+    for tool in "${ULTRA_TOOLS[@]}"; do
+        if command -v "${tool}" >/dev/null 2>&1; then
+            log_ok "${tool} is already installed."
+        else
+            log_info "Installing ${tool} via Homebrew..."
+            brew install "${tool}" || log_warn "Failed to install ${tool} via brew."
+        fi
+    done
+fi
+
+# ------------------------------------------------------------------------------
 # 3. Install chsrc (Fast Mirror Switcher)
 # ------------------------------------------------------------------------------
 log_step "Installing chsrc (Fast Mirror Switcher)"
@@ -166,4 +204,5 @@ fi
 echo -e "\n${GREEN}${BOLD}============================================================${RESET}"
 echo -e "${GREEN}${BOLD}   All Kapsel Tools Installation Complete!                  ${RESET}"
 echo -e "${GREEN}${BOLD}============================================================${RESET}"
-echo -e "You can now run 'kapsel' or 'kps status' to enjoy the full experience.\n"
+echo -e "You can now run 'kapsel' or 'kps status' to enjoy the full experience."
+echo -e "Tip: Run 'kps alias ultra' or rerun with '--ultra' to install modern tools (eza, bat, rg, fd, etc.).\n"

@@ -104,6 +104,32 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
         f"[bold #10b981]🟢 {active_str}[/]" if is_active else f"[dim]⚪ {standby_str}[/]",
     )
 
+    # Active Plugins with Versions
+    from kapsel.core.plugin.catalog import load_plugin_catalog_rich
+    rich_catalog = load_plugin_catalog_rich()
+    enabled_plugins = getattr(cfg, "enabled_plugins", []) or []
+    if not enabled_plugins:
+        from kapsel.completion.kps.builtins.plugin_switch import get_all_installed_plugins
+        active_plugins = get_all_installed_plugins()
+    else:
+        active_plugins = [p.lower() for p in enabled_plugins]
+
+    if active_plugins:
+        plugin_badges = [
+            f"[bold #00f0ff]{p}[/][dim]@{rich_catalog.get(p, {}).get('version', '0.1.0')}[/]"
+            for p in active_plugins
+        ]
+        plugins_str = ", ".join(plugin_badges)
+    else:
+        plugins_str = f"[dim]{none_str}[/]"
+
+    grid.add_row(
+        f"🧩 {_('Active Plugins:')}",
+        plugins_str,
+        "",
+        "",
+    )
+
     title_str = _("💊 KAPSEL System & Environment Status")
     panel = Panel(
         grid,

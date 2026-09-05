@@ -12,7 +12,8 @@
 [CmdletBinding()]
 param(
     [switch]$Force,
-    [switch]$SkipPythonTools
+    [switch]$SkipPythonTools,
+    [switch]$Ultra
 )
 
 $ErrorActionPreference = "Continue"
@@ -208,6 +209,57 @@ if (-not $SkipPythonTools) {
 }
 
 # ------------------------------------------------------------------------------
+# 3b. Optional: Ultra Modern CLI Tools Suite (eza, bat, rg, fd, procs, dust...)
+# ------------------------------------------------------------------------------
+if ($Ultra) {
+    Write-Step "Installing Ultra Modern CLI Tools (eza, bat, ripgrep, fd, procs, dust...)"
+    $ultraTools = @(
+        @{ Name = "eza";       Cmd = "eza";       ScoopPkg = "eza";       WingetPkg = "eza-community.eza";       Desc = "Modern ls replacement" },
+        @{ Name = "bat";       Cmd = "bat";       ScoopPkg = "bat";       WingetPkg = "sharkdp.bat";             Desc = "Cat clone with syntax highlighting" },
+        @{ Name = "ripgrep";   Cmd = "rg";        ScoopPkg = "ripgrep";   WingetPkg = "BurntSushi.ripgrep.MSVC"; Desc = "Blazing fast regex search" },
+        @{ Name = "fd";        Cmd = "fd";        ScoopPkg = "fd";        WingetPkg = "sharkdp.fd";              Desc = "Fast and user-friendly find" },
+        @{ Name = "procs";     Cmd = "procs";     ScoopPkg = "procs";     WingetPkg = "dalance.procs";           Desc = "Modern ps replacement" },
+        @{ Name = "dust";      Cmd = "dust";      ScoopPkg = "dust";      WingetPkg = "bootandy.dust";           Desc = "Visual disk usage analyzer" },
+        @{ Name = "bottom";    Cmd = "btm";       ScoopPkg = "bottom";    WingetPkg = "Clement.bottom";          Desc = "Terminal process & system monitor" },
+        @{ Name = "gping";     Cmd = "gping";     ScoopPkg = "gping";     WingetPkg = "orf.gping";               Desc = "Graphical ping chart" },
+        @{ Name = "jq";        Cmd = "jq";        ScoopPkg = "jq";        WingetPkg = "jqlang.jq";               Desc = "JSON stream processor" },
+        @{ Name = "sd";        Cmd = "sd";        ScoopPkg = "sd";        WingetPkg = "chmln.sd";                Desc = "Intuitive find & replace" },
+        @{ Name = "lazygit";   Cmd = "lazygit";   ScoopPkg = "lazygit";   WingetPkg = "JesseDuffield.lazygit";   Desc = "Git terminal UI" },
+        @{ Name = "hyperfine"; Cmd = "hyperfine"; ScoopPkg = "hyperfine"; WingetPkg = "sharkdp.hyperfine";      Desc = "CLI benchmarking tool" },
+        @{ Name = "kondo";     Cmd = "kondo";     ScoopPkg = "kondo";     WingetPkg = "Anvil.Kondo";             Desc = "Clean build artifacts" }
+    )
+
+    foreach ($tool in $ultraTools) {
+        $cmdExists = (Get-Command $tool.Cmd -ErrorAction SilentlyContinue) -ne $null
+        if ($cmdExists) {
+            Write-Success "$($tool.Name) ($($tool.Desc)) is already installed."
+            continue
+        }
+
+        Write-Info "Installing $($tool.Name)..."
+        $installed = $false
+        if ($hasScoop) {
+            scoop install $tool.ScoopPkg 2>$null | Out-Null
+            if ((Get-Command $tool.Cmd -ErrorAction SilentlyContinue) -ne $null) {
+                Write-Success "Installed $($tool.Name) via Scoop."
+                $installed = $true
+            }
+        }
+        if (-not $installed -and (Get-Command "winget" -ErrorAction SilentlyContinue)) {
+            $wingetId = if ($tool.WingetPkg) { $tool.WingetPkg } else { $tool.ScoopPkg }
+            winget install --id $wingetId --exact --accept-source-agreements --accept-package-agreements --silent 2>$null | Out-Null
+            if ((Get-Command $tool.Cmd -ErrorAction SilentlyContinue) -ne $null) {
+                Write-Success "Installed $($tool.Name) via Winget."
+                $installed = $true
+            }
+        }
+        if (-not $installed) {
+            Write-Warn "Could not automatically install $($tool.Name)."
+        }
+    }
+}
+
+# ------------------------------------------------------------------------------
 # 4. Ensure ~/.kapsel/bin is in User PATH
 # ------------------------------------------------------------------------------
 Write-Step "Configuring User PATH"
@@ -235,4 +287,5 @@ if (Get-Command "kps" -ErrorAction SilentlyContinue) {
 Write-Host "`n============================================================" -ForegroundColor Green
 Write-Host "   All Kapsel Tools Installation Complete!                  " -ForegroundColor Green
 Write-Host "============================================================" -ForegroundColor Green
-Write-Host "You can now run 'kapsel' or 'kps status' to enjoy the full experience.`n"
+Write-Host "You can now run 'kapsel' to enjoy the full experience."
+Write-Host "Tip: Run 'kps alias ultra' or rerun with '-Ultra' to install modern tools (eza, bat, rg, fd, etc.).`n"

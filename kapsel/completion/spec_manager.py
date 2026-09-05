@@ -44,12 +44,12 @@ RESERVED_COLLISION_COMMANDS: Set[str] = {
     "umask", "unalias", "wait", "exit", "logout", "return",
 }
 
-# Standard Core Built-in commands metadata for the root completion trees
-CORE_BUILTIN_COMMANDS: List[Dict[str, Any]] = [
+# Standard Core System commands metadata for the 'kapsel' root completion tree
+CORE_SYSTEM_COMMANDS: List[Dict[str, Any]] = [
     {
         "name": "help",
         "aliases": ["?"],
-        "description": "Display Kapsel manual, interaction mechanisms, and command cheatsheet",
+        "description": "Display Kapsel system manual, interaction mechanisms, and command cheatsheet",
     },
     {
         "name": "status",
@@ -83,10 +83,11 @@ CORE_BUILTIN_COMMANDS: List[Dict[str, Any]] = [
         ],
     },
     {
-        "name": "setup-completion",
-        "description": "Download, setup, or repair Carapace autocompletion engine",
+        "name": "search",
+        "aliases": ["find"],
+        "description": "Fuzzy search across Kapsel repository plugins and metadata catalog",
         "flags": {
-            "-f, --force": "Force download and setup",
+            "-a, --all": "Display all available plugins and tools without filtering",
         },
     },
     {
@@ -117,7 +118,66 @@ CORE_BUILTIN_COMMANDS: List[Dict[str, Any]] = [
             {"name": "path", "description": "Display active spec directories"},
         ],
     },
+    {
+        "name": "upgrade",
+        "aliases": ["update"],
+        "description": "Check and upgrade Kapsel Core and official plugins with release notes",
+        "flags": {
+            "-c, --check": "Check for updates without downloading or installing",
+        },
+    },
+    {
+        "name": "enable",
+        "description": "Enable an installed Kapsel plugin",
+    },
+    {
+        "name": "disable",
+        "description": "Disable an active Kapsel plugin without removing its files",
+    },
 ]
+
+# Backward compatibility alias
+CORE_BUILTIN_COMMANDS = CORE_SYSTEM_COMMANDS
+
+# Default feature commands for 'kps' root completion tree (tools and plugins)
+DEFAULT_FEATURE_COMMANDS: List[Dict[str, Any]] = [
+    {
+        "name": "search",
+        "description": "Search for packages across package managers (powered by mpm)",
+    },
+    {
+        "name": "help",
+        "description": "Fast command cheat sheets powered by tealdeer (tldr)",
+        "flags": {
+            "-u, --update": "Update local tldr cheat sheet cache",
+            "-l, --list": "List all available command cheat sheets",
+            "-p, --platform=": "Select target platform (linux, macos, windows, common)",
+            "--raw": "Display raw markdown page without rendering",
+            "--clear-cache": "Clear local cheat sheet cache",
+        },
+    },
+    {
+        "name": "install",
+        "description": "Install package(s) across systems using meta-package-manager (mpm)",
+        "flags": {
+            "--order": "Show package manager priority order",
+            "--detect": "Rescan system and update package manager priorities",
+            "--config": "Show path to independent package manager configuration",
+        },
+    },
+    {
+        "name": "update",
+        "description": "Update installed packages across package managers (mpm)",
+    },
+    {
+        "name": "sync",
+        "description": "Synchronize package configurations (mpm)",
+        "flags": {
+            "-mpm, --mpm": "Sync package manager configurations via mpm",
+        },
+    },
+]
+
 
 
 @dataclass
@@ -322,15 +382,49 @@ class CarapaceSpecManager:
                 plugin_dirs=plugin_dirs, enabled_plugins=enabled_plugins
             )
 
-        # 1. Start with core built-in commands
-        aggregated_commands: List[Dict[str, Any]] = [dict(c) for c in CORE_BUILTIN_COMMANDS]
-        existing_names = {c["name"].lower() for c in aggregated_commands}
+        # 1. Build System Command Tree for 'kapsel'
+        kapsel_commands: List[Dict[str, Any]] = [dict(c) for c in CORE_SYSTEM_COMMANDS]
 
-        # 2. Add discovered plugin / user specs as subcommands
+        # Dynamically populate 'add' subcommands under 'kapsel' with all catalog and discovered plugins
+        try:
+            from kapsel.core.plugin.catalog import load_plugin_catalog
+            catalog = load_plugin_catalog()
+            add_subcmds: List[Dict[str, Any]] = [
+                {"name": "update", "description": "Scan plugins and update completion dictionary"}
+            ]
+            for p_name, p_desc in sorted(catalog.items()):
+                if p_name != "update":
+                    add_subcmds.append({"name": p_name, "description": p_desc})
+            for d_name, d_info in sorted(discovered_specs.items()):
+                if not any(c["name"] == d_name for c in add_subcmds):
+                    add_subcmds.append({
+                        "name": d_name,
+                        "description": d_info.description or f"Kapsel {d_name} extension",
+                    })
+            plugin_subcmds = [c for c in add_subcmds if c["name"] != "update"]
+            for cmd_entry in kapsel_commands:
+                if cmd_entry["name"] == "add":
+                    cmd_entry["commands"] = add_subcmds
+                elif cmd_entry["name"] in ("upgrade", "enable", "disable"):
+                    cmd_entry["commands"] = plugin_subcmds
+        except Exception as e:
+            logger.debug(f"Failed to populate dynamic add subcommands: {e}")
+
+        kapsel_commands.sort(key=lambda c: c["name"])
+
+        # 2. Build Feature/Tool Command Tree for 'kps'
+        kps_commands: List[Dict[str, Any]] = [dict(c) for c in DEFAULT_FEATURE_COMMANDS]
+        kps_names = {c["name"].lower() for c in kps_commands}
+        system_command_names = {c["name"].lower() for c in CORE_SYSTEM_COMMANDS}
+
+        # Add discovered plugin / user specs as subcommands under 'kps'
         for cmd_name, info in discovered_specs.items():
             clean_name = cmd_name.lower().strip()
-            raw = info.raw_data or {}
+            # Do not allow system commands to leak into kps
+            if clean_name in system_command_names:
+                continue
 
+            raw = info.raw_data or {}
             subcmd_entry: Dict[str, Any] = {
                 "name": clean_name,
                 "description": info.description or f"Kapsel {clean_name} extension",
@@ -347,41 +441,39 @@ class CarapaceSpecManager:
             if "completion" in raw:
                 subcmd_entry["completion"] = raw["completion"]
 
-            if clean_name in existing_names:
-                for idx, existing in enumerate(aggregated_commands):
+            if clean_name in kps_names:
+                for idx, existing in enumerate(kps_commands):
                     if existing["name"].lower() == clean_name:
-                        aggregated_commands[idx] = subcmd_entry
+                        kps_commands[idx] = subcmd_entry
                         break
             else:
-                aggregated_commands.append(subcmd_entry)
-                existing_names.add(clean_name)
+                kps_commands.append(subcmd_entry)
+                kps_names.add(clean_name)
 
-        aggregated_commands.sort(key=lambda c: c["name"])
+        kps_commands.sort(key=lambda c: c["name"])
 
-        # 3. Assemble 'kps' root spec
+        # 3. Assemble 'kps' root spec (Tools & Plugins execution)
         kps_spec = {
             "name": "kps",
-            "description": "Kapsel Command Subsystem & Unified Execution Wrapper",
-            "aliases": ["kapsel"],
+            "description": "Kapsel Plugin Command Subsystem & High-Speed Tool Wrapper",
             "flags": {
                 "-v, --version": "Show Kapsel version",
                 "-h, --help": "Show help information",
             },
-            "commands": aggregated_commands,
+            "commands": kps_commands,
         }
 
-        # 4. Assemble 'kapsel' root spec
+        # 4. Assemble 'kapsel' root spec (System Platform & Shell Management)
         kapsel_spec = {
             "name": "kapsel",
-            "description": "Kapsel Intelligent Capsule Shell",
-            "aliases": ["kps"],
+            "description": "Kapsel Intelligent Capsule Shell & System Management",
             "flags": {
                 "-v, --version": "Show Kapsel version",
                 "-h, --help": "Show help information",
                 "--no-banner": "Start interactive shell without header banner",
                 "-c, --command=": "Execute single command inside Kapsel sandbox",
             },
-            "commands": aggregated_commands,
+            "commands": kapsel_commands,
         }
 
         return kps_spec, kapsel_spec

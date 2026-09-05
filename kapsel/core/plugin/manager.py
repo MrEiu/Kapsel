@@ -40,21 +40,27 @@ class PluginManager:
                 continue
             for item in p_dir.iterdir():
                 if item.is_dir() and (item / "__init__.py").exists():
-                    self._load_plugin_from_directory(item)
+                    if item.name not in self.plugins:
+                        self._load_plugin_from_directory(item)
 
     def _resolve_plugin_dirs(self) -> List[Path]:
         """
         Resolves universal directories to load plugins from.
-        All plugins reside in the user global plugin directory (~/.kapsel/plugins or configured data dir).
+        Local workspace plugins (if present) take precedence over global user plugins.
         """
         dirs: List[Path] = []
 
-        # User global plugin directory (cross-project & universal)
-        user_plugins = self.config.get_data_dir() / "plugins"
-        user_plugins.mkdir(parents=True, exist_ok=True)
-        dirs.append(user_plugins)
+        # 1. Local workspace plugins (development & repository precedence)
+        local_plugins = Path.cwd() / "plugins"
+        if local_plugins.is_dir():
+            dirs.append(local_plugins)
 
-        # Custom configured plugin directories
+        # 2. User global plugin directory (cross-project & universal)
+        user_plugins = self.config.get_data_dir() / "plugins"
+        if user_plugins.is_dir() and user_plugins not in dirs:
+            dirs.append(user_plugins)
+
+        # 3. Custom configured plugin directories
         for custom_path in getattr(self.config, "plugin_dirs", []):
             p = Path(custom_path).expanduser()
             if p.exists() and p not in dirs:

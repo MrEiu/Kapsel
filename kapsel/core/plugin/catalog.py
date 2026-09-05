@@ -7,7 +7,7 @@ All comments and descriptions are in English.
 import json
 from pathlib import Path
 import re
-from typing import Dict, Optional
+from typing import Any, Dict, List, Optional
 from rich.console import Console
 from rich.table import Table
 
@@ -21,10 +21,14 @@ DEFAULT_CATALOG: Dict[str, str] = {
     "autopilot": "Background task queue and autonomous execution (Pueue)",
     "fuck": "Intelligent console command error correction (thefuck)",
     "help": "Fast interactive command cheat sheets (tealdeer)",
+    "init": "Project polyglot development environment and toolchain runtime initializer (mise)",
     "install": "Unified cross-platform package manager (mpm)",
+    "portal": "Smart directory teleportation and workspace navigator (zoxide)",
     "profile": "Dotfiles and workspace sync roaming (chezmoi)",
     "rec": "Snippet recorder and interactive runner (pet)",
+    "shore": "Fast intelligent mirror source switcher (chsrc)",
 }
+
 
 
 def _resolve_catalog_paths():
@@ -47,21 +51,84 @@ def _resolve_catalog_paths():
 def load_plugin_catalog() -> Dict[str, str]:
     """
     Loads the subcommands dictionary from catalog.json in the repository or runtime data directory.
-    Falls back to scanning plugins/ or default catalog if not found.
+    Returns a dictionary mapping plugin_id -> description (string) for backward compatibility.
+    """
+    rich_catalog = load_plugin_catalog_rich()
+    return {k: v.get("description", str(v)) for k, v in rich_catalog.items()}
+
+
+def load_plugin_catalog_rich() -> Dict[str, Dict[str, Any]]:
+    """
+    Loads the rich metadata catalog (version, description, changelog) from catalog.json.
+    Gracefully handles both old format (string values) and new format (dict values).
     """
     for candidate in _resolve_catalog_paths():
         if candidate.exists() and candidate.is_file():
             try:
                 data = json.loads(candidate.read_text(encoding="utf-8"))
                 if isinstance(data, dict):
+                    result: Dict[str, Dict[str, Any]] = {}
+                    for k, v in data.items():
+                        if k.startswith(("_", "$")):
+                            continue
+                        if isinstance(v, dict):
+                            result[k] = {
+                                "version": v.get("version", "0.1.0"),
+                                "description": v.get("description", f"Plugin {k}"),
+                                "changelog": v.get("changelog", ""),
+                            }
+                        else:
+                            result[k] = {
+                                "version": "0.1.0",
+                                "description": str(v),
+                                "changelog": "",
+                            }
                     # Ensure 'update' entry is always present
-                    data.setdefault("update", "Scan and update available plugin catalog and completion dictionary")
-                    return data
+                    result.setdefault("update", {
+                        "version": "0.1.0",
+                        "description": "Scan and update available plugin catalog and completion dictionary",
+                        "changelog": "Catalog dictionary update scanner.",
+                    })
+                    return result
             except Exception:
                 pass
 
-    # If file not present yet, return default catalog
-    return dict(DEFAULT_CATALOG)
+    # If file not present yet, return default catalog converted to rich format
+    return {
+        k: {
+            "version": "0.2.0" if k in ("alias", "install") else "0.1.0",
+            "description": v,
+            "changelog": "",
+        }
+        for k, v in DEFAULT_CATALOG.items()
+    }
+
+
+def _extract_plugin_version(plugin_dir: Path) -> str:
+    """Extracts version string from plugin manifest, pyproject.toml, or __init__.py."""
+    # 1. Try reading manifest in plugin.py
+    plugin_py = plugin_dir / "plugin.py"
+    if plugin_py.exists():
+        try:
+            content = plugin_py.read_text(encoding="utf-8", errors="ignore")
+            m = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+            if m:
+                return m.group(1).strip()
+        except Exception:
+            pass
+
+    # 2. Try pyproject.toml
+    pyproject = plugin_dir / "pyproject.toml"
+    if pyproject.exists():
+        try:
+            content = pyproject.read_text(encoding="utf-8", errors="ignore")
+            m = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+            if m:
+                return m.group(1).strip()
+        except Exception:
+            pass
+
+    return "0.1.0"
 
 
 def _extract_plugin_description(plugin_dir: Path) -> str:
@@ -108,12 +175,18 @@ def _extract_plugin_description(plugin_dir: Path) -> str:
 
 def update_plugin_catalog(console: Optional[Console] = None) -> Dict[str, str]:
     """
-    Scans the repository plugins/ folder, extracts plugin metadata,
+    Scans the repository plugins/ folder, extracts plugin metadata (version & description),
     updates catalog.json, and refreshes the in-memory command registry.
     """
     con = console or Console(legacy_windows=False)
-    catalog: Dict[str, str] = {
-        "update": "Scan and update available plugin catalog and completion dictionary"
+    existing_rich = load_plugin_catalog_rich()
+
+    rich_catalog: Dict[str, Dict[str, Any]] = {
+        "update": {
+            "version": "0.1.0",
+            "description": "Scan and update available plugin catalog and completion dictionary",
+            "changelog": "Catalog dictionary update scanner.",
+        }
     }
 
     # Search directories to scan
@@ -126,21 +199,25 @@ def update_plugin_catalog(console: Optional[Console] = None) -> Dict[str, str]:
     if global_plugins.exists() and global_plugins.is_dir() and global_plugins not in scan_dirs:
         scan_dirs.append(global_plugins)
 
-    discovered = 0
     for s_dir in scan_dirs:
         for item in sorted(s_dir.iterdir()):
             if item.is_dir() and not item.name.startswith((".", "_")):
                 p_name = item.name.lower()
-                if p_name not in catalog:
+                if p_name not in rich_catalog:
                     desc = _extract_plugin_description(item)
-                    catalog[p_name] = desc
-                    discovered += 1
+                    ver = _extract_plugin_version(item)
+                    prev_meta = existing_rich.get(p_name, {})
+                    rich_catalog[p_name] = {
+                        "version": ver or prev_meta.get("version", "0.1.0"),
+                        "description": desc or prev_meta.get("description", f"Plugin: {p_name}"),
+                        "changelog": prev_meta.get("changelog", ""),
+                    }
 
     # Save to workspace plugins/catalog.json if workspace plugins directory exists
     if workspace_plugins.exists() and workspace_plugins.is_dir():
         target_file = workspace_plugins / "catalog.json"
         try:
-            target_file.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            target_file.write_text(json.dumps(rich_catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         except Exception as e:
             con.print(f"[yellow]Warning: Failed to write {target_file}:[/] {e}")
 
@@ -148,9 +225,11 @@ def update_plugin_catalog(console: Optional[Console] = None) -> Dict[str, str]:
     global_cache = get_kapsel_dir() / "plugins_catalog.json"
     try:
         global_cache.parent.mkdir(parents=True, exist_ok=True)
-        global_cache.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        global_cache.write_text(json.dumps(rich_catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     except Exception as e:
         con.print(f"[yellow]Warning: Failed to write global cache {global_cache}:[/] {e}")
+
+    flat_catalog = {k: v["description"] for k, v in rich_catalog.items()}
 
     # Hot-reload in-memory registry subcommands for 'add' command
     try:
@@ -158,11 +237,11 @@ def update_plugin_catalog(console: Optional[Console] = None) -> Dict[str, str]:
         reg = get_kps_registry()
         add_cmd = reg.get("add")
         if add_cmd:
-            add_cmd.subcommands = dict(catalog)
+            add_cmd.subcommands = dict(flat_catalog)
     except Exception:
         pass
 
-    return catalog
+    return flat_catalog
 
 
 def render_catalog_table(catalog: Dict[str, str], console: Console) -> None:

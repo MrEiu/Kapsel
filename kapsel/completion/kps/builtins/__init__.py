@@ -21,23 +21,25 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
     from kapsel.completion.kps.builtins.status import handle_status
     from kapsel.completion.kps.builtins.toggle import handle_toggle_command
 
-    # 1. help
+    # 1. help (system manual)
     registry.register(
         name="help",
         handler=handle_help,
         help_text="Display Kapsel manual, interaction mechanisms, and command cheatsheet",
-        usage="kapsel help (or kps help)",
+        usage="kapsel help",
+        scope="system",
     )
 
-    # 2. status
+    # 2. status (platform environment & sandbox看板)
     registry.register(
         name="status",
         handler=handle_status,
         help_text="Display OS environment, active shell, Git branch, and sandbox status",
-        usage="kapsel status (or kps status)",
+        usage="kapsel status",
+        scope="system",
     )
 
-    # 3. config
+    # 3. config (core config.yaml)
     registry.register(
         name="config",
         handler=handle_config_command,
@@ -50,9 +52,10 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
             "reload": "Hot-reload configuration from disk",
         },
         usage="kapsel config [path|edit|get|set|reload]",
+        scope="system",
     )
 
-    # 4. datadir
+    # 4. datadir (sandbox directory)
     registry.register(
         name="datadir",
         handler=handle_datadir_command,
@@ -62,6 +65,7 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
             "path": "Print current data directory path",
         },
         usage="kapsel datadir [path]",
+        scope="system",
     )
 
     # 5. add <plugin_name>
@@ -76,9 +80,21 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
         help_text="Enable and register a plugin into Kapsel environment (e.g. kapsel add install)",
         subcommands=add_subcommands,
         usage="kapsel add <plugin_name> (or: kapsel add update)",
+        scope="system",
     )
 
-    # 5b. setup-completion (maintenance and repair command)
+    # 5b. search (fuzzy search across Kapsel repository and catalog)
+    from kapsel.completion.kps.builtins.search import handle_search
+
+    registry.register(
+        name="search",
+        handler=handle_search,
+        help_text="Fuzzy search across Kapsel plugins, tools, and ecosystem packages",
+        usage="kapsel search [query] [-a | --all]",
+        scope="system",
+    )
+
+    # 5c. setup-completion (maintenance and repair command, hidden from autocompletion)
     def _handle_setup_completion(args, console=None):
         from kapsel.completion.carapace_installer import install_carapace
         force = "--force" in args or "-f" in args
@@ -90,6 +106,8 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
         handler=_handle_setup_completion,
         help_text="Download, setup, or repair Carapace 1,000+ commands autocompletion engine",
         usage="kapsel setup-completion [--force]",
+        scope="system",
+        hidden=True,
     )
 
     # 6. toggle
@@ -97,8 +115,9 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
         name="toggle",
         handler=handle_toggle_command,
         help_text="Toggle Kapsel as default terminal mode (open on first call, close on second)",
-        usage="kapsel toggle (or kps toggle)",
-        )
+        usage="kapsel toggle",
+        scope="system",
+    )
 
     # 7. language
     registry.register(
@@ -106,6 +125,7 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
         handler=handle_language_command,
         help_text="View and switch active UI language (en, zh_CN, ja, es, fr, de, ru)",
         usage="kapsel language [en|zh_CN|ja|es|fr|de|ru]",
+        scope="system",
     )
 
     # 8. completion
@@ -122,5 +142,49 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
             "path": "Display active spec directories",
         },
         usage="kapsel completion [ls|sync|edit|new|path]",
+        scope="system",
     )
+
+    # 9. upgrade & update (Kapsel Core & official plugins)
+    from kapsel.completion.kps.builtins.upgrade import handle_upgrade
+
+    plugin_subcommands = {k: v for k, v in add_subcommands.items() if k != "update"}
+
+    registry.register(
+        name="upgrade",
+        handler=handle_upgrade,
+        help_text="Check and upgrade Kapsel Core and official plugins with release notes",
+        subcommands=plugin_subcommands,
+        usage="kapsel upgrade [plugin_name] [--check]",
+        scope="system",
+    )
+    registry.register(
+        name="update",
+        handler=handle_upgrade,
+        help_text="Alias for 'kapsel upgrade'",
+        subcommands=plugin_subcommands,
+        usage="kapsel update [plugin_name] [--check]",
+        scope="system",
+        hidden=True,
+    )
+
+    # 10. enable & disable (Plugin switcher)
+    from kapsel.completion.kps.builtins.plugin_switch import handle_enable_plugin, handle_disable_plugin
+    registry.register(
+        name="enable",
+        handler=handle_enable_plugin,
+        help_text="Enable an installed Kapsel plugin",
+        subcommands=plugin_subcommands,
+        usage="kapsel enable <plugin_name>",
+        scope="system",
+    )
+    registry.register(
+        name="disable",
+        handler=handle_disable_plugin,
+        help_text="Disable an active Kapsel plugin without removing its files",
+        subcommands=plugin_subcommands,
+        usage="kapsel disable <plugin_name>",
+        scope="system",
+    )
+
 

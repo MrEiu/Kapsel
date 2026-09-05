@@ -186,7 +186,9 @@ flowchart TD
     - `on_prompt_render`：定制提示符风格与徽标；
     - `on_completion_query`：挂载第三方专属补全数据源；
     - `on_router_dispatch`：前置拦截与特殊语法扩展；
-    - `on_execution_done`：执行结果增强展示与分析看板。
+    - `on_execution_done`：执行结果增强展示与分析看板；
+    - `on_key_bindings`：动态热键挂载与终端按键增强。
+  - **自定义快捷键扩展**：以后可以选择支持自定义快捷键实现多种功能，通过插件实现，比如Ctrl+Backspace。
   - 插件生态管理指令：`kps plugin install <url|git|hub>`、`kps plugin list`、`kps plugin remove`。
   - 插件沙箱目录：收敛于 `~/.kapsel/plugins/`，支持热插拔与一键启停。
 

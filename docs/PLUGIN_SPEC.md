@@ -124,6 +124,11 @@ context.register_kps_command(
 * **签名**：`(command: str, exit_code: int, duration_ms: float) -> None`
 * **适用场景**：云同步插件异步记录命令漫游历史、性能度量插件上报等。
 
+### 5.4 `ON_REGISTER_KEYBINDINGS` (终端自定义快捷键扩展)
+* **执行时机**：Kapsel 终端 PromptSession 载入按键绑定时触发。
+* **签名**：`(kb: KeyBindings) -> None`
+* **适用场景**：以后可以选择支持自定义快捷键实现多种功能，通过插件实现，比如 `Ctrl+Backspace`。
+
 ---
 
 ## 6. 从 `temp/` 迁移现有功能的插件化范例

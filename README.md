@@ -21,7 +21,8 @@
 [Architecture](#-architecture--philosophy) •
 [Plugin Ecosystem](#-official-plugin-ecosystem) •
 [Comparison](#-feature-matrix--comparison) •
-[Cheatsheet](#-commands-reference)
+[Cheatsheet](#-commands-reference) •
+[🇨🇳 简体中文](README_zh.md)
 
 ---
 
@@ -83,70 +84,98 @@ Developers daily oscillate between disparate operating systems, suffering from f
 
 ## ⚡ Quick Installation
 
-### Option A: Universal Python Package (Global / Isolated)
+Choose the installation method that best fits your environment:
+
+- [📦 Package Managers (PyPI / Scoop / Homebrew / APT)](#1-package-managers)
+- [💾 Precompiled Standalone Binaries](#2-precompiled-standalone-binaries-zero-dependencies)
+- [🌐 Automated Toolchain Installers](#3-automated-toolchain-installers)
+- [🛠️ Build from Source](#4-build-from-source)
+
+> 🇨🇳 **China Mainland Users**: If you are located in China and require high-speed mirror acceleration (ghproxy, Tsinghua PyPI mirror, domestic download scripts), please refer to **[README_zh.md](README_zh.md)** or [docs/INSTALLATION.md](docs/INSTALLATION.md).
+
+---
+
+### 1. 📦 Package Managers
+
+#### PyPI (Python 3.9+)
 
 ```bash
-# Recommended: Isolated installation via pipx
+# Recommended: Isolated environment via pipx (prevents global Python pollution)
 pipx install kapsel-cli
 
 # Or standard pip installation
 pip install --upgrade kapsel-cli
 ```
 
-### Option B: One-Liner Toolchain Installers
-
-Automatically downloads, verifies, and installs all required binary tools (`carapace`, `zoxide`, `mise`, `chsrc`, `aichat`, `pueue`, `chezmoi`, `pet`, `tealdeer`, `fzf`) into user space:
-
-<table>
-<tr>
-<th>Platform</th>
-<th>One-Line Installation Command</th>
-</tr>
-<tr>
-<td><b>Windows (PowerShell)</b></td>
-<td>
+#### Windows: Scoop
 
 ```powershell
+# Add Kapsel official bucket and install
+scoop bucket add kapsel https://github.com/MrEiu/scoop-bucket
+scoop install kapsel
+```
+
+#### macOS & Linux: Homebrew
+
+```bash
+# Add Kapsel official tap and install
+brew tap MrEiu/tap
+brew install kapsel
+```
+
+#### Debian & Ubuntu: APT & DPKG (.deb)
+
+```bash
+curl -LO https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel_amd64.deb
+sudo dpkg -i kapsel_amd64.deb || sudo apt-get install -f -y
+```
+
+---
+
+### 2. 💾 Precompiled Standalone Binaries (Zero Dependencies)
+
+No Python runtime or external package managers required. Simply extract and run:
+
+| Platform / Architecture | Release Artifact | Official GitHub Download |
+| :--- | :--- | :--- |
+| **Windows x86_64** | `kapsel-windows-x86_64.zip` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel-windows-x86_64.zip) |
+| **Linux x86_64** | `kapsel-linux-x86_64.tar.gz` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel-linux-x86_64.tar.gz) |
+| **macOS (Universal)** | `kapsel-macos-universal.tar.gz` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel-macos-universal.tar.gz) |
+| **Debian / Ubuntu** | `kapsel_amd64.deb` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel_amd64.deb) |
+
+> 💡 **Usage Tip**: Extract the archive and place `kapsel` (or `kapsel.exe`) and `kps` (or `kps.exe`) into any directory in your system `PATH` (such as `~/.kapsel/bin` or `/usr/local/bin`).
+
+---
+
+### 3. 🌐 Automated Toolchain Installers
+
+Automatically detects your platform, sets up Kapsel, and configures modern command-line utilities (`carapace`, `zoxide`, `mise`, `chsrc`, `aichat`, `pueue`, `chezmoi`, `pet`, `tealdeer`, `fzf`):
+
+```powershell
+# Windows (PowerShell):
 irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_windows.ps1 | iex
 ```
 
-</td>
-</tr>
-<tr>
-<td><b>macOS (Homebrew)</b></td>
-<td>
-
 ```bash
+# macOS:
 curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_macos.sh | bash
-```
 
-</td>
-</tr>
-<tr>
-<td><b>Linux (All Distros)</b></td>
-<td>
-
-```bash
+# Linux (Debian / Ubuntu / Fedora / Arch):
 curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_linux.sh | bash
 ```
 
-</td>
-</tr>
-<tr>
-<td><b>China Fast-Track (国内极速镜像)</b></td>
-<td>
+---
 
-```powershell
-# Windows:
-irm https://ghproxy.net/https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_cn.ps1 | iex
+### 4. 🛠️ Build from Source
 
-# Linux / macOS:
-curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_cn.sh | bash
+Ideal for developers wishing to contribute to Kapsel core or develop custom plugins:
+
+```bash
+git clone https://github.com/MrEiu/Kapsel.git
+cd Kapsel
+pip install -e .
+kps completion sync
 ```
-
-</td>
-</tr>
-</table>
 
 ---
 

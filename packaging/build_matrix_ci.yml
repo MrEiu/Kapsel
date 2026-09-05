@@ -65,18 +65,52 @@ jobs:
           chmod +x ${{ matrix.binary_kapsel }} ${{ matrix.binary_kps }}
           tar -czvf ../../${{ matrix.artifact_name }} ${{ matrix.binary_kapsel }} ${{ matrix.binary_kps }}
 
+      - name: Build Debian Package (.deb)
+        if: runner.os == 'Linux'
+        run: |
+          python packaging/debian/build_deb.py --version ${{ github.ref_name }} --binary-dir dist/bin/linux --out-dir dist
+
       - name: Upload Artifacts to Workflow
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.target_name }}-binaries
-          path: dist/${{ matrix.artifact_name }}
+          path: |
+            dist/${{ matrix.artifact_name }}
+            dist/*.deb
 
       - name: Publish to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/${{ matrix.artifact_name }}
+          files: |
+            dist/${{ matrix.artifact_name }}
+            dist/*.deb
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release_checksums:
+    name: Generate Checksums & Release Metadata
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate SHA256 Checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name "*.zip" -o -name "*.tar.gz" -o -name "*.deb" \) -exec sha256sum {} + | awk '{print $1, $2}' | sed 's|^\([0-9a-f]*\) \./[^/]*/|\1  |' > checksums.txt
+          cat checksums.txt
+
+      - name: Upload Checksums to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

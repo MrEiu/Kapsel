@@ -267,11 +267,76 @@ def create_key_bindings(
         else:
             buffer.start_completion(select_first=True)
 
-    # Note: All standard editing & navigation shortcuts (Ctrl+A, Ctrl+E, Ctrl+U,
-    # Ctrl+K, Ctrl+W, Alt+Backspace, Ctrl+Left, Ctrl+Right, Ctrl+C, Backspace, etc.)
-    # are handled out-of-the-box by prompt_toolkit's built-in Emacs/Readline engine.
-    # We deliberately DO NOT re-implement or bind 'c-h' here, preventing accidental
-    # hijacking of the standard Backspace key.
+    # -------------------------------------------------------------------------
+    # Standard Hotkeys & Navigation
+    # -------------------------------------------------------------------------
+
+    # Ctrl+C: Cancel current line
+    @kb.add("c-c")
+    def _(event: KeyPressEvent) -> None:
+        event.app.exit(exception=KeyboardInterrupt)
+
+    # Word rubout backward: Ctrl+W, Alt+Backspace, and Esc+Backspace
+    # Note: Do NOT bind 'c-h' or 'backspace' here. In prompt_toolkit, 'backspace'
+    # is aliased to 'c-h'. Binding either would hijack single-character backspace.
+    @kb.add("c-w")
+    @kb.add("escape", "backspace")
+    @kb.add("escape", "c-h")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_previous_word_beginning(count=1)
+        if pos is not None:
+            buffer.delete_before_cursor(count=-pos)
+        elif buffer.cursor_position > 0:
+            buffer.delete_before_cursor(count=buffer.cursor_position)
+
+    # Ctrl+Left / Ctrl+Right: Word-by-word navigation
+    @kb.add("c-left")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_previous_word_beginning(count=1)
+        buffer.cursor_position = buffer.cursor_position + pos if pos is not None else 0
+
+    @kb.add("c-right")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_next_word_ending(count=1)
+        buffer.cursor_position = buffer.cursor_position + pos if pos is not None else len(buffer.text)
+
+    # Ctrl+U: Clear line before cursor
+    @kb.add("c-u")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.cursor_position > 0:
+            buffer.delete_before_cursor(count=buffer.cursor_position)
+
+    # Ctrl+K: Clear line after cursor
+    @kb.add("c-k")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        remaining = len(buffer.text) - buffer.cursor_position
+        if remaining > 0:
+            buffer.delete(count=remaining)
+
+    # Ctrl+A / Ctrl+E: Jump to start / end of line
+    @kb.add("c-a")
+    def _(event: KeyPressEvent) -> None:
+        event.current_buffer.cursor_position = 0
+
+    @kb.add("c-e")
+    def _(event: KeyPressEvent) -> None:
+        event.current_buffer.cursor_position = len(event.current_buffer.text)
+
+    # Ctrl+Delete: Delete word forward
+    @kb.add("c-delete")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_next_word_ending(count=1)
+        if pos is not None:
+            buffer.delete(count=pos)
+        else:
+            buffer.delete(count=len(buffer.text) - buffer.cursor_position)
+
     return kb
 
 

@@ -150,11 +150,9 @@ def test_history_multi_step_navigation_and_reset():
 
 
 def test_ctrl_keybindings():
-    """Verify that custom keybindings do not hijack Backspace / c-h, and native PromptSession bindings are intact."""
+    """Verify that custom keybindings do not hijack Backspace / c-h, and navigation/word rubout handlers work."""
     from kapsel.storage.config import load_config
     from kapsel.ui.prompt import create_key_bindings
-    from prompt_toolkit.key_binding.key_bindings import merge_key_bindings
-    from prompt_toolkit.key_binding.defaults import load_key_bindings
 
     cfg = load_config()
     kb = create_key_bindings(cfg)
@@ -163,25 +161,32 @@ def test_ctrl_keybindings():
     assert kb.get_bindings_for_keys(("backspace",)) == []
     assert kb.get_bindings_for_keys(("c-h",)) == []
 
-    # 2. Verify merged session bindings include standard terminal shortcuts
-    all_bindings = merge_key_bindings([kb, load_key_bindings()])
+    buf = Buffer()
+    buf.insert_text("git checkout -b feature")
+    assert buf.cursor_position == 23
 
-    # c-w (unix-word-rubout) is present natively
-    c_w_bindings = all_bindings.get_bindings_for_keys(("c-w",))
-    assert len(c_w_bindings) > 0
+    class DummyEvent:
+        def __init__(self, buffer):
+            self.current_buffer = buffer
 
-    # c-u (unix-line-discard) is present natively
-    c_u_bindings = all_bindings.get_bindings_for_keys(("c-u",))
-    assert len(c_u_bindings) > 0
+    event = DummyEvent(buf)
 
-    # c-a (beginning-of-line) is present natively
-    c_a_bindings = all_bindings.get_bindings_for_keys(("c-a",))
-    assert len(c_a_bindings) > 0
+    # 2. Test Ctrl+Left (c-left) moves backward by word
+    c_left = kb.get_bindings_for_keys(("c-left",))[0]
+    c_left.handler(event)
+    assert buf.cursor_position == 16
 
-    # c-e (end-of-line) is present natively
-    c_e_bindings = all_bindings.get_bindings_for_keys(("c-e",))
-    assert len(c_e_bindings) > 0
+    # 3. Test Ctrl+Right (c-right) moves forward by word
+    c_right = kb.get_bindings_for_keys(("c-right",))[0]
+    c_right.handler(event)
+    assert buf.cursor_position == 23
 
-    # backspace / c-h deletes single char natively
-    bs_bindings = all_bindings.get_bindings_for_keys(("c-h",))
-    assert len(bs_bindings) > 0
+    # 4. Test Ctrl+W (word rubout backward)
+    c_w = kb.get_bindings_for_keys(("c-w",))[0]
+    c_w.handler(event)
+    assert buf.text == "git checkout -b "
+
+    # 5. Test Ctrl+U (c-u) clears line before cursor
+    c_u = kb.get_bindings_for_keys(("c-u",))[0]
+    c_u.handler(event)
+    assert buf.text == ""

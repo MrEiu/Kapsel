@@ -6,8 +6,6 @@
 
 [![Python Version](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/kapsel-cli/)
 [![Platform Support](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-4D4D4D.svg?style=flat-square&logo=linux&logoColor=white)](https://github.com/MrEiu/Kapsel)
-[![Engine](https://img.shields.io/badge/Autocompletion-Carapace%20Engine%20(1%2C000%2B%20CLIs)-00F0FF.svg?style=flat-square)](https://carapace.sh)
-[![Tests Status](https://img.shields.io/badge/Tests-56%20Passed%20(100%25)-10B981.svg?style=flat-square)](https://github.com/MrEiu/Kapsel)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 <p align="center">
@@ -200,6 +198,10 @@ Within the capsule session, the following unified commands are available:
 ```text
 help                   Display Kapsel manual, interaction mechanisms, and command cheat sheet
 status                 Inspect OS environment, active host shell, Git branch, and sandbox status
+upgrade [plugin]       Two-stage upgrade check for Kapsel Core and official plugins with changelogs
+search [-a]            Search and discover official plugins with versions and install states
+enable <plugin>        Activate and enable an installed plugin, syncing autocompletions
+disable <plugin>       Disable an active plugin without deleting local files
 config                 Inspect or edit core configuration (~/.kapsel/config.yaml)
   config path          Print physical configuration file path
   config edit          Open configuration in default external editor
@@ -272,7 +274,7 @@ pip install -e ".[test]"
 pytest tests/ -v
 ```
 
-All 56 automated unit tests validate spec manager discovery, collision sentinel blocking, carapace integration, plugin lifecycles, and i18n resolution.
+All 79 automated unit tests validate spec manager discovery, collision sentinel blocking, carapace integration, plugin lifecycles, and i18n resolution.
 
 ---
 

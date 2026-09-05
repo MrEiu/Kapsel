@@ -5,19 +5,34 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kapsel-cli"
 version = "0.1.3"
-description = "An intelligent, cross-platform terminal wrapper featuring dual-state command translation, multi-shell dynamic autocompletion, and isolated developer workflows"
+description = "Next-generation cross-platform terminal capsule & ergonomic shell multiplexer with context-aware command translation and 1,000+ CLI completions."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
     { name = "MrEiu", email = "k648888@vip.qq.com" }
 ]
-keywords = ["terminal", "shell", "cli", "autocompletion", "wrapper", "cross-platform", "developer-tools", "carapace"]
+keywords = [
+    "terminal",
+    "shell",
+    "cli",
+    "multiplexer",
+    "autocompletion",
+    "cross-platform",
+    "developer-tools",
+    "carapace",
+    "productivity",
+    "powershell",
+    "bash",
+    "zsh"
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
     "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
     "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS",
@@ -28,8 +43,10 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: System :: Shells",
+    "Topic :: System :: System Shells",
     "Topic :: Terminals",
     "Topic :: Utilities",
+    "Topic :: Software Development :: User Interfaces",
 ]
 dependencies = [
     "prompt_toolkit>=3.0.40",
@@ -41,8 +58,10 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/MrEiu/Kapsel"
+Documentation = "https://github.com/MrEiu/Kapsel#readme"
 Repository = "https://github.com/MrEiu/Kapsel"
 Issues = "https://github.com/MrEiu/Kapsel/issues"
+Changelog = "https://github.com/MrEiu/Kapsel/releases"
 
 [project.optional-dependencies]
 test = [

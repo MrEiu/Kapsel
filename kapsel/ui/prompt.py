@@ -239,15 +239,13 @@ def create_key_bindings(
             buffer.complete_previous()
 
     # Enter:
-    # - If selecting a completion candidate: accept candidate and append trailing space
+    # - If selecting a completion candidate: accept candidate via official apply_completion()
     # - Otherwise: submit current command line for execution
     @kb.add("enter")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
         if buffer.complete_state and buffer.complete_state.complete_index is not None:
-            buffer.complete_state = None
-            if not buffer.text.endswith(" "):
-                buffer.insert_text(" ")
+            buffer.apply_completion(buffer.complete_state.current_completion)
             return
 
         buffer.validate_and_handle()
@@ -257,9 +255,7 @@ def create_key_bindings(
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
         if buffer.complete_state and buffer.complete_state.complete_index is not None:
-            buffer.complete_state = None
-            if not buffer.text.endswith(" "):
-                buffer.insert_text(" ")
+            buffer.apply_completion(buffer.complete_state.current_completion)
             return
 
         if buffer.complete_state:

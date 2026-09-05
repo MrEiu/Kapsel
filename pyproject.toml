@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kapsel-cli"
-version = "0.1.0"
+version = "0.1.1"
 description = "💊 跨平台自适应智能终端胶囊 (Cross-platform adaptive smart terminal capsule)"
 readme = "README.md"
 requires-python = ">=3.9"

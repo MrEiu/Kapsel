@@ -81,10 +81,16 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         elif dest_plugin_dir.exists() and dest_plugin_dir.is_dir():
             plugin_dir = dest_plugin_dir
         else:
-            con.print(f"[bold #f43f5e]Error:[/] Plugin '[white]{target_name}[/]' not found in global plugin directory.")
-            con.print(f"[dim]Expected location:[/] {dest_plugin_dir}")
-            con.print("[dim]To install a plugin, specify its local path or place it into your global plugins directory.[/]\n")
-            return 1
+            # 3. Not found locally: Automatically fetch from official remote repository
+            from kapsel.core.plugin.fetcher import fetch_plugin_from_remote
+
+            if fetch_plugin_from_remote(target_name, dest_plugin_dir, con):
+                plugin_dir = dest_plugin_dir
+            else:
+                con.print(f"[bold #f43f5e]Error:[/] Plugin '[white]{target_name}[/]' could not be installed.")
+                con.print(f"[dim]Expected location:[/] {dest_plugin_dir}")
+                con.print("[dim]To install a custom plugin, specify its local path or place it into your global plugins directory.[/]\n")
+                return 1
 
     # Verify that the final plugin directory contains __init__.py
     if not (plugin_dir / "__init__.py").exists():

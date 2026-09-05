@@ -11,7 +11,6 @@ from prompt_toolkit.completion import CompleteEvent, Completer, Completion, Path
 from prompt_toolkit.document import Document
 
 from kapsel.completion.carapace_engine import CarapaceEngine, get_carapace_engine
-from kapsel.completion.fig_engine import FigEngine, get_fig_engine
 from kapsel.completion.kps.registry import KpsCommandRegistry, get_kps_registry
 from kapsel.core.i18n import _
 
@@ -28,13 +27,11 @@ class DualStateCompleter(Completer):
     def __init__(
         self,
         carapace_engine: Optional[CarapaceEngine] = None,
-        fig_engine: Optional[FigEngine] = None,
         kps_registry: Optional[KpsCommandRegistry] = None,
         current_shell: str = "pwsh",
         plugin_manager: Optional[Any] = None,
     ):
         self.carapace_engine = carapace_engine or get_carapace_engine()
-        self.fig_engine = fig_engine or get_fig_engine()
         self.kps_registry = kps_registry or get_kps_registry()
         self.current_shell = current_shell
         self.plugin_manager = plugin_manager
@@ -162,12 +159,7 @@ class DualStateCompleter(Completer):
             yield from self._yield_carapace_completions(stripped)
             return
 
-        # B. Secondary: Fig.Spec fallback if tool was defined in Fig
-        if parts and self.fig_engine.has_spec_for_tool(first_tool):
-            yield from self._yield_fig_completions(stripped)
-            return
-
-        # C. Native Top-Level Builtins & High-Frequency Tools (when starting command line)
+        # B. Native Top-Level Builtins & High-Frequency Tools (when starting command line)
         if len(parts) <= 1 and not stripped.endswith(" "):
             curr_word = parts[0] if parts else ""
             native_builtins = [
@@ -193,7 +185,7 @@ class DualStateCompleter(Completer):
                         display_meta=desc,
                     )
 
-        # D. Plugin-provided completions for native mode (e.g. mapping plugins)
+        # C. Plugin-provided completions for native mode (e.g. mapping plugins)
         if self.plugin_manager:
             plugin_cands = self.plugin_manager.get_plugin_completions(stripped)
             for cand in plugin_cands:
@@ -204,7 +196,7 @@ class DualStateCompleter(Completer):
                     display_meta=cand.get("display_meta", "🔌 插件提供"),
                 )
 
-        # E. Filesystem Path Completion fallback
+        # D. Filesystem Path Completion fallback
         yield from self.path_completer.get_completions(document, complete_event)
 
     def _yield_carapace_completions(self, text_line: str) -> Iterable[Completion]:
@@ -233,19 +225,4 @@ class DualStateCompleter(Completer):
                 start_position=start_pos,
                 display=cand.display or cand.value,
                 display_meta=desc,
-            )
-
-    def _yield_fig_completions(self, text_line: str) -> Iterable[Completion]:
-        """Evaluates legacy Fig AST context and yields styled completions."""
-        completed, partial = self.fig_engine.tokenize_line(text_line)
-        candidates = self.fig_engine.get_completions(text_line)
-        start_pos = -len(partial) if partial else 0
-
-        for cand in candidates:
-            icon = "🚩 " if cand.kind == "option" else "📦 "
-            yield Completion(
-                text=cand.insert_text,
-                start_position=start_pos,
-                display=cand.display_text,
-                display_meta=f"{icon}{cand.description}",
             )

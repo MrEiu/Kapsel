@@ -386,9 +386,10 @@ Kapsel 默认将配置文件、本地 SQLite 历史库与指令仓库保存在 `
 
 ## 🙏 特别致谢 (Acknowledgments)
 
+- **Carapace (`carapace-sh/carapace-bin`)**：
+  为 Kapsel 提供了强大、现代化且深度支持 1,000+ 原生命令的动态上下文自动补全引擎支持。
 - **Fig / Amazon Q (`withfig/autocomplete`)**：
-  > *“Fig 是我制作完功能后意外发现的；之后全面兼容了该仓库，感谢各位先贤的贡献。”*  
-  Kapsel 深度兼容并吸纳了其优秀的 `Fig.Spec` 树形补全规范，使开发者在拥有强大的跨平台原生转义映射的同时，享受全球顶级的终端自动补全体验。
+  为 Kapsel 早期的补全架构设计与交互提供了宝贵的先驱灵感。
 
 ---
 

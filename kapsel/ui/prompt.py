@@ -238,7 +238,17 @@ def create_key_bindings(
         if buffer.complete_state:
             buffer.complete_previous()
 
+    # Enter:
+    # - If selecting a completion candidate: accept candidate via official apply_completion()
+    # - Otherwise: submit current command line for execution
+    @kb.add("enter")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.complete_state and buffer.complete_state.complete_index is not None:
+            buffer.apply_completion(buffer.complete_state.current_completion)
+            return
 
+        buffer.validate_and_handle()
 
     # Tab: accept completion candidate if selected; otherwise trigger/cycle completions
     @kb.add("tab")
@@ -257,10 +267,11 @@ def create_key_bindings(
     # Standard Hotkeys & Navigation
     # -------------------------------------------------------------------------
 
-    # Ctrl+C: Cancel current line
+    # Ctrl+C in prompt line: Completely ignore (no reaction, prevent spawning duplicate prompt cards)
+    # Running commands will still be terminated by Ctrl+C via OS SIGINT once executed.
     @kb.add("c-c")
     def _(event: KeyPressEvent) -> None:
-        event.app.exit(exception=KeyboardInterrupt)
+        pass
 
     # Word rubout backward: Ctrl+W, Alt+Backspace, and Esc+Backspace
     # Note: Do NOT bind 'c-h' or 'backspace' here. In prompt_toolkit, 'backspace'

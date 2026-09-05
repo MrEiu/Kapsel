@@ -88,13 +88,12 @@ def main(args: Optional[List[str]] = None) -> int:
         try:
             user_input = prompt_session.prompt()
         except KeyboardInterrupt:
-            # User pressed Ctrl+C, reset prompt without exiting
-            print()
+            # Prevent empty line pollution
             continue
         except EOFError:
             # User pressed Ctrl+D, cleanly exit
             os.environ.pop("KAPSEL_ACTIVE", None)
-            print("\nExiting Kapsel. Bye! 💊")
+            print("\nExiting Kapsel. Bye!")
             break
 
         stripped = user_input.strip()

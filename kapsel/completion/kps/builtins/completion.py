@@ -63,10 +63,13 @@ def _handle_list(spec_mgr: CarapaceSpecManager, con: Console) -> int:
 
     table = Table(title="[bold #00f0ff]📋 Declarative Completion Specifications[/]", border_style="#0891b2")
     table.add_column("Command", style="bold #00f0ff", width=14)
+    table.add_column("Scope", justify="center", width=14)
     table.add_column("Source", justify="center", width=10)
     table.add_column("Description", style="white", overflow="fold")
     table.add_column("Spec File Path", style="dim", overflow="fold")
-    table.add_column("Status", justify="center", width=10)
+    table.add_column("Status", justify="center", width=14)
+
+    has_root = (spec_mgr.carapace_specs_dir / "kps.yaml").exists()
 
     for cmd_name, info in sorted(specs.items(), key=lambda x: x[0]):
         if info.source_type == "user":
@@ -76,19 +79,23 @@ def _handle_list(spec_mgr: CarapaceSpecManager, con: Console) -> int:
         else:
             source_badge = "[dim]Core[/]"
 
+        scope_badge = "[bold #38bdf8]Standalone[/]" if info.standalone else "[dim #00f0ff]kps subcommand[/]"
+
         if info.is_overridden:
             status = "[bold #f59e0b]Overridden[/]"
-        elif info.target_path.exists():
+        elif info.standalone and info.target_path.exists():
             status = "[bold #10b981]✔ Active[/]"
+        elif not info.standalone and has_root:
+            status = "[bold #10b981]✔ In kps.yaml[/]"
         else:
             status = "[dim #f43f5e]Pending[/]"
 
         desc = info.description or "[dim]No description[/]"
-        table.add_row(cmd_name, source_badge, desc, str(info.source_path), status)
+        table.add_row(cmd_name, scope_badge, source_badge, desc, str(info.source_path), status)
 
     con.print()
     con.print(table)
-    con.print(f"[dim]Total: {len(specs)} specification(s). Use 'kps completion sync' to refresh Carapace mount.[/]\n")
+    con.print(f"[dim]Total: {len(specs)} specification(s) mapped into root 'kps'/'kapsel' trees and standalone specs.[/]\n")
     return 0
 
 

@@ -89,6 +89,21 @@ class DualStateCompleter(Completer):
         ends_with_space = query.endswith(" ")
         words = query.split()
 
+        # 1. Primary: Carapace unified root tree completion for 'kps <query>'
+        if self.carapace_engine.is_available() and self.carapace_engine.has_completer_for("kps"):
+            # If user ran a native tool prefixed with kapsel/kps (e.g. 'kps git checkout')
+            if words and not self.kps_registry.get(words[0].lower()):
+                first_tool = words[0].lower()
+                if self.carapace_engine.has_completer_for(first_tool):
+                    yield from self._yield_carapace_completions(query)
+                    return
+
+            cands = list(self._yield_carapace_completions("kps " + query))
+            if cands:
+                yield from cands
+                return
+
+        # 2. In-Memory fallback (when Carapace is unavailable or has no results)
         if ends_with_space:
             prefix = ""
         else:
@@ -140,12 +155,6 @@ class DualStateCompleter(Completer):
                     display_meta=cand.get("display_meta", "Plugin"),
                 )
 
-        # D. If user ran a native tool prefixed with kapsel/kps (e.g. 'kps git checkout')
-        if words:
-            first_tool = words[0].lower()
-            if self.carapace_engine.is_available() and self.carapace_engine.has_completer_for(first_tool):
-                yield from self._yield_carapace_completions(query)
-
     def _complete_native_mode(
         self, stripped: str, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
@@ -155,9 +164,16 @@ class DualStateCompleter(Completer):
             first_tool = first_tool[:-4]
 
         # A. Primary: Carapace Dynamic Completion (1,000+ commands with live context)
-        if parts and self.carapace_engine.is_available() and self.carapace_engine.has_completer_for(first_tool):
-            yield from self._yield_carapace_completions(stripped)
-            return
+        if parts and self.carapace_engine.is_available():
+            if self.carapace_engine.has_completer_for(first_tool):
+                yield from self._yield_carapace_completions(stripped)
+                return
+            # In-Process Kapsel Mode Fallback:
+            # If user typed an internal Kapsel command in REPL mode without 'kps ' prefix
+            # (e.g. 'alias list', 'config edit', 'status'), route to Carapace 'kps <stripped>'!
+            if self.kps_registry.get(first_tool) is not None:
+                yield from self._yield_carapace_completions("kps " + stripped)
+                return
 
         # B. Native Top-Level Builtins & High-Frequency Tools (when starting command line)
         if len(parts) <= 1 and not stripped.endswith(" "):

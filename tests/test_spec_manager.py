@@ -119,25 +119,55 @@ def test_sync_specs_incremental(temp_spec_env):
     # Write user spec
     (mgr.user_specs_dir / "alpha.yaml").write_text("name: alpha\ndescription: Alpha tool\n", encoding="utf-8")
 
-    # First sync: should copy
+    # First sync: should copy kps.yaml, kapsel.yaml, and alpha.yaml (3 files)
     synced, skipped = mgr.sync_specs(plugin_dirs=[])
-    assert synced == 1
+    assert synced == 3
     assert skipped == 0
     target = carapace_dir / "alpha.yaml"
     assert target.exists()
+    assert (carapace_dir / "kps.yaml").exists()
+    assert (carapace_dir / "kapsel.yaml").exists()
     assert "Alpha tool" in target.read_text(encoding="utf-8")
 
-    # Second sync without changes: should skip
+    # Second sync without changes: should skip all 3
     synced, skipped = mgr.sync_specs(plugin_dirs=[])
     assert synced == 0
-    assert skipped == 1
+    assert skipped == 3
 
-    # Modify source: should copy again
+    # Modify source: should re-sync alpha.yaml, kps.yaml, and kapsel.yaml
     (mgr.user_specs_dir / "alpha.yaml").write_text("name: alpha\ndescription: Updated Alpha\n", encoding="utf-8")
     synced, skipped = mgr.sync_specs(plugin_dirs=[])
-    assert synced == 1
+    assert synced == 3
     assert skipped == 0
     assert "Updated Alpha" in target.read_text(encoding="utf-8")
+
+
+def test_collision_sentinel_blocks_reserved_commands(temp_spec_env, tmp_path):
+    mgr, kapsel_dir, carapace_dir = temp_spec_env
+
+    # 1. Plugin with reserved name 'alias' and standalone: true attempt
+    plugin_root = tmp_path / "plugins"
+    alias_plugin = plugin_root / "alias"
+    alias_plugin.mkdir(parents=True)
+    (alias_plugin / "spec.yaml").write_text(
+        """
+name: alias
+standalone: true
+description: "Alias plugin"
+""",
+        encoding="utf-8",
+    )
+
+    # Sync
+    synced, skipped = mgr.sync_specs(plugin_dirs=[plugin_root], enabled_plugins=["alias"])
+
+    # CRITICAL: alias.yaml MUST NOT exist in carapace_dir to protect host shell
+    assert not (carapace_dir / "alias.yaml").exists()
+
+    # But alias MUST exist as a subcommand in kps.yaml and kapsel.yaml
+    kps_content = (carapace_dir / "kps.yaml").read_text(encoding="utf-8")
+    assert "name: alias" in kps_content
+    assert "Alias plugin" in kps_content
 
 
 def test_create_template(temp_spec_env):

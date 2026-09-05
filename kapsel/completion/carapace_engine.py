@@ -137,6 +137,9 @@ class CarapaceEngine:
                             self._supported_tools.add(s_cmd.lower())
                     except Exception:
                         pass
+                    # Always include unified root specifications
+                    self._supported_tools.add("kps")
+                    self._supported_tools.add("kapsel")
                     return self._supported_tools
         except Exception as e:
             logger.warning(f"Failed to load Carapace tools list: {e}")

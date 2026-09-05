@@ -16,6 +16,7 @@ import subprocess
 import sys
 from typing import Dict, List, Optional, Set, Tuple
 
+from kapsel.completion.spec_manager import CarapaceSpecManager
 from kapsel.storage.config import get_kapsel_dir
 from kapsel.storage.logger import logger
 
@@ -84,10 +85,26 @@ class CarapaceEngine:
         self.executable: Optional[str] = executable or resolve_carapace_executable()
         self._supported_tools: Optional[Set[str]] = None
         self._completion_cache: Dict[Tuple[str, Tuple[str, ...], str], List[CarapaceCandidate]] = {}
+        self.spec_manager = CarapaceSpecManager()
+
+        # Light auto-sync of declarative specs on initialization
+        try:
+            self.spec_manager.sync_specs()
+        except Exception as e:
+            logger.debug(f"Carapace spec auto-sync on init skipped: {e}")
 
     def is_available(self) -> bool:
         """Returns True if carapace-bin is installed and executable."""
         return self.executable is not None and Path(self.executable).exists()
+
+    def reload_tools(self) -> None:
+        """Refreshes supported tools and re-syncs all specifications."""
+        try:
+            self.spec_manager.sync_specs()
+        except Exception:
+            pass
+        self._supported_tools = None
+        self.get_supported_tools()
 
     def get_supported_tools(self) -> Set[str]:
         """
@@ -114,6 +131,12 @@ class CarapaceEngine:
                 data = json.loads(res.stdout)
                 if isinstance(data, dict):
                     self._supported_tools = set(data.keys())
+                    # Include active spec commands
+                    try:
+                        for s_cmd in self.spec_manager.discover_specs().keys():
+                            self._supported_tools.add(s_cmd.lower())
+                    except Exception:
+                        pass
                     return self._supported_tools
         except Exception as e:
             logger.warning(f"Failed to load Carapace tools list: {e}")

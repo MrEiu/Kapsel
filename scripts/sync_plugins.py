@@ -296,6 +296,16 @@ def main() -> int:
         f"\n[bold #10b981]✨ Synchronized {success_count}/{len(plugins_to_sync)} plugin(s).[/]"
     )
 
+    # Sync declarative Carapace specifications
+    try:
+        from kapsel.completion.spec_manager import CarapaceSpecManager
+        spec_mgr = CarapaceSpecManager()
+        synced, _ = spec_mgr.sync_specs()
+        if synced > 0:
+            console.print(f"  [bold #10b981]✔[/] Carapace specs synchronized: {synced} updated.")
+    except Exception:
+        pass
+
     # Git commit and push to external repo
     if args.push:
         plugin_desc = args.plugin if args.plugin else "all"

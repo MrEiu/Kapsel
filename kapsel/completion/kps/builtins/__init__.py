@@ -107,3 +107,20 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
         help_text="View and switch active UI language (en, zh_CN, ja, es, fr, de, ru)",
         usage="kapsel language [en|zh_CN|ja|es|fr|de|ru]",
     )
+
+    # 8. completion
+    from kapsel.completion.kps.builtins.completion import handle_completion
+    registry.register(
+        name="completion",
+        handler=handle_completion,
+        help_text="Manage, inspect, and synchronize declarative Carapace completion specifications",
+        subcommands={
+            "ls": "List active completion specifications and sources",
+            "sync": "Force refresh and sync all specs to Carapace",
+            "edit": "Open specification YAML in system editor",
+            "new": "Scaffold a new user completion specification",
+            "path": "Display active spec directories",
+        },
+        usage="kapsel completion [ls|sync|edit|new|path]",
+    )
+

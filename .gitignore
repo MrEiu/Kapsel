@@ -25,6 +25,13 @@ share/python-wheels/
 .installed.cfg
 *.egg
 
+# Archives & Temporary storage
+*.zip
+*.tar.gz
+*.whl
+.tempmediaStorage/
+.user_uploaded/
+
 # Virtual environments
 .env
 .venv
@@ -32,5 +39,14 @@ env/
 venv/
 ENV/
 
-# Kapsel local plugins workspace sandbox (external independent repositories live in C:\Users\meru6\Desktop\plugins)
+# External standalone repositories (Never commit to Kapsel core repo)
+/KPS-Hub/
+KPS-Hub/
+/KPS-Server/
+KPS-Server/
 /plugins/
+plugins/
+/KPS-data/
+KPS-data/
+/data/
+data/

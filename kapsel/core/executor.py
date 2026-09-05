@@ -186,6 +186,11 @@ class CommandExecutor:
 
         # Use subprocess.run without pipes so it directly controls terminal TTY / console
         proc = subprocess.run(args, shell=False)
+        try:
+            sys.stdout.flush()
+            sys.stderr.flush()
+        except Exception:
+            pass
         return proc.returncode
 
     @staticmethod

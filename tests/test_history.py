@@ -186,7 +186,37 @@ def test_ctrl_keybindings():
     c_w.handler(event)
     assert buf.text == "git checkout -b "
 
-    # 5. Test Ctrl+U (c-u) clears line before cursor
-    c_u = kb.get_bindings_for_keys(("c-u",))[0]
-    c_u.handler(event)
-    assert buf.text == ""
+    # 6. Test Alt+B (escape, b) moves backward by word
+    alt_b = kb.get_bindings_for_keys(("escape", "b"))[0]
+    alt_b.handler(event)
+    assert buf.cursor_position == 14
+
+    # 7. Test Alt+F (escape, f) moves forward by word
+    alt_f = kb.get_bindings_for_keys(("escape", "f"))[0]
+    alt_f.handler(event)
+    assert buf.cursor_position == 16
+
+
+def test_clean_prompt_tokens_and_threaded_completer():
+    """Verify default prompt tokens have no emojis and completer is wrapped in ThreadedCompleter."""
+    from kapsel.storage.config import load_config
+    from kapsel.ui.card import get_prompt_tokens
+    from kapsel.ui.prompt import KapselPrompt
+    from kapsel.core.engine import DualStateEngine
+    from prompt_toolkit.completion import ThreadedCompleter
+
+    cfg = load_config()
+    tokens = get_prompt_tokens(cfg, "bash")
+    raw_prompt_text = "".join(text for _, text in tokens)
+
+    # Assert no emojis or nerd font glyphs in default prompt
+    assert "💊" not in raw_prompt_text
+    assert "📁" not in raw_prompt_text
+    assert "" not in raw_prompt_text
+    assert "kapsel" in raw_prompt_text
+
+    # Verify ThreadedCompleter wrapping
+    engine = DualStateEngine()
+    prompt_inst = KapselPrompt(engine)
+    assert isinstance(prompt_inst.completer, ThreadedCompleter)
+

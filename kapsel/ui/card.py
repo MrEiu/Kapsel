@@ -19,7 +19,7 @@ from kapsel.ui.banner import ensure_utf8_io
 def get_prompt_tokens(config: KapselConfig, shell_name: str) -> FormattedText:
     """
     Constructs the prompt_toolkit FormattedText tuple list for the 2-line block prompt:
-    ╭─ 💊 kapsel  [pwsh]  ~/Desktop/Kapsel   main  21:50:30
+    ╭─ kapsel  [pwsh]  ~/Desktop/Kapsel  (main)  21:50:30
     ╰─ ❯ 
     """
     symbols = config.symbols
@@ -30,8 +30,9 @@ def get_prompt_tokens(config: KapselConfig, shell_name: str) -> FormattedText:
     tokens: List[Tuple[str, str]] = []
 
     # Line 1: Header line
-    tokens.append(("class:prompt.top", f"{symbols.get('top', '╭─')} "))
-    tokens.append(("class:prompt.capsule", f"{symbols.get('capsule', '💊')} kapsel  "))
+    top_sym = symbols.get("top", "╭─")
+    tokens.append(("class:prompt.top", f"{top_sym} " if top_sym else ""))
+    tokens.append(("class:prompt.capsule", "kapsel  "))
 
     try:
         from kapsel.storage.user import UserManager
@@ -44,10 +45,10 @@ def get_prompt_tokens(config: KapselConfig, shell_name: str) -> FormattedText:
     if config.ui.get("show_shell_badge", True):
         tokens.append(("class:prompt.shell", f"[{shell_name}]  "))
 
-    tokens.append(("class:prompt.cwd", f"{symbols.get('folder', '📁')} {cwd_str}  "))
+    tokens.append(("class:prompt.cwd", f"{cwd_str}  "))
 
     if branch:
-        tokens.append(("class:prompt.branch", f"{symbols.get('branch', '')} {branch}  "))
+        tokens.append(("class:prompt.branch", f"({branch})  "))
 
     if time_str:
         tokens.append(("class:prompt.time", f"{time_str}"))
@@ -55,8 +56,10 @@ def get_prompt_tokens(config: KapselConfig, shell_name: str) -> FormattedText:
     tokens.append(("", "\n"))
 
     # Line 2: Input line
-    tokens.append(("class:prompt.bottom", f"{symbols.get('bottom', '╰─')} "))
-    tokens.append(("class:prompt.arrow", f"{symbols.get('arrow', '❯')} "))
+    bottom_sym = symbols.get("bottom", "╰─")
+    arrow_sym = symbols.get("arrow", "❯")
+    tokens.append(("class:prompt.bottom", f"{bottom_sym} " if bottom_sym else ""))
+    tokens.append(("class:prompt.arrow", f"{arrow_sym} " if arrow_sym else "> "))
 
     return FormattedText(tokens)
 

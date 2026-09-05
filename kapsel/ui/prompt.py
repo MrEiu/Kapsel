@@ -286,14 +286,16 @@ def create_key_bindings(
         elif buffer.cursor_position > 0:
             buffer.delete_before_cursor(count=buffer.cursor_position)
 
-    # Ctrl+Left / Ctrl+Right: Word-by-word navigation
+    # Word navigation: Ctrl+Left / Ctrl+Right / Alt+B / Alt+F
     @kb.add("c-left")
+    @kb.add("escape", "b")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
         pos = buffer.document.find_previous_word_beginning(count=1)
         buffer.cursor_position = buffer.cursor_position + pos if pos is not None else 0
 
     @kb.add("c-right")
+    @kb.add("escape", "f")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
         pos = buffer.document.find_next_word_ending(count=1)
@@ -323,8 +325,9 @@ def create_key_bindings(
     def _(event: KeyPressEvent) -> None:
         event.current_buffer.cursor_position = len(event.current_buffer.text)
 
-    # Ctrl+Delete: Delete word forward
+    # Ctrl+Delete / Alt+D: Delete word forward
     @kb.add("c-delete")
+    @kb.add("escape", "d")
     def _(event: KeyPressEvent) -> None:
         buffer = event.current_buffer
         pos = buffer.document.find_next_word_ending(count=1)
@@ -350,16 +353,21 @@ class KapselPrompt:
     """Manages the terminal prompt session lifecycle."""
 
     def __init__(self, engine: DualStateEngine):
+        from prompt_toolkit.completion import ThreadedCompleter
+
         self.engine = engine
         self.config = engine.config
         self.history = KapselPromptHistory(
             manager=engine.history_mgr,
             limit=self.config.history_entries,
         )
-        self.completer = DualStateCompleter(
+        self.raw_completer = DualStateCompleter(
             current_shell=engine.shell_name,
             plugin_manager=getattr(engine, "plugin_manager", None),
         )
+        # ThreadedCompleter runs Carapace subprocesses in worker threads
+        # preventing any keystroke freezing or UI latency during typing
+        self.completer = ThreadedCompleter(self.raw_completer)
         self.history_tracker = HistoryEditTracker()
         self.key_bindings = create_key_bindings(self.config, tracker=self.history_tracker)
 

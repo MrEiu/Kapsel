@@ -68,29 +68,28 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
     from kapsel.core.plugin.catalog import load_plugin_catalog
 
     add_subcommands = load_plugin_catalog()
-    add_subcommands["carapace"] = "Install official Carapace 1,000+ autocompletion engine"
     add_subcommands["update"] = "Scan plugins and update completion dictionary"
 
     registry.register(
         name="add",
         handler=handle_add_command,
-        help_text="Enable a plugin or install Carapace (e.g. kapsel add carapace)",
+        help_text="Enable and register a plugin into Kapsel environment (e.g. kapsel add install)",
         subcommands=add_subcommands,
-        usage="kapsel add <plugin_name|carapace> (or: kapsel add update)",
+        usage="kapsel add <plugin_name> (or: kapsel add update)",
     )
 
-    # 5b. install-carapace
-    def _handle_install_carapace(args, console=None):
+    # 5b. setup-completion (maintenance and repair command)
+    def _handle_setup_completion(args, console=None):
         from kapsel.completion.carapace_installer import install_carapace
         force = "--force" in args or "-f" in args
         success = install_carapace(console=console, force=force)
         return 0 if success else 1
 
     registry.register(
-        name="install-carapace",
-        handler=_handle_install_carapace,
-        help_text="Download and install Carapace 1,000+ commands autocompletion engine",
-        usage="kapsel install-carapace [--force]",
+        name="setup-completion",
+        handler=_handle_setup_completion,
+        help_text="Download, setup, or repair Carapace 1,000+ commands autocompletion engine",
+        usage="kapsel setup-completion [--force]",
     )
 
     # 6. toggle

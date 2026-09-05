@@ -92,7 +92,7 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
         tools_count = len(carapace_eng.get_supported_tools())
         completer_label = f"[bold #10b981]{tools_count}+[/] Carapace specs"
     else:
-        completer_label = f"[yellow]{_('Basic')}[/] [dim]({_('Run: kps add carapace')})[/]"
+        completer_label = f"[yellow]{_('Basic (offline)')}[/] [dim]({_('Run: kapsel setup-completion')})[/]"
 
     is_active = os.environ.get("KAPSEL_ACTIVE") == "1"
     active_str = _("Active")
@@ -118,8 +118,8 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
     if not carapace_eng.is_available():
         con.print(
             f" [dim]💡[/] [yellow]{_('Tip: Carapace engine not found. Run')}[/] "
-            f"[bold #00f0ff]kps add carapace[/] "
-            f"[yellow]{_('to enable 1,000+ dynamic tool completions.')}[/]\n"
+            f"[bold #00f0ff]kapsel setup-completion[/] "
+            f"[yellow]{_('to download and enable 1,000+ dynamic tool completions.')}[/]\n"
         )
     else:
         con.print()

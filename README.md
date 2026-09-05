@@ -35,32 +35,20 @@ kapsel
 kps
 ```
 
-### 3. 启用 1,000+ 命令深度自动补全引擎 (Carapace)
+### 3. 开箱即用：1,000+ 命令自动补全引擎 (Carapace)
 
-Kapsel 采用 [Carapace](https://carapace.sh) 作为底层多 Shell 深度上下文自动补全引擎（原生支持 `git`, `docker`, `kubectl`, `cargo`, `npm`, `pnpm`, `python` 等 1000+ 原生命令的分支、标签、容器名与选项补全）：
+Kapsel 深度整合了 [Carapace](https://carapace.sh) 作为核心多 Shell 深度上下文自动补全引擎（原生支持 `git`, `docker`, `kubectl`, `cargo`, `npm`, `pnpm`, `python` 等 1000+ 原生命令的分支、标签、容器名与选项补全）：
 
-- **方式 A（最简：Kapsel 内置一键安装，免 root）**：
-  进入 Kapsel 后直接输入：
+- **首次启动全自动无感就绪（零操作、免 root）**：
+  首次输入 `kapsel` 启动终端时，系统将**自动检测并静默拉取**匹配当前系统架构的官方二进制到 `~/.kapsel/bin/`，完全不需要手动执行任何命令，开箱即用！
+- **手动诊断或修复**：
+  若在离线环境下使用或需要手动重新下载，可随时运行维护指令：
   ```bash
-  kps add carapace
+  kapsel setup-completion [--force]
   ```
-  *跨平台通用（Linux / macOS / Windows），自动下载匹配当前操作系统与 CPU 架构的静态二进制到 `~/.kapsel/bin`，立即热加载生效。*
-
-- **方式 B（Linux / macOS 服务器一键脚本）**：
-  ```bash
-  curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_carapace.sh | bash
-  ```
-
-- **方式 C（Windows PowerShell 一键脚本）**：
-  ```powershell
-  irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_carapace.ps1 | iex
-  ```
-
-- **方式 D（系统包管理器）**：
-  - **macOS**: `brew install carapace`
-  - **Windows**: `scoop install carapace-bin` 或 `winget install carapace`
-  - **Arch Linux**: `pacman -S carapace-bin` 或 `yay -S carapace-bin`
-  - **Go**: `go install github.com/carapace-sh/carapace-bin/cmd/carapace@latest`
+- **备用一键安装脚本**：
+  - Linux / macOS 服务器脚本：`curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_carapace.sh | bash`
+  - Windows PowerShell 脚本：`irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_carapace.ps1 | iex`
 
 ---
 

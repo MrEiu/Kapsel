@@ -104,16 +104,7 @@ def render_banner(
     )
 
     grid.add_row(f" [dim]•[/] {tip1}")
-
-    from kapsel.completion.carapace_engine import get_carapace_engine
-    if get_carapace_engine().is_available():
-        grid.add_row(f" [dim]•[/] {tip2}")
-    else:
-        tip_carapace = _("Run {cmd} to auto-install Carapace for 1,000+ completions").format(
-            cmd="[bold #00f0ff]kps add carapace[/]"
-        )
-        grid.add_row(f" [dim]•[/] {tip_carapace}")
-
+    grid.add_row(f" [dim]•[/] {tip2}")
     grid.add_row(f" [dim]•[/] {tip3}")
 
     panel = Panel(

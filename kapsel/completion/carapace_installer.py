@@ -188,3 +188,31 @@ def install_carapace(
         logger.exception("Failed to extract or verify Carapace binary")
         con.print(f"[bold #f43f5e]Error during extraction/verification:[/] {e}")
         return False
+
+
+def ensure_carapace_installed(console: Optional[Console] = None) -> bool:
+    """
+    Auto-bootstraps Carapace completion engine on first launch if not already available.
+    Zero-overhead (0ms) on subsequent launches when already installed.
+    Gracefully falls back to basic completion if offline, preventing any startup crash.
+    """
+    from kapsel.completion.carapace_engine import get_carapace_engine
+
+    engine = get_carapace_engine()
+    if engine.is_available():
+        return True
+
+    con = console or Console(legacy_windows=False)
+    con.print("[bold #00f0ff]🎯 First Launch: Auto-initializing Carapace completion engine (1,000+ tools)...[/]")
+
+    try:
+        success = install_carapace(console=con, force=False)
+        return success
+    except Exception as e:
+        logger.warning(f"Failed to auto-bootstrap Carapace: {e}")
+        con.print(
+            f"[yellow]Notice: Could not automatically setup Carapace ({e}). "
+            f"Continuing in basic autocompletion mode.[/]\n"
+        )
+        return False
+

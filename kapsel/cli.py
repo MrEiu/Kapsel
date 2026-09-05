@@ -70,6 +70,10 @@ def main(args: Optional[List[str]] = None) -> int:
     engine = DualStateEngine()
     console = Console(legacy_windows=False)
 
+    # Auto-bootstrap Carapace autocompletion engine on first run (0ms on subsequent runs)
+    from kapsel.completion.carapace_installer import ensure_carapace_installed
+    ensure_carapace_installed(console=console)
+
     os.environ["KAPSEL_ACTIVE"] = "1"
 
     if is_toggle_start:

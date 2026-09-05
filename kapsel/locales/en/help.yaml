@@ -1,0 +1,101 @@
+# Kapsel System Manual & Cheatsheet (English)
+meta:
+  title: "KAPSEL"
+  subtitle: "User Manual & Fast Command Cheatsheet"
+  architecture: "Unified Command Pipeline: 'kapsel <cmd>' and 'kps <cmd>' share the exact same execution engine."
+  version_prefix: "v"
+
+modes:
+  title: "🚀 Core Interaction Dual Modes"
+  columns:
+    mode: "Mode"
+    trigger: "Trigger"
+    description: "Behavior & Capabilities"
+  rows:
+    - name: "Native Mode"
+      trigger: "Direct command input"
+      description: "100% native host execution (git, docker, npm, python, vim) with Carapace dynamic context-aware completion."
+    - name: "Kapsel Mode"
+      trigger: "Prefix 'kapsel ' or 'kps '"
+      description: "Unified capsule commands (help, status, config, language, add, toggle, and plugin extensions); Tab opens candidates."
+
+quickstart:
+  title: "⚡ Quick Start Workflow"
+  items:
+    - step: "1. Launch Interactive Shell"
+      cmd: "kapsel toggle"
+      desc: "Opens the smart capsule shell with real-time autocompletion and command history."
+    - step: "2. Native Pass-Through"
+      cmd: "git checkout -b feature"
+      desc: "Run any native command without friction. Carapace provides live branch and flag completions."
+    - step: "3. One-Shot Execution"
+      cmd: "kps status"
+      desc: "Run capsule commands directly from external PowerShell, Bash, or CMD."
+    - step: "4. Safely Exit"
+      cmd: "exit"
+      desc: "Returns cleanly to your host terminal without residual background processes."
+
+commands:
+  title: "⚙️ Capsule Command Suite (kapsel / kps)"
+  columns:
+    command: "Command"
+    description: "Description"
+    origin: "Origin"
+  builtin_rows:
+    - name: "kps help"
+      desc: "Display comprehensive manual, modes, keybindings, and cheatsheets"
+      origin: "Core"
+    - name: "kps status"
+      desc: "Inspect OS platform, active host shell, Git branch, and sandbox status"
+      origin: "Core"
+    - name: "kps config"
+      desc: "View, edit, get, set, or reload settings in ~/.kapsel/config.yaml"
+      origin: "Core"
+    - name: "kps language"
+      desc: "View and switch active UI language (en, zh_CN, ja, es, fr, de, ru)"
+      origin: "Core"
+    - name: "kps datadir"
+      desc: "View or migrate data sandbox storage directory with automatic data transfer"
+      origin: "Core"
+    - name: "kps add <plugin>"
+      desc: "Install dependencies and register a plugin into Kapsel environment"
+      origin: "Core"
+    - name: "kps toggle"
+      desc: "Toggle interactive Kapsel terminal mode on or off"
+      origin: "Core"
+    - name: "exit / quit"
+      desc: "Safely exit Kapsel interactive capsule and return to host shell"
+      origin: "Core"
+
+shortcuts:
+  title: "⌨️ Interactive Keybindings & Ergonomics"
+  columns:
+    key: "Key"
+    description: "Action"
+  items:
+    - key: "Tab"
+      desc: "Trigger autocomplete candidate menu or cycle through suggestions"
+    - key: "Shift + Tab"
+      desc: "Cycle backwards through autocomplete suggestions"
+    - key: "Enter"
+      desc: "Accept highlighted candidate (appends space for args) or execute command"
+    - key: "↑ (Up Arrow)"
+      desc: "Navigate backwards chronologically through command history"
+    - key: "↓ (Down Arrow)"
+      desc: "Navigate forward through history or cycle down in completion menu"
+    - key: "→ (Single Tap)"
+      desc: "Accept inline gray predictive suggestion word-by-word"
+    - key: "→ (Continuous Press)"
+      desc: "Accept entire line of inline predictive suggestion"
+    - key: "Ctrl + C"
+      desc: "Cancel current editing line and reset prompt"
+    - key: "Ctrl + D"
+      desc: "Cleanly exit interactive capsule session (EOF)"
+
+tips:
+  title: "💡 Pro Tips & Best Practices"
+  items:
+    - "Run 'kps config edit' to open your configuration in your default editor (VSCode / Notepad)."
+    - "Run 'kps add update' whenever you clone or modify plugins in your plugins repository."
+    - "Switch languages anytime via 'kps language <code/alias>' (e.g. 'kps language zh' or 'kps language ja')."
+    - "Relocate your data directory across disks with zero data loss using 'kps datadir D:\\KapselData'."

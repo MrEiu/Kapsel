@@ -3,14 +3,33 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kapsel"
+name = "kapsel-cli"
 version = "0.1.0"
 description = "💊 跨平台自适应智能终端胶囊 (Cross-platform adaptive smart terminal capsule)"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [
-    { name = "Kapsel Team" }
+    { name = "MrEiu", email = "k648888@vip.qq.com" }
+]
+keywords = ["terminal", "shell", "cli", "capsule", "prompt", "completion", "i18n", "carapace"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Shells",
+    "Topic :: Terminals",
+    "Topic :: Utilities",
 ]
 dependencies = [
     "prompt_toolkit>=3.0.40",
@@ -19,6 +38,11 @@ dependencies = [
     "psutil>=5.9.0",
     "shellingham>=1.5.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/MrEiu/Kapsel"
+Repository = "https://github.com/MrEiu/Kapsel"
+Issues = "https://github.com/MrEiu/Kapsel/issues"
 
 [project.optional-dependencies]
 test = [
@@ -32,3 +56,11 @@ kps = "kapsel.cli:kps_cli"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["kapsel*"]
+
+[tool.setuptools.package-data]
+kapsel = [
+    "locales/**/*.yaml",
+    "locales/**/*.mo",
+    "locales/**/*.po",
+    "locales/**/*.pot",
+]

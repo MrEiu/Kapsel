@@ -1,0 +1,210 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-09-05 01:16+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: kapsel/completion/completer.py:174
+msgid "Change directory"
+msgstr ""
+
+#: kapsel/completion/completer.py:175
+msgid "Clear terminal screen"
+msgstr ""
+
+#: kapsel/completion/completer.py:176
+msgid "Exit session"
+msgstr ""
+
+#: kapsel/completion/completer.py:177
+msgid "Git version control"
+msgstr ""
+
+#: kapsel/completion/completer.py:178
+msgid "Docker container platform"
+msgstr ""
+
+#: kapsel/completion/completer.py:179
+msgid "Windows command-line installer"
+msgstr ""
+
+#: kapsel/completion/completer.py:180 kapsel/completion/completer.py:185
+msgid "Node.js package manager"
+msgstr ""
+
+#: kapsel/completion/completer.py:181
+msgid "Rust package manager"
+msgstr ""
+
+#: kapsel/completion/completer.py:182
+msgid "Python interpreter"
+msgstr ""
+
+#: kapsel/completion/completer.py:183
+msgid "Kubernetes cluster CLI"
+msgstr ""
+
+#: kapsel/completion/completer.py:184
+msgid "Fast disk space efficient package manager"
+msgstr ""
+
+#: kapsel/completion/kps/dispatcher.py:62 kapsel/core/engine.py:118
+#, python-brace-format
+msgid "kapsel: unknown command '{cmd}'. See 'kapsel help'."
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:43
+msgid "Available Languages"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:44
+msgid "Code"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:45
+msgid "Language"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:46
+msgid "Native Name"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:47
+msgid "Aliases"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:48
+msgid "Status"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:53
+#: kapsel/completion/kps/builtins/status.py:100
+msgid "Active"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:59
+msgid "Usage:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:67
+#, python-brace-format
+msgid "Error: Unsupported language '{input}'. Available codes: {available}"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/language.py:76
+#, python-brace-format
+msgid "✔ Language successfully switched to: {name} ({code})"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:46
+msgid "Admin"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:53
+msgid "None"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:55
+msgid "Platform:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:57
+msgid "Host Shell:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:62
+msgid "Privilege:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:64
+msgid "Git Branch:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:69
+msgid "Working Dir:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:71
+msgid "Kapsel Version:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:76
+msgid "On"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:76
+msgid "Off"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:78
+msgid "Sandbox Dir:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:80
+msgid "Active Theme:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:101
+msgid "Standby"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:103
+msgid "Completer:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:105
+msgid "Session Mode:"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/status.py:109
+msgid "💊 KAPSEL System & Environment Status"
+msgstr ""
+
+#: kapsel/completion/kps/builtins/toggle.py:29
+msgid "🔌 Kapsel session is active. Type 'kapsel toggle' or 'exit' to quit."
+msgstr ""
+
+#: kapsel/completion/kps/builtins/toggle.py:32
+msgid "✔ Kapsel session is ready. Run 'kapsel toggle' to launch."
+msgstr ""
+
+#: kapsel/ui/banner.py:83
+msgid "cwd:"
+msgstr ""
+
+#: kapsel/ui/banner.py:84
+msgid "shell:"
+msgstr ""
+
+#: kapsel/ui/banner.py:93
+msgid "Tips for getting started:"
+msgstr ""
+
+#: kapsel/ui/banner.py:96
+#, python-brace-format
+msgid "Type {cmd1} or {cmd2} to explore available commands"
+msgstr ""
+
+#: kapsel/ui/banner.py:99
+#, python-brace-format
+msgid "Press {key} to trigger intelligent context-aware completions"
+msgstr ""
+
+#: kapsel/ui/banner.py:102
+#, python-brace-format
+msgid "Run {cmd1} to inspect dashboard · {cmd2} to quit session"
+msgstr ""
+

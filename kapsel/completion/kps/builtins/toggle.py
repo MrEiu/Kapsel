@@ -11,6 +11,7 @@ from typing import List, Optional
 from rich.console import Console
 from rich.panel import Panel
 
+from kapsel.i18n import _
 from kapsel.ui.banner import ensure_utf8_io
 
 
@@ -25,7 +26,9 @@ def handle_toggle_command(args: Optional[List[str]] = None, console: Optional[Co
     is_active = os.environ.get("KAPSEL_ACTIVE") == "1"
 
     if is_active:
-        con.print("[bold #00f0ff]🔌 Kapsel session is active.[/] [dim]Type 'kapsel toggle' or 'exit' to quit.[/]")
+        msg = _("🔌 Kapsel session is active. Type 'kapsel toggle' or 'exit' to quit.")
+        con.print(f"[bold #00f0ff]{msg}[/]")
     else:
-        con.print("[bold #10b981]✔ Kapsel session is ready.[/] [dim]Run 'kapsel toggle' to launch.[/]")
+        msg = _("✔ Kapsel session is ready. Run 'kapsel toggle' to launch.")
+        con.print(f"[bold #10b981]{msg}[/]")
     return 0

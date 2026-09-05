@@ -1,0 +1,212 @@
+# Russian translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-09-05 01:16+0800\n"
+"PO-Revision-Date: 2026-09-05 01:07+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: ru\n"
+"Language-Team: ru <LL@li.org>\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: kapsel/completion/completer.py:174
+msgid "Change directory"
+msgstr "Сменить каталог"
+
+#: kapsel/completion/completer.py:175
+msgid "Clear terminal screen"
+msgstr "Очистить экран"
+
+#: kapsel/completion/completer.py:176
+msgid "Exit session"
+msgstr "Выйти из сессии"
+
+#: kapsel/completion/completer.py:177
+msgid "Git version control"
+msgstr "Система контроля версий Git"
+
+#: kapsel/completion/completer.py:178
+msgid "Docker container platform"
+msgstr "Платформа контейнеров Docker"
+
+#: kapsel/completion/completer.py:179
+msgid "Windows command-line installer"
+msgstr "Пакетный менеджер Windows"
+
+#: kapsel/completion/completer.py:180 kapsel/completion/completer.py:185
+msgid "Node.js package manager"
+msgstr "Пакетный менеджер Node.js"
+
+#: kapsel/completion/completer.py:181
+msgid "Rust package manager"
+msgstr "Пакетный менеджер Rust"
+
+#: kapsel/completion/completer.py:182
+msgid "Python interpreter"
+msgstr "Интерпретатор Python"
+
+#: kapsel/completion/completer.py:183
+msgid "Kubernetes cluster CLI"
+msgstr "Инструмент управления кластером Kubernetes"
+
+#: kapsel/completion/completer.py:184
+msgid "Fast disk space efficient package manager"
+msgstr "Быстрый менеджер пакетов"
+
+#: kapsel/completion/kps/dispatcher.py:62 kapsel/core/engine.py:118
+#, python-brace-format
+msgid "kapsel: unknown command '{cmd}'. See 'kapsel help'."
+msgstr "kapsel: неизвестная команда '{cmd}'. См. 'kapsel help'."
+
+#: kapsel/completion/kps/builtins/language.py:43
+msgid "Available Languages"
+msgstr "Доступные языки"
+
+#: kapsel/completion/kps/builtins/language.py:44
+msgid "Code"
+msgstr "Код"
+
+#: kapsel/completion/kps/builtins/language.py:45
+msgid "Language"
+msgstr "Язык"
+
+#: kapsel/completion/kps/builtins/language.py:46
+msgid "Native Name"
+msgstr "Название"
+
+#: kapsel/completion/kps/builtins/language.py:47
+msgid "Aliases"
+msgstr "Псевдонимы"
+
+#: kapsel/completion/kps/builtins/language.py:48
+msgid "Status"
+msgstr "Статус"
+
+#: kapsel/completion/kps/builtins/language.py:53
+#: kapsel/completion/kps/builtins/status.py:100
+msgid "Active"
+msgstr "Активно"
+
+#: kapsel/completion/kps/builtins/language.py:59
+msgid "Usage:"
+msgstr "Использование:"
+
+#: kapsel/completion/kps/builtins/language.py:67
+#, python-brace-format
+msgid "Error: Unsupported language '{input}'. Available codes: {available}"
+msgstr "Ошибка: Неподдерживаемый язык '{input}'. Доступные коды: {available}"
+
+#: kapsel/completion/kps/builtins/language.py:76
+#, python-brace-format
+msgid "✔ Language successfully switched to: {name} ({code})"
+msgstr "✔ Язык успешно изменен на: {name} ({code})"
+
+#: kapsel/completion/kps/builtins/status.py:46
+msgid "Admin"
+msgstr "Администратор"
+
+#: kapsel/completion/kps/builtins/status.py:53
+msgid "None"
+msgstr "Нет"
+
+#: kapsel/completion/kps/builtins/status.py:55
+msgid "Platform:"
+msgstr "Платформа:"
+
+#: kapsel/completion/kps/builtins/status.py:57
+msgid "Host Shell:"
+msgstr "Родительский шелл:"
+
+#: kapsel/completion/kps/builtins/status.py:62
+msgid "Privilege:"
+msgstr "Уровень прав:"
+
+#: kapsel/completion/kps/builtins/status.py:64
+msgid "Git Branch:"
+msgstr "Ветка Git:"
+
+#: kapsel/completion/kps/builtins/status.py:69
+msgid "Working Dir:"
+msgstr "Рабочий каталог:"
+
+#: kapsel/completion/kps/builtins/status.py:71
+msgid "Kapsel Version:"
+msgstr "Версия Kapsel:"
+
+#: kapsel/completion/kps/builtins/status.py:76
+msgid "On"
+msgstr "Вкл"
+
+#: kapsel/completion/kps/builtins/status.py:76
+msgid "Off"
+msgstr "Выкл"
+
+#: kapsel/completion/kps/builtins/status.py:78
+msgid "Sandbox Dir:"
+msgstr "Каталог песочницы:"
+
+#: kapsel/completion/kps/builtins/status.py:80
+msgid "Active Theme:"
+msgstr "Текущая тема:"
+
+#: kapsel/completion/kps/builtins/status.py:101
+msgid "Standby"
+msgstr "Ожидание"
+
+#: kapsel/completion/kps/builtins/status.py:103
+msgid "Completer:"
+msgstr "Движок дополнения:"
+
+#: kapsel/completion/kps/builtins/status.py:105
+msgid "Session Mode:"
+msgstr "Режим сессии:"
+
+#: kapsel/completion/kps/builtins/status.py:109
+msgid "💊 KAPSEL System & Environment Status"
+msgstr "💊 Панель статуса системы и среды KAPSEL"
+
+#: kapsel/completion/kps/builtins/toggle.py:29
+msgid "🔌 Kapsel session is active. Type 'kapsel toggle' or 'exit' to quit."
+msgstr "🔌 Сессия Kapsel активна. Введите 'kapsel toggle' или 'exit' для выхода."
+
+#: kapsel/completion/kps/builtins/toggle.py:32
+msgid "✔ Kapsel session is ready. Run 'kapsel toggle' to launch."
+msgstr "✔ Сессия Kapsel готова. Введите 'kapsel toggle' для запуска."
+
+#: kapsel/ui/banner.py:83
+msgid "cwd:"
+msgstr "Рабочий каталог:"
+
+#: kapsel/ui/banner.py:84
+msgid "shell:"
+msgstr "Родительский шелл:"
+
+#: kapsel/ui/banner.py:93
+msgid "Tips for getting started:"
+msgstr "Советы по началу работы:"
+
+#: kapsel/ui/banner.py:96
+#, python-brace-format
+msgid "Type {cmd1} or {cmd2} to explore available commands"
+msgstr "Введите {cmd1} или {cmd2} для просмотра доступных команд и справки"
+
+#: kapsel/ui/banner.py:99
+#, python-brace-format
+msgid "Press {key} to trigger intelligent context-aware completions"
+msgstr "Нажмите {key} для вызова контекстного автодополнения"
+
+#: kapsel/ui/banner.py:102
+#, python-brace-format
+msgid "Run {cmd1} to inspect dashboard · {cmd2} to quit session"
+msgstr "Запустите {cmd1} для перехода в дашборд · {cmd2} для выхода"
+

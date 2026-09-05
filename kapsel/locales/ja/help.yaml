@@ -1,0 +1,101 @@
+# Kapsel システムマニュアル & クイックリファレンス (日本語)
+meta:
+  title: "KAPSEL"
+  subtitle: "ユーザーマニュアル & クイックコマンドリファレンス"
+  architecture: "統一コマンドパイプライン: 'kapsel <cmd>' と 'kps <cmd>' は同一の実行エンジンを共有します。"
+  version_prefix: "v"
+
+modes:
+  title: "🚀 コアインタラクション デュアルモード"
+  columns:
+    mode: "モード"
+    trigger: "トリガー"
+    description: "動作と機能"
+  rows:
+    - name: "ネイティブモード"
+      trigger: "直接コマンド入力"
+      description: "100% ホスト環境で透過実行 (git, docker, npm, python, vim) & Carapace 動的コンテキスト補全。"
+    - name: "カプセルモード"
+      trigger: "'kapsel ' または 'kps ' を先頭に入力"
+      description: "統合カプセルコマンド (help, status, config, language, add, toggle など)。Tab で候補を展開。"
+
+quickstart:
+  title: "⚡ クイックスタートワークフロー"
+  items:
+    - step: "1. シェル起動"
+      cmd: "kapsel toggle"
+      desc: "スマートカプセルシェルを開始し、リアルタイム補完と履歴を活用します。"
+    - step: "2. ネイティブ実行"
+      cmd: "git checkout -b feature"
+      desc: "摩擦なくネイティブコマンドを実行。ブランチ名やフラグをリアルタイムに自動感知します。"
+    - step: "3. 外部からの単発実行"
+      cmd: "kps status"
+      desc: "外部の PowerShell、Bash、CMD から直接カプセルツールを実行します。"
+    - step: "4. 安全に終了"
+      cmd: "exit"
+      desc: "残留プロセスなしでホストシェルにクリーンに戻ります。"
+
+commands:
+  title: "⚙️ カプセルコマンドスイート (kapsel / kps)"
+  columns:
+    command: "コマンド"
+    description: "説明"
+    origin: "ソース"
+  builtin_rows:
+    - name: "kps help"
+      desc: "システムマニュアル、モード、キーバインド、リファレンスを表示"
+      origin: "Core"
+    - name: "kps status"
+      desc: "OSプラットフォーム、ホストシェル、Gitブランチ、サンドボックス状態を表示"
+      origin: "Core"
+    - name: "kps config"
+      desc: "~/.kapsel/config.yaml の設定を表示、編集、設定、またはホットリロード"
+      origin: "Core"
+    - name: "kps language"
+      desc: "表示言語の確認と切り替え (en, zh_CN, ja, es, fr, de, ru)"
+      origin: "Core"
+    - name: "kps datadir"
+      desc: "データ保存先ディレクトリの確認および別ディスクへの安全な一括移行"
+      origin: "Core"
+    - name: "kps add <plugin>"
+      desc: "プラグインの依存関係をインストールし、環境に登録・有効化"
+      origin: "Core"
+    - name: "kps toggle"
+      desc: "インタラクティブな Kapsel 端末セッションのオン/オフを切り替え"
+      origin: "Core"
+    - name: "exit / quit"
+      desc: "Kapsel カプセルを安全に終了し、ホストシェルに戻る"
+      origin: "Core"
+
+shortcuts:
+  title: "⌨️ キーバインド & エルゴノミクス"
+  columns:
+    key: "キー"
+    description: "アクション"
+  items:
+    - key: "Tab"
+      desc: "オートコンプリート候補メニューを表示または候補を巡回"
+    - key: "Shift + Tab"
+      desc: "補完候補メニューで逆方向に移動"
+    - key: "Enter"
+      desc: "選択した候補を確定 (引数追加用スペース自動挿入) またはコマンド実行"
+    - key: "↑ (上矢印)"
+      desc: "実行履歴を時系列逆順にナビゲート"
+    - key: "↓ (下矢印)"
+      desc: "実行履歴を順方向にナビゲート、または補完メニューで下へ移動"
+    - key: "→ (単押し)"
+      desc: "薄いグレーの予測候補を単語単位 (Word-by-word) で採用"
+    - key: "→ (長押し/連打)"
+      desc: "予測候補をコマンド全体一行すべて採用"
+    - key: "Ctrl + C"
+      desc: "現在の入力行をキャンセルしてプロンプトをリセット"
+    - key: "Ctrl + D"
+      desc: "対話型カプセルセッションをクリーンに終了 (EOF)"
+
+tips:
+  title: "💡 ヒントとベストプラクティス"
+  items:
+    - "'kps config edit' で既定のエディタ (VSCode / メモ帳) で設定を開けます。"
+    - "プラグインを変更した時は 'kps add update' を実行して補完辞書を更新してください。"
+    - "'kps language ja' や 'kps language en' でいつでも言語を切り替えられます。"
+    - "'kps datadir D:\\KapselData' を実行すると、全データを安全に別ドライブへ移行できます。"

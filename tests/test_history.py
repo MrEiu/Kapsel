@@ -149,3 +149,43 @@ def test_history_multi_step_navigation_and_reset():
     asyncio.run(_test())
 
 
+def test_ctrl_keybindings():
+    """Verify Ctrl-based cursor navigation, word rubout, and line discarding."""
+    from kapsel.storage.config import load_config
+    from kapsel.ui.prompt import create_key_bindings
+
+    cfg = load_config()
+    kb = create_key_bindings(cfg)
+
+    buf = Buffer()
+    buf.insert_text("git checkout -b feature")
+    assert buf.cursor_position == 23
+
+    class DummyEvent:
+        def __init__(self, buffer):
+            self.current_buffer = buffer
+
+    event = DummyEvent(buf)
+
+    # 1. Test Ctrl+Left (c-left)
+    c_left = kb.get_bindings_for_keys(("c-left",))[0]
+    c_left.handler(event)
+    assert buf.cursor_position == 16
+
+    # 2. Test Ctrl+Right (c-right)
+    c_right = kb.get_bindings_for_keys(("c-right",))[0]
+    c_right.handler(event)
+    assert buf.cursor_position == 23
+
+    # 3. Test Ctrl+W / Ctrl+Backspace (c-w)
+    c_w = kb.get_bindings_for_keys(("c-w",))[0]
+    c_w.handler(event)
+    assert buf.text == "git checkout -b "
+
+    # 4. Test Ctrl+U (c-u)
+    c_u = kb.get_bindings_for_keys(("c-u",))[0]
+    c_u.handler(event)
+    assert buf.text == ""
+
+
+

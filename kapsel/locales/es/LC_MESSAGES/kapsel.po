@@ -1,0 +1,213 @@
+# Spanish translations for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-09-05 01:16+0800\n"
+"PO-Revision-Date: 2026-09-05 01:07+0800\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: es\n"
+"Language-Team: es <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: kapsel/completion/completer.py:174
+msgid "Change directory"
+msgstr "Cambiar directorio"
+
+#: kapsel/completion/completer.py:175
+msgid "Clear terminal screen"
+msgstr "Limpiar pantalla"
+
+#: kapsel/completion/completer.py:176
+msgid "Exit session"
+msgstr "Salir de sesión"
+
+#: kapsel/completion/completer.py:177
+msgid "Git version control"
+msgstr "Control de versiones Git"
+
+#: kapsel/completion/completer.py:178
+msgid "Docker container platform"
+msgstr "Motor de contenedores Docker"
+
+#: kapsel/completion/completer.py:179
+msgid "Windows command-line installer"
+msgstr "Gestor de paquetes para Windows"
+
+#: kapsel/completion/completer.py:180 kapsel/completion/completer.py:185
+msgid "Node.js package manager"
+msgstr "Gestor de paquetes de Node.js"
+
+#: kapsel/completion/completer.py:181
+msgid "Rust package manager"
+msgstr "Gestor de paquetes de Rust"
+
+#: kapsel/completion/completer.py:182
+msgid "Python interpreter"
+msgstr "Intérprete de Python"
+
+#: kapsel/completion/completer.py:183
+msgid "Kubernetes cluster CLI"
+msgstr "CLI de clústeres Kubernetes"
+
+#: kapsel/completion/completer.py:184
+msgid "Fast disk space efficient package manager"
+msgstr "Gestor de paquetes rápido y eficiente"
+
+#: kapsel/completion/kps/dispatcher.py:62 kapsel/core/engine.py:118
+#, python-brace-format
+msgid "kapsel: unknown command '{cmd}'. See 'kapsel help'."
+msgstr "kapsel: comando desconocido '{cmd}'. Consulta 'kapsel help'."
+
+#: kapsel/completion/kps/builtins/language.py:43
+msgid "Available Languages"
+msgstr "Idiomas disponibles"
+
+#: kapsel/completion/kps/builtins/language.py:44
+msgid "Code"
+msgstr "Código"
+
+#: kapsel/completion/kps/builtins/language.py:45
+msgid "Language"
+msgstr "Idioma"
+
+#: kapsel/completion/kps/builtins/language.py:46
+msgid "Native Name"
+msgstr "Nombre nativo"
+
+#: kapsel/completion/kps/builtins/language.py:47
+msgid "Aliases"
+msgstr "Alias"
+
+#: kapsel/completion/kps/builtins/language.py:48
+msgid "Status"
+msgstr "Estado"
+
+#: kapsel/completion/kps/builtins/language.py:53
+#: kapsel/completion/kps/builtins/status.py:100
+msgid "Active"
+msgstr "Activo"
+
+#: kapsel/completion/kps/builtins/language.py:59
+msgid "Usage:"
+msgstr "Uso:"
+
+#: kapsel/completion/kps/builtins/language.py:67
+#, python-brace-format
+msgid "Error: Unsupported language '{input}'. Available codes: {available}"
+msgstr "Error: Idioma no compatible '{input}'. Códigos disponibles: {available}"
+
+#: kapsel/completion/kps/builtins/language.py:76
+#, python-brace-format
+msgid "✔ Language successfully switched to: {name} ({code})"
+msgstr "✔ Idioma cambiado exitosamente a: {name} ({code})"
+
+#: kapsel/completion/kps/builtins/status.py:46
+msgid "Admin"
+msgstr "Administrador"
+
+#: kapsel/completion/kps/builtins/status.py:53
+msgid "None"
+msgstr "Ninguno"
+
+#: kapsel/completion/kps/builtins/status.py:55
+msgid "Platform:"
+msgstr "Plataforma:"
+
+#: kapsel/completion/kps/builtins/status.py:57
+msgid "Host Shell:"
+msgstr "Shell anfitrión:"
+
+#: kapsel/completion/kps/builtins/status.py:62
+msgid "Privilege:"
+msgstr "Nivel de privilegio:"
+
+#: kapsel/completion/kps/builtins/status.py:64
+msgid "Git Branch:"
+msgstr "Rama Git:"
+
+#: kapsel/completion/kps/builtins/status.py:69
+msgid "Working Dir:"
+msgstr "Directorio de trabajo:"
+
+#: kapsel/completion/kps/builtins/status.py:71
+msgid "Kapsel Version:"
+msgstr "Versión del núcleo:"
+
+#: kapsel/completion/kps/builtins/status.py:76
+msgid "On"
+msgstr "Activado"
+
+#: kapsel/completion/kps/builtins/status.py:76
+msgid "Off"
+msgstr "Desactivado"
+
+#: kapsel/completion/kps/builtins/status.py:78
+msgid "Sandbox Dir:"
+msgstr "Sandbox de datos:"
+
+#: kapsel/completion/kps/builtins/status.py:80
+msgid "Active Theme:"
+msgstr "Tema visual:"
+
+#: kapsel/completion/kps/builtins/status.py:101
+msgid "Standby"
+msgstr "En espera"
+
+#: kapsel/completion/kps/builtins/status.py:103
+msgid "Completer:"
+msgstr "Motor de completado:"
+
+#: kapsel/completion/kps/builtins/status.py:105
+msgid "Session Mode:"
+msgstr "Modo de sesión:"
+
+#: kapsel/completion/kps/builtins/status.py:109
+msgid "💊 KAPSEL System & Environment Status"
+msgstr "💊 Panel de estado del sistema y entorno KAPSEL"
+
+#: kapsel/completion/kps/builtins/toggle.py:29
+msgid "🔌 Kapsel session is active. Type 'kapsel toggle' or 'exit' to quit."
+msgstr ""
+"🔌 La sesión de Kapsel está activa. Escribe 'kapsel toggle' o 'exit' para "
+"salir."
+
+#: kapsel/completion/kps/builtins/toggle.py:32
+msgid "✔ Kapsel session is ready. Run 'kapsel toggle' to launch."
+msgstr "✔ La sesión de Kapsel está lista. Ejecuta 'kapsel toggle' para iniciar."
+
+#: kapsel/ui/banner.py:83
+msgid "cwd:"
+msgstr "Directorio de trabajo:"
+
+#: kapsel/ui/banner.py:84
+msgid "shell:"
+msgstr "Shell anfitrión:"
+
+#: kapsel/ui/banner.py:93
+msgid "Tips for getting started:"
+msgstr "Consejos de inicio rápido:"
+
+#: kapsel/ui/banner.py:96
+#, python-brace-format
+msgid "Type {cmd1} or {cmd2} to explore available commands"
+msgstr "Escribe {cmd1} o {cmd2} para explorar comandos y el manual"
+
+#: kapsel/ui/banner.py:99
+#, python-brace-format
+msgid "Press {key} to trigger intelligent context-aware completions"
+msgstr "Presiona {key} para activar el completado contextual inteligente"
+
+#: kapsel/ui/banner.py:102
+#, python-brace-format
+msgid "Run {cmd1} to inspect dashboard · {cmd2} to quit session"
+msgstr "Ejecuta {cmd1} para ver el panel de control · {cmd2} para salir"
+

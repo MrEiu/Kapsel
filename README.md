@@ -15,6 +15,55 @@
 
 ---
 
+## 📦 快速安装与启动 (Quick Start)
+
+### 1. 安装 Kapsel-CLI
+
+```bash
+# 推荐全局隔离安装 (pipx)
+pipx install kapsel-cli
+
+# 或通过 pip 全局/用户安装
+pip install --upgrade kapsel-cli
+```
+
+### 2. 启动交互式终端胶囊
+
+```bash
+kapsel
+# 或使用快捷别名
+kps
+```
+
+### 3. 启用 1,000+ 命令深度自动补全引擎 (Carapace)
+
+Kapsel 采用 [Carapace](https://carapace.sh) 作为底层多 Shell 深度上下文自动补全引擎（原生支持 `git`, `docker`, `kubectl`, `cargo`, `npm`, `pnpm`, `python` 等 1000+ 原生命令的分支、标签、容器名与选项补全）：
+
+- **方式 A（最简：Kapsel 内置一键安装，免 root）**：
+  进入 Kapsel 后直接输入：
+  ```bash
+  kps add carapace
+  ```
+  *跨平台通用（Linux / macOS / Windows），自动下载匹配当前操作系统与 CPU 架构的静态二进制到 `~/.kapsel/bin`，立即热加载生效。*
+
+- **方式 B（Linux / macOS 服务器一键脚本）**：
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_carapace.sh | bash
+  ```
+
+- **方式 C（Windows PowerShell 一键脚本）**：
+  ```powershell
+  irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_carapace.ps1 | iex
+  ```
+
+- **方式 D（系统包管理器）**：
+  - **macOS**: `brew install carapace`
+  - **Windows**: `scoop install carapace-bin` 或 `winget install carapace`
+  - **Arch Linux**: `pacman -S carapace-bin` 或 `yay -S carapace-bin`
+  - **Go**: `go install github.com/carapace-sh/carapace-bin/cmd/carapace@latest`
+
+---
+
 ## 🚀 核心特性
 
 ### 1. 核心交互：双态智能引擎 (Dual-State Engine)

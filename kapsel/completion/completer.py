@@ -13,6 +13,7 @@ from prompt_toolkit.document import Document
 from kapsel.completion.carapace_engine import CarapaceEngine, get_carapace_engine
 from kapsel.completion.fig_engine import FigEngine, get_fig_engine
 from kapsel.completion.kps.registry import KpsCommandRegistry, get_kps_registry
+from kapsel.core.i18n import _
 
 
 class DualStateCompleter(Completer):
@@ -170,18 +171,18 @@ class DualStateCompleter(Completer):
         if len(parts) <= 1 and not stripped.endswith(" "):
             curr_word = parts[0] if parts else ""
             native_builtins = [
-                ("cd", "Change directory"),
-                ("clear", "Clear terminal screen"),
-                ("exit", "Exit session"),
-                ("git", "Git version control"),
-                ("docker", "Docker container platform"),
-                ("scoop", "Windows command-line installer"),
-                ("npm", "Node.js package manager"),
-                ("cargo", "Rust package manager"),
-                ("python", "Python interpreter"),
-                ("kubectl", "Kubernetes cluster CLI"),
-                ("pnpm", "Fast disk space efficient package manager"),
-                ("yarn", "Node.js package manager"),
+                ("cd", _("Change directory")),
+                ("clear", _("Clear terminal screen")),
+                ("exit", _("Exit session")),
+                ("git", _("Git version control")),
+                ("docker", _("Docker container platform")),
+                ("scoop", _("Windows command-line installer")),
+                ("npm", _("Node.js package manager")),
+                ("cargo", _("Rust package manager")),
+                ("python", _("Python interpreter")),
+                ("kubectl", _("Kubernetes cluster CLI")),
+                ("pnpm", _("Fast disk space efficient package manager")),
+                ("yarn", _("Node.js package manager")),
             ]
             for cmd, desc in native_builtins:
                 if cmd.startswith(curr_word.lower()):

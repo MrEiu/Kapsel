@@ -1,0 +1,101 @@
+# Kapsel Systemhandbuch & Befehlsübersicht (Deutsch)
+meta:
+  title: "KAPSEL"
+  subtitle: "Benutzerhandbuch & Schnellreferenz"
+  architecture: "Einheitliche Befehls-Pipeline: 'kapsel <cmd>' und 'kps <cmd>' nutzen die gleiche Ausführungs-Engine."
+  version_prefix: "v"
+
+modes:
+  title: "🚀 Hauptinteraktionsmodi"
+  columns:
+    mode: "Modus"
+    trigger: "Auslöser"
+    description: "Verhalten & Funktionen"
+  rows:
+    - name: "Nativer Modus"
+      trigger: "Direkte Befehlseingabe"
+      description: "100% native Host-Ausführung (git, docker, npm, python, vim) mit dynamischer Carapace-Kontext-Vervollständigung."
+    - name: "Kapsel-Modus"
+      trigger: "Präfix 'kapsel ' oder 'kps '"
+      description: "Einheitliche Kapsel-Befehle (help, status, config, language, add, toggle usw.); Tab öffnet Vorschläge."
+
+quickstart:
+  title: "⚡ Schnellstart-Workflow"
+  items:
+    - step: "1. Interaktive Shell starten"
+      cmd: "kapsel toggle"
+      desc: "Öffnet die intelligente Kapsel-Shell mit Echtzeit-Vervollständigung und Verlauf."
+    - step: "2. Native Befehle ausführen"
+      cmd: "git checkout -b feature"
+      desc: "Führen Sie beliebige native Befehle reibungslos aus. Carapace erkennt Branches und Optionen."
+    - step: "3. Einmaliger externer Aufruf"
+      cmd: "kps status"
+      desc: "Führen Sie Kapsel-Befehle direkt aus externen Shells (PowerShell, Bash, CMD) aus."
+    - step: "4. Sicher beenden"
+      cmd: "exit"
+      desc: "Kehrt sauber zur Host-Shell zurück, ohne Hintergrundprozesse zu hinterlassen."
+
+commands:
+  title: "⚙️ Kapsel-Befehlssuite (kapsel / kps)"
+  columns:
+    command: "Befehl"
+    description: "Beschreibung"
+    origin: "Herkunft"
+  builtin_rows:
+    - name: "kps help"
+      desc: "Umfassendes Handbuch, Modi, Tastenkombinationen und Cheatsheets anzeigen"
+      origin: "Core"
+    - name: "kps status"
+      desc: "Betriebssystem, Host-Shell, Git-Branch und Sandbox-Status prüfen"
+      origin: "Core"
+    - name: "kps config"
+      desc: "Einstellungen in ~/.kapsel/config.yaml anzeigen, bearbeiten oder neu laden"
+      origin: "Core"
+    - name: "kps language"
+      desc: "Aktive Sprache anzeigen und umschalten (en, zh_CN, ja, es, fr, de, ru)"
+      origin: "Core"
+    - name: "kps datadir"
+      desc: "Datenspeicher-Verzeichnis anzeigen oder sicher auf ein anderes Laufwerk migrieren"
+      origin: "Core"
+    - name: "kps add <plugin>"
+      desc: "Abhängigkeiten installieren und Plugin in der Kapsel-Umgebung registrieren"
+      origin: "Core"
+    - name: "kps toggle"
+      desc: "Interaktive Kapsel-Terminalsitzung ein- oder ausschalten"
+      origin: "Core"
+    - name: "exit / quit"
+      desc: "Kapsel-Shell sicher beenden und zur nativen Host-Shell zurückkehren"
+      origin: "Core"
+
+shortcuts:
+  title: "⌨️ Tastenkombinationen & Ergonomie"
+  columns:
+    key: "Taste"
+    description: "Aktion"
+  items:
+    - key: "Tab"
+      desc: "Vervollständigungsmenü öffnen oder durch Vorschläge wechseln"
+    - key: "Shift + Tab"
+      desc: "Rückwärts im Vervollständigungsmenü navigieren"
+    - key: "Enter"
+      desc: "Ausgewählten Vorschlag übernehmen (fügt Leerzeichen an) oder Zeile ausführen"
+    - key: "↑ (Pfeil nach oben)"
+      desc: "Befehlsverlauf chronologisch rückwärts durchblättern"
+    - key: "↓ (Pfeil nach unten)"
+      desc: "Befehlsverlauf vorwärts durchblättern oder im Menü nach unten wechseln"
+    - key: "→ (Einfacher Druck)"
+      desc: "Grauen Vorschlag wortweise übernehmen (Word-by-word)"
+    - key: "→ (Langer Druck)"
+      desc: "Gesamte Zeile des grauen Vorschlags sofort übernehmen"
+    - key: "Ctrl + C"
+      desc: "Aktuelle Eingabezeile abbrechen und Prompt zurücksetzen"
+    - key: "Ctrl + D"
+      desc: "Interaktive Kapsel-Sitzung sauber beenden (EOF)"
+
+tips:
+  title: "💡 Profi-Tipps & Empfehlungen"
+  items:
+    - "'kps config edit' öffnet die Konfiguration in Ihrem Standard-Editor (VSCode / Notepad)."
+    - "Führen Sie 'kps add update' aus, sobald Sie Plugins im Plugin-Repository geändert haben."
+    - "Wechseln Sie die Sprache jederzeit mit 'kps language <Code>' (z. B. 'kps language de')."
+    - "'kps datadir D:\\KapselData' migriert Daten ohne Datenverlust auf ein anderes Laufwerk."

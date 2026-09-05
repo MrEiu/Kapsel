@@ -17,6 +17,7 @@ from rich.text import Text
 
 from kapsel import __version__
 from kapsel.core.detector import detector
+from kapsel.i18n import _
 from kapsel.storage.config import load_config
 from kapsel.storage.logger import get_kapsel_dir
 from kapsel.ui.banner import ensure_utf8_io
@@ -42,39 +43,41 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
     grid.add_column(style="bold #a855f7", justify="right", width=18)
     grid.add_column(style="#e4e4e7")
 
+    admin_str = _("Admin")
     priv_badge = (
         f"[bold #10b981][{elevated_label}][/]"
         if not is_elevated
-        else f"[bold #f59e0b][{elevated_label} (Admin)][/]"
+        else f"[bold #f59e0b][{elevated_label} ({admin_str})][/]"
     )
 
+    none_str = _("None")
     grid.add_row(
-        "🖥️ Platform:",
+        f"🖥️ {_('Platform:')}",
         f"{platform.system()} {platform.release()} ({platform.machine()})",
-        "🐚 Host Shell:",
+        f"🐚 {_('Host Shell:')}",
         f"[bold #38bdf8]{shell_name}[/] [dim]({shell_path})[/]",
     )
 
     grid.add_row(
-        "⚡ Privilege:",
+        f"⚡ {_('Privilege:')}",
         priv_badge,
-        "🌿 Git Branch:",
-        f"[bold #10b981]{branch}[/]" if branch else "[dim]None[/]",
+        f"🌿 {_('Git Branch:')}",
+        f"[bold #10b981]{branch}[/]" if branch else f"[dim]{none_str}[/]",
     )
 
     grid.add_row(
-        "📂 Working Dir:",
+        f"📂 {_('Working Dir:')}",
         f"[dim]{cwd_fmt}[/]",
-        "💊 Kapsel Version:",
+        f"💊 {_('Kapsel Version:')}",
         f"[bold #00f0ff]v{__version__}[/] (Python {sys.version.split()[0]})",
     )
 
     theme_name = cfg.theme.get("name", "cyber_dark") if isinstance(cfg.theme, dict) else str(cfg.theme)
-    border_status = "On" if cfg.enable_card_border else "Off"
+    border_status = _("On") if cfg.enable_card_border else _("Off")
     grid.add_row(
-        "📦 Sandbox Dir:",
+        f"📦 {_('Sandbox Dir:')}",
         f"[dim]{sandbox_dir}[/]",
-        "🎨 Active Theme:",
+        f"🎨 {_('Active Theme:')}",
         f"[bold #a855f7]{theme_name}[/] [dim](Border: {border_status})[/]",
     )
 
@@ -89,21 +92,22 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
         tools_count = len(carapace_eng.get_supported_tools())
         completer_label = f"[bold #10b981]{tools_count}+[/] Carapace specs"
     else:
-        specs_dir = Path(__file__).resolve().parent.parent.parent / "specs"
-        spec_count = len(list(specs_dir.glob("*.json"))) if specs_dir.exists() else 0
-        completer_label = f"[dim]{spec_count} Fig specs[/]"
+        completer_label = f"[yellow]{_('Basic')}[/] [dim]({_('Run: kps add carapace')})[/]"
 
     is_active = os.environ.get("KAPSEL_ACTIVE") == "1"
+    active_str = _("Active")
+    standby_str = _("Standby")
     grid.add_row(
-        "🎯 Completer:",
+        f"🎯 {_('Completer:')}",
         completer_label,
-        "⚙️ Session Mode:",
-        f"[bold #10b981]🟢 Active[/]" if is_active else "[dim]⚪ Standby[/]",
+        f"⚙️ {_('Session Mode:')}",
+        f"[bold #10b981]🟢 {active_str}[/]" if is_active else f"[dim]⚪ {standby_str}[/]",
     )
 
+    title_str = _("💊 KAPSEL System & Environment Status")
     panel = Panel(
         grid,
-        title="[bold #00f0ff]💊 KAPSEL System & Environment Status[/]",
+        title=f"[bold #00f0ff]{title_str}[/]",
         title_align="left",
         border_style="#0891b2",
         padding=(1, 2),
@@ -111,5 +115,12 @@ def handle_status(args: Optional[List[str]] = None, console: Optional[Console] =
 
     con.print()
     con.print(panel)
-    con.print()
+    if not carapace_eng.is_available():
+        con.print(
+            f" [dim]💡[/] [yellow]{_('Tip: Carapace engine not found. Run')}[/] "
+            f"[bold #00f0ff]kps add carapace[/] "
+            f"[yellow]{_('to enable 1,000+ dynamic tool completions.')}[/]\n"
+        )
+    else:
+        con.print()
     return 0

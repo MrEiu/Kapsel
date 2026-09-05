@@ -267,6 +267,82 @@ def create_key_bindings(
         else:
             buffer.start_completion(select_first=True)
 
+    # -------------------------------------------------------------------------
+    # Standard Terminal Ctrl Shortcuts (Navigation, Editing & Signal Handling)
+    # -------------------------------------------------------------------------
+
+    # Ctrl+C: Cancel current line and restart prompt with clean line
+    @kb.add("c-c")
+    def _(event: KeyPressEvent) -> None:
+        event.app.exit(exception=KeyboardInterrupt)
+
+    # Ctrl+Left: Move cursor backward word-by-word
+    @kb.add("c-left")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_previous_word_beginning(count=1)
+        if pos is not None:
+            buffer.cursor_position += pos
+        else:
+            buffer.cursor_position = 0
+
+    # Ctrl+Right: Move cursor forward word-by-word
+    @kb.add("c-right")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_next_word_ending(count=1)
+        if pos is not None:
+            buffer.cursor_position += pos
+        else:
+            buffer.cursor_position = len(buffer.text)
+
+    # Ctrl+Backspace / Ctrl+W: Delete word backward
+    @kb.add("c-w")
+    @kb.add("c-h")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_previous_word_beginning(count=1)
+        if pos is not None:
+            buffer.delete_before_cursor(count=-pos)
+        elif buffer.cursor_position > 0:
+            buffer.delete_before_cursor(count=buffer.cursor_position)
+
+    # Ctrl+Delete: Delete word forward
+    @kb.add("c-delete")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        pos = buffer.document.find_next_word_ending(count=1)
+        if pos is not None:
+            buffer.delete(count=pos)
+        else:
+            buffer.delete(count=len(buffer.text) - buffer.cursor_position)
+
+    # Ctrl+U: Clear line before cursor
+    @kb.add("c-u")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.cursor_position > 0:
+            buffer.delete_before_cursor(count=buffer.cursor_position)
+
+    # Ctrl+K: Clear line after cursor
+    @kb.add("c-k")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        remaining = len(buffer.text) - buffer.cursor_position
+        if remaining > 0:
+            buffer.delete(count=remaining)
+
+    # Ctrl+A: Jump to start of line
+    @kb.add("c-a")
+    def _(event: KeyPressEvent) -> None:
+        event.current_buffer.cursor_position = 0
+
+    # Ctrl+E: Jump to end of line
+    @kb.add("c-e")
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        buffer.cursor_position = len(buffer.text)
+
     return kb
 
 

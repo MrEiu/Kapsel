@@ -8,6 +8,7 @@ from typing import List, Optional
 from rich.console import Console
 
 from kapsel.completion.kps.registry import get_kps_registry
+from kapsel.i18n import _
 
 
 def dispatch_kps(command_line: str, console: Optional[Console] = None) -> Optional[int]:
@@ -58,6 +59,7 @@ def dispatch_kps(command_line: str, console: Optional[Console] = None) -> Option
     if cmd:
         return cmd.handler(args, con)
 
-    con.print(f"[bold #f43f5e]kapsel: unknown command '{cmd_name}'.[/] See 'kapsel help'.")
+    msg = _("kapsel: unknown command '{cmd}'. See 'kapsel help'.").format(cmd=cmd_name)
+    con.print(f"[bold #f43f5e]{msg}[/]")
     return 1
 

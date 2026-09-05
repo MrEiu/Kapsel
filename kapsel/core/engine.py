@@ -13,6 +13,7 @@ from kapsel.completion.kps.registry import KpsCommandRegistry, get_kps_registry
 from kapsel.core.detector import EnvironmentDetector, detector
 from kapsel.core.executor import CommandExecutor, ExecutionSummary
 from kapsel.core.plugin.hooks import HookType
+from kapsel.i18n import _
 from kapsel.core.plugin.manager import PluginManager
 from kapsel.storage.config import KapselConfig, load_config
 from kapsel.storage.history import HistoryManager
@@ -114,7 +115,8 @@ class DualStateEngine:
                 )
             else:
                 # Not a recognized builtin command
-                print(f"kapsel: unknown command '{user_input}'. See 'kapsel help'.", file=sys.stderr)
+                msg = _("kapsel: unknown command '{cmd}'. See 'kapsel help'.").format(cmd=user_input)
+                print(msg, file=sys.stderr)
                 exec_summary = ExecutionSummary(
                     command=user_input,
                     exit_code=1,

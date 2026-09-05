@@ -32,6 +32,13 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
 
     target_raw = args[0].strip()
 
+    # Handle 'kapsel add carapace' or 'kps add carapace' to install completion engine
+    if target_raw.lower() in ("carapace", "carapace-bin"):
+        from kapsel.completion.carapace_installer import install_carapace
+        force = "--force" in args or "-f" in args
+        success = install_carapace(console=con, force=force)
+        return 0 if success else 1
+
     # Handle 'kapsel add update' to scan and refresh catalog subcommands dictionary
     if target_raw.lower() == "update":
         from kapsel.core.plugin.catalog import update_plugin_catalog, render_catalog_table

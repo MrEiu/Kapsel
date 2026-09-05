@@ -17,6 +17,7 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
     from kapsel.completion.kps.builtins.config import handle_config_command
     from kapsel.completion.kps.builtins.datadir import handle_datadir_command
     from kapsel.completion.kps.builtins.help import handle_help
+    from kapsel.completion.kps.builtins.language import handle_language_command
     from kapsel.completion.kps.builtins.status import handle_status
     from kapsel.completion.kps.builtins.toggle import handle_toggle_command
 
@@ -66,12 +67,30 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
     # 5. add <plugin_name>
     from kapsel.core.plugin.catalog import load_plugin_catalog
 
+    add_subcommands = load_plugin_catalog()
+    add_subcommands["carapace"] = "Install official Carapace 1,000+ autocompletion engine"
+    add_subcommands["update"] = "Scan plugins and update completion dictionary"
+
     registry.register(
         name="add",
         handler=handle_add_command,
-        help_text="Enable and register a plugin into Kapsel environment (e.g. kapsel add autopilot)",
-        subcommands=load_plugin_catalog(),
-        usage="kapsel add <plugin_name> (or: kapsel add update)",
+        help_text="Enable a plugin or install Carapace (e.g. kapsel add carapace)",
+        subcommands=add_subcommands,
+        usage="kapsel add <plugin_name|carapace> (or: kapsel add update)",
+    )
+
+    # 5b. install-carapace
+    def _handle_install_carapace(args, console=None):
+        from kapsel.completion.carapace_installer import install_carapace
+        force = "--force" in args or "-f" in args
+        success = install_carapace(console=console, force=force)
+        return 0 if success else 1
+
+    registry.register(
+        name="install-carapace",
+        handler=_handle_install_carapace,
+        help_text="Download and install Carapace 1,000+ commands autocompletion engine",
+        usage="kapsel install-carapace [--force]",
     )
 
     # 6. toggle
@@ -80,4 +99,12 @@ def register_builtins(registry: "KpsCommandRegistry") -> None:
         handler=handle_toggle_command,
         help_text="Toggle Kapsel as default terminal mode (open on first call, close on second)",
         usage="kapsel toggle (or kps toggle)",
+        )
+
+    # 7. language
+    registry.register(
+        name="language",
+        handler=handle_language_command,
+        help_text="View and switch active UI language (en, zh_CN, ja, es, fr, de, ru)",
+        usage="kapsel language [en|zh_CN|ja|es|fr|de|ru]",
     )

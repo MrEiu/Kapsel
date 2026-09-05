@@ -2,8 +2,9 @@ import time
 from typing import Optional
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.application import get_app
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.filters import has_suggestion
+from prompt_toolkit.filters import Condition, has_suggestion
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 
@@ -140,13 +141,30 @@ def create_key_bindings(
     last_press_time = 0.0
     consecutive_presses = 0
 
-    # Right arrow accepts auto-suggestion when cursor is at the end of input
-    @kb.add("right", filter=has_suggestion)
+    def _is_single_completion_active() -> bool:
+        """True when the current completion dropdown contains exactly one candidate."""
+        try:
+            buf = get_app().current_buffer
+            return bool(buf.complete_state and len(buf.complete_state.completions) == 1)
+        except Exception:
+            return False
+
+    has_single_completion = Condition(_is_single_completion_active)
+
+    # Right arrow accepts single completion or auto-suggestion when cursor is at the end of input
+    @kb.add("right", filter=has_suggestion | has_single_completion)
     def _(event: KeyPressEvent) -> None:
         nonlocal last_press_time, consecutive_presses
         buffer = event.current_buffer
 
         if buffer.cursor_position == len(buffer.text):
+            # 1. Higher priority: If exactly one completion candidate is recommended, accept it
+            if buffer.complete_state and len(buffer.complete_state.completions) == 1:
+                comp = buffer.complete_state.current_completion or buffer.complete_state.completions[0]
+                buffer.apply_completion(comp)
+                return
+
+            # 2. Secondary priority: Accept historical ghost text auto-suggestion
             suggestion = buffer.suggestion
             if not suggestion or not suggestion.text:
                 buffer.cursor_right()

@@ -220,3 +220,4 @@ def test_clean_prompt_tokens_and_threaded_completer():
     prompt_inst = KapselPrompt(engine)
     assert isinstance(prompt_inst.completer, ThreadedCompleter)
 
+

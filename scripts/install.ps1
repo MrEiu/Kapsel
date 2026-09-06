@@ -24,7 +24,7 @@ try {
 
 if ($Help) {
     Write-Host @"
-Kapsel Windows Universal Installer (v0.1.9)
+Kapsel Windows Universal Installer (v0.2.0)
 
 Usage:
   installer.ps1 [-Lite] [-Full] [-Help]
@@ -60,7 +60,7 @@ if ($Lite) {
             Write-Host ""
             Write-Host '╭────────────────────────────────────────────────────────────────────────╮' -ForegroundColor Cyan
             Write-Host '│  _  __                 _                                           │' -ForegroundColor Cyan
-            Write-Host "│ | |/ /__ _ _ __  ___  | |   ⚡ KAPSEL CLI (v0.1.9)                  │" -ForegroundColor Cyan
+            Write-Host "│ | |/ /__ _ _ __  ___  | |   ⚡ KAPSEL CLI (v0.2.0)                  │" -ForegroundColor Cyan
             Write-Host "│ | ' // _  | '_ \/ __| | |    Next-Gen Intelligent Terminal Capsule │" -ForegroundColor Cyan
             Write-Host '│ |_|\_\__,_| .__/|___/ |_|    https://github.com/MrEiu/Kapsel          │' -ForegroundColor Cyan
             Write-Host '│           |_|                                                         │' -ForegroundColor Cyan
@@ -113,11 +113,26 @@ if ($localScript) {
         & $localScript -Full
     }
 } else {
-    $scriptContent = Invoke-RestMethod -Uri $remoteUrl
-    $sb = [ScriptBlock]::Create($scriptContent)
-    if ($edition -eq "Lite") {
-        & $sb -Lite
-    } else {
-        & $sb -Full
+    $tempInstaller = Join-Path ([System.IO.Path]::GetTempPath()) ("kapsel_installer_" + [System.Guid]::NewGuid().ToString("N") + ".ps1")
+    try {
+        Invoke-WebRequest -Uri $remoteUrl -OutFile $tempInstaller -UseBasicParsing
+        if ($edition -eq "Lite") {
+            & $tempInstaller -Lite
+        } else {
+            & $tempInstaller -Full
+        }
+    } catch {
+        # Fallback to in-memory scriptblock if file download was restricted
+        $scriptContent = (Invoke-RestMethod -Uri $remoteUrl).TrimStart([char]0xFEFF)
+        $sb = [ScriptBlock]::Create($scriptContent)
+        if ($edition -eq "Lite") {
+            & $sb -Lite
+        } else {
+            & $sb -Full
+        }
+    } finally {
+        if (Test-Path $tempInstaller) {
+            Remove-Item -Path $tempInstaller -Force -ErrorAction SilentlyContinue
+        }
     }
 }

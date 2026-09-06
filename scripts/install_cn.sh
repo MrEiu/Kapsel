@@ -40,7 +40,7 @@ for arg in "$@"; do
             EDITION="full"
             ;;
         --help|-h)
-            echo "Kapsel Installer (v0.1.9)"
+            echo "Kapsel Installer (v0.2.0)"
             echo ""
             echo "Usage: $0 [--lite] [--full] [--help]"
             echo ""
@@ -80,7 +80,7 @@ fi
 echo ""
 echo -e "${CYAN}╭────────────────────────────────────────────────────────────────────────╮${RESET}"
 echo -e "${CYAN}│${SKY}  _  __                 _                                           ${CYAN}│${RESET}"
-echo -e "${CYAN}│${SKY} | |/ /__ _ _ __  ___  | |   ${BOLD}${CYAN}⚡ KAPSEL CLI${RESET}${DIM} (v0.1.9)                  ${CYAN}│${RESET}"
+echo -e "${CYAN}│${SKY} | |/ /__ _ _ __  ___  | |   ${BOLD}${CYAN}⚡ KAPSEL CLI${RESET}${DIM} (v0.2.0)                  ${CYAN}│${RESET}"
 echo -e "${CYAN}│${SKY} | ' // _\` | '_ \/ __| | |   ${GREEN} Next-Gen Intelligent Terminal Capsule ${CYAN}│${RESET}"
 echo -e "${CYAN}│${SKY} | . \ (_| | |_) \__ \ | |   ${DIM} https://github.com/MrEiu/Kapsel          ${CYAN}│${RESET}"
 echo -e "${CYAN}│${SKY} |_|\_\__,_| .__/|___/ |_|                                           ${CYAN}│${RESET}"
@@ -158,7 +158,7 @@ if [ -n "${PYTHON_CMD}" ]; then
     if echo "${ver_out}" | grep -qE "[0-9]+\.[0-9]+\.[0-9]+"; then
         KAPSEL_INSTALLED=1
         INSTALLED_KAPSEL_VER="$(echo "${ver_out}" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)"
-        if [ "${INSTALLED_KAPSEL_VER}" = "0.1.9" ]; then
+        if [ "${INSTALLED_KAPSEL_VER}" = "0.2.0" ]; then
             KAPSEL_UP_TO_DATE=1
         fi
     fi
@@ -169,7 +169,7 @@ if [ "${KAPSEL_INSTALLED}" -eq 0 ] && command -v kapsel >/dev/null 2>&1; then
     if echo "${ver_out}" | grep -qE "[0-9]+\.[0-9]+\.[0-9]+"; then
         KAPSEL_INSTALLED=1
         INSTALLED_KAPSEL_VER="$(echo "${ver_out}" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)"
-        if [ "${INSTALLED_KAPSEL_VER}" = "0.1.9" ]; then
+        if [ "${INSTALLED_KAPSEL_VER}" = "0.2.0" ]; then
             KAPSEL_UP_TO_DATE=1
         fi
     fi
@@ -241,9 +241,9 @@ fi
 if [ "${KAPSEL_UP_TO_DATE}" -eq 1 ]; then
     echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${GREEN}✔ Up-to-date (v${INSTALLED_KAPSEL_VER})${RESET}"
 elif [ "${KAPSEL_INSTALLED}" -eq 1 ]; then
-    echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${SKY}● Installed v${INSTALLED_KAPSEL_VER} (Upgrade to v0.1.9 needed)${RESET}"
+    echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${SKY}● Installed v${INSTALLED_KAPSEL_VER} (Upgrade to v0.2.0 needed)${RESET}"
 else
-    echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${AMBER}● Not installed (Target: v0.1.9)${RESET}"
+    echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${AMBER}● Not installed (Target: v0.2.0)${RESET}"
 fi
 
 if [ "${CARAPACE_INSTALLED}" -eq 1 ]; then
@@ -280,6 +280,7 @@ fi
 if [ "${ALL_OPTIMAL}" -eq 1 ]; then
     log_ok "All components are already installed and up to date! Zero actions needed."
     "${PYTHON_CMD}" -m kapsel.cli completion sync >/dev/null 2>&1 || true
+    "${PYTHON_CMD}" -c "from kapsel.storage.config import load_config; load_config()" >/dev/null 2>&1 || true
     echo ""
     echo -e "${GREEN}✨ Instant preflight check passed. Your Kapsel environment is ready to use.${RESET}\n"
     exit 0
@@ -337,7 +338,7 @@ else
     pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli >/dev/null 2>&1 || \
     pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli --break-system-packages >/dev/null 2>&1 || true
 
-    new_ver="$("${PYTHON_CMD}" -m kapsel.cli -v 2>/dev/null || echo "v0.1.9")"
+    new_ver="$("${PYTHON_CMD}" -m kapsel.cli -v 2>/dev/null || echo "v0.2.0")"
     log_ok "Kapsel Core CLI ready: ${new_ver}"
 fi
 
@@ -427,8 +428,9 @@ else
     log_ok "Lightweight core profile active"
 fi
 
-# Synchronize completion specifications
+# Synchronize completion specifications & ensure default configuration
 "${PYTHON_CMD}" -m kapsel.cli completion sync >/dev/null 2>&1 || true
+"${PYTHON_CMD}" -c "from kapsel.storage.config import load_config; load_config()" >/dev/null 2>&1 || true
 
 # ------------------------------------------------------------------------------
 # 6. Final Summary & Quick Start

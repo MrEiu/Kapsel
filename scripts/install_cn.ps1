@@ -31,7 +31,7 @@ $ErrorActionPreference = "Continue"
 
 function Show-Help {
     Write-Host @"
-Kapsel Windows Installer (v0.1.9)
+Kapsel Windows Installer (v0.2.0)
 
 Usage:
   installer.ps1 [-Lite] [-Full] [-Help]
@@ -55,7 +55,7 @@ function Write-Logo {
     Write-Host ""
     Write-Host '╭────────────────────────────────────────────────────────────────────────╮' -ForegroundColor Cyan
     Write-Host '│  _  __                 _                                           │' -ForegroundColor Cyan
-    Write-Host "│ | |/ /__ _ _ __  ___  | |   ⚡ KAPSEL CLI (v0.1.9)                  │" -ForegroundColor Cyan
+    Write-Host "│ | |/ /__ _ _ __  ___  | |   ⚡ KAPSEL CLI (v0.2.0)                  │" -ForegroundColor Cyan
     Write-Host "│ | ' // _  | '_ \/ __| | |    Next-Gen Intelligent Terminal Capsule │" -ForegroundColor Cyan
     Write-Host '│ | . \ (_| | |_) \__ \ | |    https://github.com/MrEiu/Kapsel          │' -ForegroundColor Cyan
     Write-Host '│ |_|\_\__,_| .__/|___/ |_|                                           │' -ForegroundColor Cyan
@@ -182,7 +182,7 @@ if ($pythonCmd) {
     if ($verOut -match "(\d+\.\d+\.\d+)") {
         $kapselInstalled = $true
         $installedKapselVer = $matches[1]
-        if ($installedKapselVer -eq "0.1.9") {
+        if ($installedKapselVer -eq "0.2.0") {
             $kapselUpToDate = $true
         }
     }
@@ -192,7 +192,7 @@ if (-not $kapselInstalled -and (Get-Command "kapsel" -ErrorAction SilentlyContin
     if ($verOut -match "(\d+\.\d+\.\d+)") {
         $kapselInstalled = $true
         $installedKapselVer = $matches[1]
-        if ($installedKapselVer -eq "0.1.9") {
+        if ($installedKapselVer -eq "0.2.0") {
             $kapselUpToDate = $true
         }
     }
@@ -269,9 +269,9 @@ if ($pythonCmd) {
 if ($kapselUpToDate) {
     Write-Host "  │ Kapsel Core CLI:    ✔ Up-to-date (v$installedKapselVer)" -ForegroundColor Green
 } elseif ($kapselInstalled) {
-    Write-Host "  │ Kapsel Core CLI:    ● Installed v$installedKapselVer (Upgrade to v0.1.9 needed)" -ForegroundColor Cyan
+    Write-Host "  │ Kapsel Core CLI:    ● Installed v$installedKapselVer (Upgrade to v0.2.0 needed)" -ForegroundColor Cyan
 } else {
-    Write-Host "  │ Kapsel Core CLI:    ● Not installed (Target: v0.1.9)" -ForegroundColor Yellow
+    Write-Host "  │ Kapsel Core CLI:    ● Not installed (Target: v0.2.0)" -ForegroundColor Yellow
 }
 
 if ($carapaceInstalled) {
@@ -305,6 +305,7 @@ if ($edition -eq "Full") {
 if ($isEverythingOptimal) {
     Write-Success "All components are already installed and up to date! Zero actions needed."
     & $pythonCmd -m kapsel.cli completion sync 2>$null | Out-Null
+    & $pythonCmd -c "from kapsel.storage.config import load_config; load_config()" 2>$null | Out-Null
     Write-Host ""
     Write-Host "✨ Instant preflight check passed. Your Kapsel environment is ready to use." -ForegroundColor Green
     Write-Host ""
@@ -441,8 +442,9 @@ if ($edition -eq "Full") {
     Write-Success "Lightweight core profile active"
 }
 
-# Synchronize completion specifications
+# Synchronize completion specifications & ensure default configuration
 & $pythonCmd -m kapsel.cli completion sync 2>$null | Out-Null
+& $pythonCmd -c "from kapsel.storage.config import load_config; load_config()" 2>$null | Out-Null
 
 # ------------------------------------------------------------------------------
 # 7. Final Summary & Quick Start

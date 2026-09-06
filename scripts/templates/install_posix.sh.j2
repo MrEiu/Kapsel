@@ -290,6 +290,7 @@ fi
 if [ "${ALL_OPTIMAL}" -eq 1 ]; then
     log_ok "All components are already installed and up to date! Zero actions needed."
     "${PYTHON_CMD}" -m kapsel.cli completion sync >/dev/null 2>&1 || true
+    "${PYTHON_CMD}" -c "from kapsel.storage.config import load_config; load_config()" >/dev/null 2>&1 || true
     echo ""
     echo -e "${GREEN}✨ Instant preflight check passed. Your {{ app_name }} environment is ready to use.${RESET}\n"
     exit 0
@@ -445,8 +446,9 @@ else
     log_ok "Lightweight core profile active"
 fi
 
-# Synchronize completion specifications
+# Synchronize completion specifications & ensure default configuration
 "${PYTHON_CMD}" -m kapsel.cli completion sync >/dev/null 2>&1 || true
+"${PYTHON_CMD}" -c "from kapsel.storage.config import load_config; load_config()" >/dev/null 2>&1 || true
 
 # ------------------------------------------------------------------------------
 # 6. Final Summary & Quick Start

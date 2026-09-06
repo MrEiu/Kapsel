@@ -133,11 +133,26 @@ if ($localScript) {
         & $localScript -Full
     }
 } else {
-    $scriptContent = Invoke-RestMethod -Uri $remoteUrl
-    $sb = [ScriptBlock]::Create($scriptContent)
-    if ($edition -eq "Lite") {
-        & $sb -Lite
-    } else {
-        & $sb -Full
+    $tempInstaller = Join-Path ([System.IO.Path]::GetTempPath()) ("kapsel_installer_" + [System.Guid]::NewGuid().ToString("N") + ".ps1")
+    try {
+        Invoke-WebRequest -Uri $remoteUrl -OutFile $tempInstaller -UseBasicParsing
+        if ($edition -eq "Lite") {
+            & $tempInstaller -Lite
+        } else {
+            & $tempInstaller -Full
+        }
+    } catch {
+        # Fallback to in-memory scriptblock if file download was restricted
+        $scriptContent = (Invoke-RestMethod -Uri $remoteUrl).TrimStart([char]0xFEFF)
+        $sb = [ScriptBlock]::Create($scriptContent)
+        if ($edition -eq "Lite") {
+            & $sb -Lite
+        } else {
+            & $sb -Full
+        }
+    } finally {
+        if (Test-Path $tempInstaller) {
+            Remove-Item -Path $tempInstaller -Force -ErrorAction SilentlyContinue
+        }
     }
 }

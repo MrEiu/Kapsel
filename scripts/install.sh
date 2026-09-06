@@ -36,7 +36,7 @@ for arg in "$@"; do
             EDITION="full"
             ;;
         --help|-h)
-            echo "Kapsel Universal Installer (v0.1.9)"
+            echo "Kapsel Universal Installer (v0.2.0)"
             echo ""
             echo "Usage: curl -fsSL <url> | bash -s -- [OPTIONS]"
             echo ""
@@ -76,7 +76,7 @@ if [ -z "${EDITION}" ]; then
         echo ""
         echo -e "${CYAN}╭────────────────────────────────────────────────────────────────────────╮${RESET}"
         echo -e "${CYAN}│${SKY}  _  __                 _                                           ${CYAN}│${RESET}"
-        echo -e "${CYAN}│${SKY} | |/ /__ _ _ __  ___  | |   ${BOLD}${CYAN}⚡ KAPSEL CLI${RESET}${DIM} (v0.1.9)                  ${CYAN}│${RESET}"
+        echo -e "${CYAN}│${SKY} | |/ /__ _ _ __  ___  | |   ${BOLD}${CYAN}⚡ KAPSEL CLI${RESET}${DIM} (v0.2.0)                  ${CYAN}│${RESET}"
         echo -e "${CYAN}│${SKY} | ' // _\` | '_ \/ __| | |   ${GREEN} Next-Gen Intelligent Terminal Capsule ${CYAN}│${RESET}"
         echo -e "${CYAN}│${SKY} |_|\_\__,_| .__/|___/ |_|   ${DIM} https://github.com/MrEiu/Kapsel          ${CYAN}│${RESET}"
         echo -e "${CYAN}│${SKY}           |_|                                                         ${CYAN}│${RESET}"

@@ -2,31 +2,26 @@
 
 # ⚡ Kapsel
 
-**Next-Generation Intelligent Terminal Capsule & Cross-Platform Ergonomic Shell Multiplexer**
+**A cross-platform terminal environment that wraps your shell with unified commands, context-aware autocompletion, and zero global pollution.**
 
+[![PyPI Version](https://img.shields.io/pypi/v/kapsel-cli?color=3776AB&logo=pypi&logoColor=white&style=flat-square)](https://pypi.org/project/kapsel-cli/)
 [![Python Version](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/kapsel-cli/)
 [![Platform Support](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-4D4D4D.svg?style=flat-square&logo=linux&logoColor=white)](https://github.com/MrEiu/Kapsel)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-<p align="center">
-  <i>"Wrap complexity, expose simplicity."</i><br>
-  A zero-pollution, context-aware command abstraction layer and high-performance interactive capsule environment.<br>
-  Empowering consistent developer workflows across Windows PowerShell, macOS Zsh, and Linux Bash.
-</p>
-
----
-
-[Key Features](#-key-features) •
-[Quick Installation](#-quick-installation) •
-[Architecture](#-architecture--philosophy) •
-[Plugin Ecosystem](#-official-plugin-ecosystem) •
-[Comparison](#-feature-matrix--comparison) •
-[Cheatsheet](#-commands-reference) •
+[Why Kapsel?](#-why-kapsel) •
+[Features](#-features) •
+[Quick Start](#-quick-start) •
+[Built-in Plugins](#-built-in-plugins) •
+[Installation](#-installation) •
+[Architecture](#-architecture--sandboxing) •
 [🇨🇳 简体中文](README_zh.md)
 
+</div>
+
 ---
 
-</div>
+### 📺 Interactive Capsule in Action
 
 ```text
 ╭─ kapsel [pwsh] ~/Projects/Kapsel 14:32:05
@@ -34,292 +29,174 @@
 ✔ 0  git checkout -b feature/dynamic-specs  ⏱ 24ms
 ```
 
----
-
-## 🌟 Overview
-
-Developers daily oscillate between disparate operating systems, suffering from fragmented terminal ergonomics:
-- Muscle memory collisions (`rm -rf` vs `Remove-Item`, `cat` vs `type`, `ls -la` vs `dir /a`);
-- Fragile global dotfiles polluting `.bashrc`, `config.fish`, or `$PROFILE`;
-- Inconsistent autocompletion engines across shells.
-
-**Kapsel** solves this by introducing a **non-invasive, sandboxed terminal capsule**. It operates as an ergonomic execution layer that intercepts and enhances command-line interactions with **zero global system pollution**—delivering sub-millisecond asynchronous autocompletion, Linux-first universal mapping, and automated environment isolation.
+> **Wrap complexity, expose simplicity.**
+> Run your native shell executables as usual, while enjoying automatic command translation, inline suggestions, rich completion specs, and a modular toolchain—all sandboxed within `~/.kapsel/`.
 
 ---
 
-## 🚀 Key Features
+## 💡 Why Kapsel?
 
-### 1. Dual-State Execution Multiplexer
-- **Native Execution Layer (Default Mode)**:
-  Direct, zero-overhead passthrough for all system executables (`git`, `docker`, `npm`, `cargo`, `python`, `vim`). Retains full TTY interaction, real-time signal handling, and standard stream piping.
-- **Unified Capsule Pipeline (`kps <cmd>` / `kapsel <cmd>`)**:
-  A single entry point for universal commands, plugin utilities, and system configurations. Strips execution prefixes and translates cross-platform commands into host-optimized primitives on the fly.
-- **Asynchronous Deep Autosuggestions**:
-  Muted inline history prediction powered by a persistent, isolated SQLite statistical store (`~/.kapsel/history.db`). Accept suggestions instantaneously with `→` (Right Arrow).
+Switching between operating systems often leads to broken muscle memory, cluttered dotfiles, and fractured autocompletion setups. Kapsel bridges this gap with a non-invasive capsule layer:
 
-### 2. Multi-Shell Dynamic Autocompletion (Carapace Powered)
-- **1,000+ Command Coverage**:
-  Direct integration with [Carapace](https://carapace.sh) enables multi-shell, multi-level argument and context completion (git branches/tags, docker containers/images, kubectl pods, npm scripts).
-- **Zero-Setup Bootstrapping**:
-  On first launch, Kapsel silently bootstraps the official platform binary into `~/.kapsel/bin/` with **zero administrative/root permissions**.
-
-### 3. Dual Root Specification & Collision Sentinel
-- **Namespaced Root Trees (`kps.yaml` & `kapsel.yaml`)**:
-  Dynamically compiles core built-ins and plugin specifications into isolated root trees under `kps` and `kapsel`. 
-- **Host Namespace Collision Sentinel**:
-  Strictly guards host shell built-ins (`alias`, `help`, `install`, `history`, `profile`, `ps`, `kill`, `dir`). Commands with potential host collisions are sealed within the `kps` namespace—**guaranteeing native shell commands (e.g. PowerShell's `Get-Alias`) remain 100% unhijacked**.
-- **Deep Parameter Completions**:
-  Typing `kps alias add <Tab>` delivers rich multi-level flag completion (`--from`, `--to`, `--shell`, `--global`) in any terminal.
-
-### 4. Modular, Crash-Proof Plugin Subsystem
-- **Decoupled Architecture**: Plugins operate in isolated memory boundaries. A malfunctioning plugin can never crash Kapsel Core.
-- **Declarative Spec Standard**: Every plugin defines independent declarative YAML specifications adhering to Carapace specifications.
-
-### 5. Minimalist Boxed Terminal Aesthetics
-- **Card Framing**: Clear visual demarcation of command inputs and outputs using modern boxed framing (`╭─ ❯` and `╰─`).
-- **Telemetry Feedback**: Instantaneous display of execution exit codes (`✔ 0` or `✘ exit 1`) and precise wall-clock elapsed time (`⏱ 38ms`).
-- **Native Multilingual Engine (i18n)**: Full localization across 7 languages (`en`, `zh_CN`, `ja`, `es`, `fr`, `de`, `ru`).
+| Challenge | Traditional Shell Setup | With Kapsel |
+| :--- | :--- | :--- |
+| **Cross-Platform Friction** | Fractured commands across OS (`dir` vs `ls`, `rmdir` vs `rm -rf`) | Unified Linux-first command layer across Windows, macOS, and Linux |
+| **Shell Profile Pollution** | Bloated `.bashrc` or `$PROFILE` with fragile global scripts | 100% self-contained sandbox in `~/.kapsel/` (zero global mutation) |
+| **Autocompletion Setup** | Manual setup per shell, often incomplete or slow | Instant context-aware completions for 1,000+ CLI tools via Carapace |
+| **Toolchain & Sync Sprawl** | Disjointed tools requiring repetitive manual installation | Integrated `kps` plugins for runtimes, mirrors, directory jumping, and sync |
 
 ---
 
-## ⚡ Quick Installation
+## ✨ Features
 
-Choose the installation method that best fits your environment:
-
-- [📦 Package Managers (PyPI / Scoop / Homebrew / APT)](#1-package-managers)
-- [💾 Precompiled Standalone Binaries](#2-precompiled-standalone-binaries-zero-dependencies)
-- [🌐 Automated Toolchain Installers](#3-automated-toolchain-installers)
-- [🛠️ Build from Source](#4-build-from-source)
-
-> 🇨🇳 **China Mainland Users**: If you are located in China and require high-speed mirror acceleration (ghproxy, Tsinghua PyPI mirror, domestic download scripts), please refer to **[README_zh.md](README_zh.md)** or [docs/INSTALLATION.md](docs/INSTALLATION.md).
+- **🌐 Cross-Platform Command Consistency**: Type standard commands (`ls -la`, `cat`, `rm -rf`, `grep`) naturally in any terminal, automatically translated to host-native primitives without hijacking host built-ins.
+- **⚡ Context-Aware Autocompletion**: Integrated with [Carapace](https://carapace.sh) to deliver multi-level argument and context completions (Git branches, Docker images, npm scripts) across PowerShell, Bash, and Zsh.
+- **🛡️ Zero-Pollution Sandboxing**: Everything (binaries, SQLite history, declarative specs, plugins, and logs) resides inside `~/.kapsel/`. Your host shell configuration files remain completely untouched.
+- **🧩 Curated Plugin Ecosystem**: Access powerful developer utilities (`zoxide`, `mise`, `chsrc`, `pueue`, AI assistants) directly through the unified `kps` command.
+- **🎨 Modern Card-Framed Aesthetics**: Clean visual command card framing with exit code badges (`✔ 0` / `✘ 1`), execution stopwatch timing, and native i18n support across 7 languages.
 
 ---
 
-### 1. 📦 Package Managers
+## 🚀 Quick Start
 
-#### PyPI (Python 3.9+)
+Launch the interactive capsule shell:
 
 ```bash
-# Recommended: Isolated environment via pipx (prevents global Python pollution)
+kapsel
+```
+
+Inside Kapsel, commands run natively with enhanced feedback:
+
+```bash
+# 1. Native pass-through with timing & exit code card
+git status
+docker ps
+
+# 2. Universal command translation on any OS
+rm -rf ./temp_dir
+cat package.json
+
+# 3. Use built-in plugins anytime
+kps portal work        # Jump to directory (zoxide)
+kps ai "explain git rebase"  # Ask terminal AI assistant
+kps shore get          # Auto-select fastest package mirrors
+
+# 4. Inspect capsule state
+kps status
+```
+
+> **One-Shot Execution**: You can also invoke Kapsel tools directly from your regular shell using `kps <command>` (e.g. `kps portal`, `kps status`, `kps ai`).
+
+---
+
+## 🧩 Built-in Plugins
+
+Kapsel comes pre-configured with 11 decoupled, official plugins under the `kps` namespace:
+
+| Plugin | Command | What It Does | Powered by |
+| :--- | :--- | :--- | :--- |
+| **`portal`** | `kps portal` / `z` | Fast directory jumping with frecency weighting | [zoxide](https://github.com/ajeetdsouza/zoxide) |
+| **`ai`** | `kps ai` | Terminal AI copilot for generating and explaining commands | OpenAI / Claude / Ollama |
+| **`init`** | `kps init` | Multi-language toolchain runtime manager (Node, Python, Go, Rust) | [mise](https://github.com/jdx/mise) |
+| **`shore`** | `kps shore` | Benchmark and switch fastest package & OS download mirrors | [chsrc](https://github.com/AkihiroSuda/chsrc) |
+| **`install`** | `kps install` | Universal software installer aggregating 20+ package managers | [mpm](https://github.com/MrEiu/mpm) |
+| **`alias`** | `kps alias` | Cross-platform alias translation with zero namespace collision | Native Engine |
+| **`autopilot`**| `kps autopilot`| Background queue & autonomous daemon task runner | [pueue](https://github.com/Nukesor/pueue) |
+| **`help`** | `kps help <cmd>`| Instant, community-driven practical command cheat sheets | [tealdeer](https://github.com/dbrgn/tealdeer) |
+| **`fuck`** | `kps fuck` | Intelligent autocorrect and syntax fix for mistyped commands | [thefuck](https://github.com/nvbn/thefuck) |
+| **`profile`** | `kps profile` | Cross-platform dotfile and workstation configuration sync | [chezmoi](https://github.com/twpayne/chezmoi) |
+| **`rec`** | `kps rec` | Interactive CLI command snippet bookmarking & runner | [pet](https://github.com/knqyf263/pet) |
+
+---
+
+## 📦 Installation
+
+### Recommended (pipx / pip)
+
+```bash
+# Isolated installation via pipx (recommended)
 pipx install kapsel-cli
 
-# Or standard pip installation
+# Or standard pip
 pip install --upgrade kapsel-cli
 ```
 
-#### Windows: Scoop
+### One-Line Automated Installers
 
-```powershell
-# Add Kapsel official bucket and install
-scoop bucket add kapsel https://github.com/MrEiu/scoop-bucket
-scoop install kapsel
-```
-
-#### macOS & Linux: Homebrew
+Quick bootstrap scripts that auto-detect your OS and configure completions:
 
 ```bash
-# Add Kapsel official tap and install
-brew tap MrEiu/tap
-brew install kapsel
-```
-
-#### Debian & Ubuntu: APT & DPKG (.deb)
-
-```bash
-curl -LO https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel_amd64.deb
-sudo dpkg -i kapsel_amd64.deb || sudo apt-get install -f -y
-```
-
----
-
-### 2. 💾 Precompiled Standalone Binaries (Zero Dependencies)
-
-No Python runtime or external package managers required. Simply extract and run:
-
-| Platform / Architecture | Release Artifact | Official GitHub Download |
-| :--- | :--- | :--- |
-| **Windows x86_64** | `kapsel-windows-x86_64.zip` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel-windows-x86_64.zip) |
-| **Linux x86_64** | `kapsel-linux-x86_64.tar.gz` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel-linux-x86_64.tar.gz) |
-| **macOS (Universal)** | `kapsel-macos-universal.tar.gz` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel-macos-universal.tar.gz) |
-| **Debian / Ubuntu** | `kapsel_amd64.deb` | [Download](https://github.com/MrEiu/Kapsel/releases/latest/download/kapsel_amd64.deb) |
-
-> 💡 **Usage Tip**: Extract the archive and place `kapsel` (or `kapsel.exe`) and `kps` (or `kps.exe`) into any directory in your system `PATH` (such as `~/.kapsel/bin` or `/usr/local/bin`).
-
----
-
-### 3. 🌐 Automated Toolchain Installers
-
-A unified single-command installer that automatically detects your OS platform, runs intelligent environment preflight inspections, and configures Kapsel with your preferred edition:
-
-```bash
-# macOS & Linux (Bash / Zsh):
+# macOS & Linux:
 curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.sh | bash
 
 # Windows (PowerShell):
 irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.ps1 | iex
 ```
 
-> ⚡ **Intelligent Fast-Path & Preflight**: The installer first inspects your existing Python runtime, Kapsel version, Carapace engine, PATH configurations, and installed plugins. Anything already up to date is skipped automatically (finishing in < 1 second).
->
-> 📦 **Available Editions**:
-> - **Lightweight Edition (`--lite` / `-Lite`)**: Core Kapsel CLI + Carapace completion engine (~20MB, ultra fast bootstrap).
-> - **Full Edition (`--full` / `-Full`, default)**: Core + system package manager (Scoop / Homebrew / apt) + all 11 official plugins.
+### Other Installation Options
+
+- **Standalone Precompiled Binaries**: Download ready-to-run releases from [GitHub Releases](https://github.com/MrEiu/Kapsel/releases/latest).
+- **Package Managers**: Available on Scoop (`scoop install kapsel`), Homebrew, and Debian/Ubuntu `.deb`.
+- **Build from Source**: `git clone https://github.com/MrEiu/Kapsel.git && cd Kapsel && pip install -e .`
+
+👉 *For China mirror acceleration and full platform package manager details, see **[docs/INSTALLATION.md](docs/INSTALLATION.md)**.*
 
 ---
 
-### 4. 🛠️ Build from Source
+## ⚙️ Configuration
 
-Ideal for developers wishing to contribute to Kapsel core or develop custom plugins:
+Kapsel stores its configuration in `~/.kapsel/config.yaml`. Manage settings directly from your terminal:
 
 ```bash
-git clone https://github.com/MrEiu/Kapsel.git
-cd Kapsel
-pip install -e .
-kps completion sync
-```
+# View configuration dashboard
+kps config
 
----
-
-## 🧩 Official Plugin Ecosystem
-
-Kapsel maintains a modular, decoupled plugin suite designed to satisfy modern engineering workflows:
-
-| Plugin | Command | Core Technology | Description |
-| :--- | :--- | :--- | :--- |
-| **`init`** | `kps init` | **`mise`** (Rust) | Project toolchains & polyglot runtime manager (replaces nvm, pyenv, rbenv). |
-| **`portal`** | `kps portal` / `z` | **`zoxide`** (Rust) | Frecency-weighted directory teleportation with fuzzy navigation. |
-| **`shore`** | `kps shore` | **`chsrc`** (C) | Automated ultra-fast mirror switcher (PyPI, Rust, Node, Go, OS mirrors). |
-| **`install`** | `kps install` | **`mpm`** (Python) | Unified CLI package manager aggregating 20+ package managers. |
-| **`alias`** | `kps alias` | *Native Engine* | Universal command alias translation and multi-terminal cross-mapping. |
-| **`ai`** | `kps ai` | *Native (OpenAI SDK)* | Terminal AI copilot supporting OpenAI, Claude, Gemini, DeepSeek, and Ollama. |
-| **`autopilot`**| `kps autopilot`| **`pueue`** (Rust) | Autonomous background task queue and long-running daemon execution manager. |
-| **`fuck`** | `kps fuck` | **`thefuck`** (Python) | Intelligent terminal input error correction and automated syntax fixing. |
-| **`help`** | `kps help <cmd>`| **`tealdeer`** (Rust) | Instantaneous practical command cheat sheets and quick lookup (tldr). |
-| **`profile`** | `kps profile` | **`chezmoi`** (Go) | Cross-platform dotfiles, shell profiles, and secret-encrypted environment manager. |
-| **`rec`** | `kps rec` | **`pet`** (Go) | Interactive CLI snippet recorder, argument parameterizer, and runner. |
-
----
-
-## 📊 Feature Matrix & Comparison
-
-| Feature Capability | Kapsel | Standard Shells (Bash/Zsh/Pwsh) | Starship | Oh-My-Zsh |
-| :--- | :---: | :---: | :---: | :---: |
-| **Non-invasive Runtime (Zero Profile Mutation)** | **Yes** | No | No | No |
-| **1,000+ Command Context Completion (Carapace)** | **Yes** | Manual plugins | No (Prompt only) | Partial (Slow) |
-| **Cross-Platform Linux-First Mapping (`kps`)** | **Yes** | No | No | No |
-| **Dual Root Spec Architecture (Anti-Collision)** | **Yes** | No | No | No |
-| **Boxed Terminal Execution Framing** | **Yes** | No | Prompt only | No |
-| **Isolated Sandbox State (`~/.kapsel/`)** | **Yes** | Fragmented | No | Fragmented |
-| **Sub-Millisecond Async UI Response** | **Yes** | Depends | Yes | Often Slow |
-
----
-
-## 📖 Commands Reference
-
-### Interactive Shell Mode (`kapsel` / `kps`)
-
-Launch Kapsel as an interactive shell session:
-```bash
-kapsel
-```
-
-Within the capsule session, the following unified commands are available:
-
-```text
-help                   Display Kapsel manual, interaction mechanisms, and command cheat sheet
-status                 Inspect OS environment, active host shell, Git branch, and sandbox status
-upgrade [plugin]       Two-stage upgrade check for Kapsel Core and official plugins with changelogs
-search [-a]            Search and discover official plugins with versions and install states
-enable <plugin>        Activate and enable an installed plugin, syncing autocompletions
-disable <plugin>       Disable an active plugin without deleting local files
-config                 Inspect or edit core configuration (~/.kapsel/config.yaml)
-  config path          Print physical configuration file path
-  config edit          Open configuration in default external editor
-  config get <key>     Retrieve value for a configuration key
-  config set <k> <v>   Update configuration value from terminal
-  config reload        Hot-reload configuration from disk without session restart
-completion             Manage, inspect, and synchronize declarative Carapace specifications
-  completion ls        List active completion specifications, scopes, and mount states
-  completion sync      Force compile and synchronize dual root specs (kps.yaml and kapsel.yaml)
-  completion new <cmd> Scaffold a new declarative specification template
-  completion path      Display active spec directories
-datadir                Inspect or safely relocate data storage sandbox directory
-language <lang>        Switch active UI language (en, zh_CN, ja, es, fr, de, ru)
-toggle                 Toggle Kapsel default terminal mode (open on first call, close on second)
-clear                  Clear terminal screen and re-render header banner
-exit                   Cleanly exit Kapsel and return to native host shell
-```
-
-### One-Shot External Execution
-
-Execute any capsule or plugin command directly from your standard shell:
-
-```bash
-# Management & Diagnostics
-kps status
-kps completion ls
+# Open configuration file in external editor
 kps config edit
 
-# Plugin commands
-kps portal ls
-kps shore get
-kps init use node@22
-
-# Cross-platform mapped commands
-kps rm -rf dist/
-kps ls -la
+# Adjust settings on the fly
+kps config set ui.enable_banner false
+kps config set interaction.autosuggest_sensitivity 0.2
 ```
 
 ---
 
-## 🔒 Directory Sandboxing & State Model
+## 🏛️ Architecture & Sandboxing
 
-Kapsel adheres strictly to the **Zero-Pollution Guarantee**. All data, binaries, caches, and logs reside exclusively within the user sandbox directory:
+Kapsel follows a **Zero-Pollution Principle**. All runtime state is strictly contained:
 
 ```text
 ~/.kapsel/
-├── config.yaml          # System-wide UI configuration (colors, card borders, language)
+├── config.yaml          # System-wide UI configuration, themes, and interaction settings
 ├── history.db           # Persistent SQLite database storing command history and stats
-├── bin/                 # User-space standalone binary tools (carapace, zoxide, mise, chsrc...)
-├── specs/               # User custom declarative autocompletion specifications
-├── plugins/             # Installed official and community plugin packages
-└── logs/                # Session logs and crash diagnostics
+├── bin/                 # User-space standalone binary tools (carapace, zoxide, mise...)
+├── specs/               # Declarative autocompletion YAML specifications
+├── plugins/             # Installed official and community plugin extensions
+└── logs/                # Diagnostic logs and session metrics
 ```
+
+- **Dual-State Engine**: Native executables run directly via host subshell passthrough; capsule utilities run via the unified `kps` registry.
+- **Collision Sentinel**: Ensures native shell built-ins (e.g. PowerShell's `Get-Alias`, `Get-Help`) are never intercepted or hijacked.
+- **Isolated Plugins**: Plugins run independently, ensuring third-party extensions cannot crash the core shell.
 
 ---
 
-## 🧪 Testing & Quality Assurance
-
-The Kapsel codebase enforces thorough test coverage with strict type checks and isolated fixtures:
+## 🧪 Development & Testing
 
 ```bash
 # Clone the repository
 git clone https://github.com/MrEiu/Kapsel.git
 cd Kapsel
 
-# Install test dependencies
+# Install editable package with test dependencies
 pip install -e ".[test]"
 
-# Run full test suite
+# Run unit test suite
 pytest tests/ -v
 ```
-
-All 79 automated unit tests validate spec manager discovery, collision sentinel blocking, carapace integration, plugin lifecycles, and i18n resolution.
-
----
-
-## 🤝 Contributing & Community
-
-Contributions are welcome!
-- Check out [issues](https://github.com/MrEiu/Kapsel/issues) to find tasks or report bugs.
-- For developing or submitting plugins, refer to the [Plugins Guide](https://github.com/MrEiu/plugins).
 
 ---
 
 ## 📄 License
 
-Kapsel is open-source software licensed under the **[MIT License](LICENSE)**.
-
-<div align="center">
-  <sub>Built with modern terminal ergonomics by MrEiu and the Kapsel Open-Source Team.</sub>
-</div>
+Distributed under the **[MIT License](LICENSE)**. Built by MrEiu and open-source contributors.

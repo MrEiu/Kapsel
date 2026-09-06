@@ -1,15 +1,15 @@
 class Kapsel < Formula
   desc "Next-generation cross-platform terminal capsule & ergonomic shell multiplexer"
   homepage "https://github.com/MrEiu/Kapsel"
-  version "0.1.3"
+  version "0.1.9"
   license "MIT"
 
   on_macos do
-    url "https://github.com/MrEiu/Kapsel/releases/download/v0.1.3/kapsel-macos-universal.tar.gz"
+    url "https://github.com/MrEiu/Kapsel/releases/download/v0.1.9/kapsel-macos-universal.tar.gz"
   end
 
   on_linux do
-    url "https://github.com/MrEiu/Kapsel/releases/download/v0.1.3/kapsel-linux-x86_64.tar.gz"
+    url "https://github.com/MrEiu/Kapsel/releases/download/v0.1.9/kapsel-linux-x86_64.tar.gz"
   end
 
   def install

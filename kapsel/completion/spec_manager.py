@@ -285,18 +285,26 @@ class CarapaceSpecManager:
         """
         specs: Dict[str, SpecInfo] = {}
 
-        # 1. Resolve plugin directories to scan
+        # 1. Resolve plugin directories to scan (highest priority first)
         resolved_plugin_dirs: List[Path] = []
         if plugin_dirs is not None:
             resolved_plugin_dirs = list(plugin_dirs)
         else:
             cfg = load_config()
-            data_plugins = self.kapsel_dir / "plugins"
-            if data_plugins.is_dir():
-                resolved_plugin_dirs.append(data_plugins)
+            # A. Local workspace plugins (e.g. current working directory)
             local_plugins = Path.cwd() / "plugins"
-            if local_plugins.is_dir() and local_plugins not in resolved_plugin_dirs:
+            if local_plugins.is_dir():
                 resolved_plugin_dirs.append(local_plugins)
+
+            # B. Official repository plugins (when running in repo or development)
+            repo_plugins = Path(__file__).resolve().parents[2] / "plugins"
+            if repo_plugins.is_dir() and repo_plugins not in resolved_plugin_dirs:
+                resolved_plugin_dirs.append(repo_plugins)
+
+            # C. User data sandbox plugins (~/.kapsel/plugins or KPS-data/plugins)
+            data_plugins = self.kapsel_dir / "plugins"
+            if data_plugins.is_dir() and data_plugins not in resolved_plugin_dirs:
+                resolved_plugin_dirs.append(data_plugins)
 
         if enabled_plugins is None:
             cfg = load_config()
@@ -321,11 +329,15 @@ class CarapaceSpecManager:
 
                 candidate_files = []
                 if active_lang and active_lang != "en":
-                    candidate_files.extend([
-                        item / "locales" / active_lang / "spec.yaml",
-                        item / f"spec.{active_lang}.yaml",
-                        item / f"spec_{active_lang}.yaml",
-                    ])
+                    lang_variants = [active_lang]
+                    if "_" in active_lang:
+                        lang_variants.append(active_lang.split("_")[0])
+                    for lv in lang_variants:
+                        candidate_files.extend([
+                            item / "locales" / lv / "spec.yaml",
+                            item / f"spec.{lv}.yaml",
+                            item / f"spec_{lv}.yaml",
+                        ])
                 candidate_files.extend([
                     item / "locales" / "en" / "spec.yaml",
                     item / "spec.yaml",
@@ -335,6 +347,10 @@ class CarapaceSpecManager:
                 for c_file in candidate_files:
                     if c_file.is_file():
                         cmd_name, desc, aliases, standalone, raw_data = _parse_spec_file(c_file)
+                        # Avoid overriding a higher-precedence spec with a lower-precedence one
+                        if cmd_name in specs:
+                            break
+
                         # Sentinel: Force standalone=False if command collides with host shell
                         if cmd_name.lower() in RESERVED_COLLISION_COMMANDS:
                             standalone = False

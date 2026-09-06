@@ -72,6 +72,16 @@ def handle_language_command(args: Optional[List[str]] = None, console: Optional[
 
     success = set_current_language(target_code, persist=True)
     if success:
+        # Re-sync Carapace declarative completion specifications with the new language
+        try:
+            from kapsel.completion.spec_manager import CarapaceSpecManager
+            from kapsel.completion.carapace_engine import get_carapace_engine
+
+            CarapaceSpecManager().sync_specs(force=True)
+            get_carapace_engine().reload_tools()
+        except Exception:
+            pass
+
         meta = SUPPORTED_LANGUAGES[target_code]
         msg = _("✔ Language successfully switched to: {name} ({code})").format(
             name=meta["native"], code=target_code

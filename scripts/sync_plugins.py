@@ -300,7 +300,7 @@ def main() -> int:
     try:
         from kapsel.completion.spec_manager import CarapaceSpecManager
         spec_mgr = CarapaceSpecManager()
-        synced, _ = spec_mgr.sync_specs()
+        synced, _ = spec_mgr.sync_specs(force=True)
         if synced > 0:
             console.print(f"  [bold #10b981]✔[/] Carapace specs synchronized: {synced} updated.")
     except Exception:

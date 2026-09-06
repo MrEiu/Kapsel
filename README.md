@@ -15,7 +15,12 @@
 [Built-in Plugins](#-built-in-plugins) •
 [Installation](#-installation) •
 [Architecture](#-architecture--sandboxing) •
-[🇨🇳 简体中文](README_zh.md)
+[简体中文](README_zh.md)
+[日本語](README_ja.md)
+[Русский](README_ru.md)
+[Polski](README_pl.md)
+[Español](README_es.md)
+[Français](README_fr.md)
 
 </div>
 

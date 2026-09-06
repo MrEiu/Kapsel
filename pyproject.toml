@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kapsel-cli"
-version = "0.2.0"
+version = "0.2.1"
 description = "Next-generation cross-platform terminal capsule & ergonomic shell multiplexer with context-aware command translation and 1,000+ CLI completions."
 readme = "README.md"
 requires-python = ">=3.9"

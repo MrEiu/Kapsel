@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Kapsel - Modern Cross-Platform Terminal Capsule Installer for POSIX Systems (macOS & Linux)
+# {{ app_name }} - Modern Cross-Platform Terminal Capsule Installer for {% if target_os == 'macos' %}macOS{% elif target_os == 'linux' %}Linux{% else %}POSIX Systems (macOS & Linux){% endif %}
+
 # Generated automatically by scripts/generate_installers.py - DO NOT EDIT DIRECTLY!
 #
 # Provides two installation editions:
-# 1. Lightweight (--lite): Kapsel Core + Carapace completion engine (~20MB, ultra fast)
-# 2. Full (--full):        Lightweight + System package manager + 11 official plugins
+# 1. Lightweight (--lite): {{ app_name }} Core + Carapace completion engine (~20MB, ultra fast)
+# 2. Full (--full):        Lightweight + System package manager + {{ plugins|length }} official plugins
 #
 # Usage:
+{% if is_cn %}
 #   curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_cn.sh | bash
+{% elif target_os == 'macos' %}
+#   curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_macos.sh | bash
+{% elif target_os == 'linux' %}
+#   curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_linux.sh | bash
+{% else %}
+#   curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.sh | bash
+{% endif %}
 #   curl -fsSL ... | bash -s -- --lite
 #   curl -fsSL ... | bash -s -- --full
 # ==============================================================================
@@ -40,13 +49,13 @@ for arg in "$@"; do
             EDITION="full"
             ;;
         --help|-h)
-            echo "Kapsel Installer (v0.1.9)"
+            echo "{{ app_name }} Installer (v{{ version }})"
             echo ""
             echo "Usage: $0 [--lite] [--full] [--help]"
             echo ""
             echo "Options:"
-            echo "  --lite, -l    Install Lightweight Edition (Core Kapsel CLI + Carapace autocompletion)"
-            echo "  --full, -f    Install Full Edition (Core + Package Manager + 11 Official Plugins)"
+            echo "  --lite, -l    Install Lightweight Edition (Core {{ app_name }} CLI + Carapace autocompletion)"
+            echo "  --full, -f    Install Full Edition (Core + Package Manager + {{ plugins|length }} Official Plugins)"
             echo "  --help, -h    Show this help message"
             exit 0
             ;;
@@ -57,10 +66,10 @@ done
 if [ "$#" -eq 0 ]; then
     if [ -c /dev/tty ]; then
         echo -e "${CYAN}╭────────────────────────────────────────────────────────────────────────╮${RESET}"
-        echo -e "${CYAN}│${BOLD}  Please select the Kapsel installation edition:                        ${CYAN}│${RESET}"
+        echo -e "${CYAN}│${BOLD}  Please select the {{ app_name }} installation edition:                        ${CYAN}│${RESET}"
         echo -e "${CYAN}│                                                                        │${RESET}"
         echo -e "${CYAN}│  ${GREEN}[1] Lightweight Edition${RESET}${DIM} (Core + Carapace completions) ~20MB         ${CYAN}│${RESET}"
-        echo -e "${CYAN}│  ${PURPLE}[2] Full Edition${RESET}${BOLD} (Core + Package Manager + 11 Plugins) [Default]        ${CYAN}│${RESET}"
+        echo -e "${CYAN}│  ${PURPLE}[2] Full Edition${RESET}${BOLD} (Core + Package Manager + {{ plugins|length }} Plugins) [Default]        ${CYAN}│${RESET}"
         echo -e "${CYAN}│                                                                        │${RESET}"
         echo -e "${CYAN}╰────────────────────────────────────────────────────────────────────────╯${RESET}"
         read -r -p "Enter selection [1 or 2, default 2]: " choice < /dev/tty
@@ -80,9 +89,9 @@ fi
 echo ""
 echo -e "${CYAN}╭────────────────────────────────────────────────────────────────────────╮${RESET}"
 echo -e "${CYAN}│${SKY}  _  __                 _                                           ${CYAN}│${RESET}"
-echo -e "${CYAN}│${SKY} | |/ /__ _ _ __  ___  | |   ${BOLD}${CYAN}⚡ KAPSEL CLI${RESET}${DIM} (v0.1.9)                  ${CYAN}│${RESET}"
+echo -e "${CYAN}│${SKY} | |/ /__ _ _ __  ___  | |   ${BOLD}${CYAN}⚡ {{ app_name|upper }} CLI${RESET}${DIM} (v{{ version }})                  ${CYAN}│${RESET}"
 echo -e "${CYAN}│${SKY} | ' // _\` | '_ \/ __| | |   ${GREEN} Next-Gen Intelligent Terminal Capsule ${CYAN}│${RESET}"
-echo -e "${CYAN}│${SKY} | . \ (_| | |_) \__ \ | |   ${DIM} https://github.com/MrEiu/Kapsel          ${CYAN}│${RESET}"
+echo -e "${CYAN}│${SKY} | . \ (_| | |_) \__ \ | |   ${DIM} {{ repo_url }}          ${CYAN}│${RESET}"
 echo -e "${CYAN}│${SKY} |_|\_\__,_| .__/|___/ |_|                                           ${CYAN}│${RESET}"
 echo -e "${CYAN}│${SKY}           |_|             ${PURPLE}[${EDITION_TITLE}]${SKY}                         ${CYAN}│${RESET}"
 echo -e "${CYAN}╰────────────────────────────────────────────────────────────────────────╯${RESET}"
@@ -158,7 +167,7 @@ if [ -n "${PYTHON_CMD}" ]; then
     if echo "${ver_out}" | grep -qE "[0-9]+\.[0-9]+\.[0-9]+"; then
         KAPSEL_INSTALLED=1
         INSTALLED_KAPSEL_VER="$(echo "${ver_out}" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)"
-        if [ "${INSTALLED_KAPSEL_VER}" = "0.1.9" ]; then
+        if [ "${INSTALLED_KAPSEL_VER}" = "{{ version }}" ]; then
             KAPSEL_UP_TO_DATE=1
         fi
     fi
@@ -169,7 +178,7 @@ if [ "${KAPSEL_INSTALLED}" -eq 0 ] && command -v kapsel >/dev/null 2>&1; then
     if echo "${ver_out}" | grep -qE "[0-9]+\.[0-9]+\.[0-9]+"; then
         KAPSEL_INSTALLED=1
         INSTALLED_KAPSEL_VER="$(echo "${ver_out}" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+" | head -n1)"
-        if [ "${INSTALLED_KAPSEL_VER}" = "0.1.9" ]; then
+        if [ "${INSTALLED_KAPSEL_VER}" = "{{ version }}" ]; then
             KAPSEL_UP_TO_DATE=1
         fi
     fi
@@ -205,9 +214,9 @@ done
 
 # 1.6 Detect Plugins (Full Edition only)
 INSTALLED_PLUGINS=0
-TOTAL_PLUGINS=11
+TOTAL_PLUGINS={{ plugins|length }}
 MISSING_PLUGINS=()
-ALL_PLUGINS=("alias" "portal" "init" "shore" "ai" "install" "autopilot" "rec" "profile" "fuck" "help" )
+ALL_PLUGINS=({% for p in plugins %}"{{ p.id }}" {% endfor %})
 
 if [ "${EDITION}" = "full" ]; then
     FOUND_PLUGINS=""
@@ -239,17 +248,17 @@ else
 fi
 
 if [ "${KAPSEL_UP_TO_DATE}" -eq 1 ]; then
-    echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${GREEN}✔ Up-to-date (v${INSTALLED_KAPSEL_VER})${RESET}"
+    echo -e "  ${CYAN}│${RESET} {{ app_name }} Core CLI:    ${GREEN}✔ Up-to-date (v${INSTALLED_KAPSEL_VER})${RESET}"
 elif [ "${KAPSEL_INSTALLED}" -eq 1 ]; then
-    echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${SKY}● Installed v${INSTALLED_KAPSEL_VER} (Upgrade to v0.1.9 needed)${RESET}"
+    echo -e "  ${CYAN}│${RESET} {{ app_name }} Core CLI:    ${SKY}● Installed v${INSTALLED_KAPSEL_VER} (Upgrade to v{{ version }} needed)${RESET}"
 else
-    echo -e "  ${CYAN}│${RESET} Kapsel Core CLI:    ${AMBER}● Not installed (Target: v0.1.9)${RESET}"
+    echo -e "  ${CYAN}│${RESET} {{ app_name }} Core CLI:    ${AMBER}● Not installed (Target: v{{ version }})${RESET}"
 fi
 
 if [ "${CARAPACE_INSTALLED}" -eq 1 ]; then
     echo -e "  ${CYAN}│${RESET} Carapace Engine:    ${GREEN}✔ Installed (${CARAPACE_VER})${RESET}"
 else
-    echo -e "  ${CYAN}│${RESET} Carapace Engine:    ${AMBER}● Not installed (Target: v1.7.3)${RESET}"
+    echo -e "  ${CYAN}│${RESET} Carapace Engine:    ${AMBER}● Not installed (Target: v{{ carapace_version }})${RESET}"
 fi
 
 if [ "${PATH_CONFIGURED}" -eq 1 ]; then
@@ -259,7 +268,8 @@ else
 fi
 
 if [ "${EDITION}" = "full" ]; then
-    NUM_MISSING=${#MISSING_PLUGINS[@]}    echo -e "  ${CYAN}│${RESET} Package Manager:    ${GREEN}✔ ${PKG_MGR} ecosystem detected${RESET}"
+    NUM_MISSING=${% raw %}{#MISSING_PLUGINS[@]}{% endraw %}
+    echo -e "  ${CYAN}│${RESET} Package Manager:    ${GREEN}✔ ${PKG_MGR} ecosystem detected${RESET}"
     if [ "${NUM_MISSING}" -eq 0 ]; then
         echo -e "  ${CYAN}│${RESET} Official Plugins:   ${GREEN}✔ ${INSTALLED_PLUGINS}/${TOTAL_PLUGINS} installed${RESET}"
     else
@@ -281,7 +291,7 @@ if [ "${ALL_OPTIMAL}" -eq 1 ]; then
     log_ok "All components are already installed and up to date! Zero actions needed."
     "${PYTHON_CMD}" -m kapsel.cli completion sync >/dev/null 2>&1 || true
     echo ""
-    echo -e "${GREEN}✨ Instant preflight check passed. Your Kapsel environment is ready to use.${RESET}\n"
+    echo -e "${GREEN}✨ Instant preflight check passed. Your {{ app_name }} environment is ready to use.${RESET}\n"
     exit 0
 fi
 
@@ -325,20 +335,26 @@ else
 fi
 
 # ------------------------------------------------------------------------------
-# 3. Install / Upgrade Kapsel Core CLI
+# 3. Install / Upgrade {{ app_name }} Core CLI
 # ------------------------------------------------------------------------------
-log_step "3/5" "Installing / Upgrading Kapsel Core CLI"
+log_step "3/5" "Installing / Upgrading {{ app_name }} Core CLI"
 
 if [ "${KAPSEL_UP_TO_DATE}" -eq 1 ]; then
-    log_ok "Kapsel Core is already up-to-date (v${INSTALLED_KAPSEL_VER}) - Skipping pip install"
+    log_ok "{{ app_name }} Core is already up-to-date (v${INSTALLED_KAPSEL_VER}) - Skipping pip install"
 else
-    log_info "Executing pip install for kapsel-cli..."
-    "${PYTHON_CMD}" -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli >/dev/null 2>&1 || \
-    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli >/dev/null 2>&1 || \
-    pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli --break-system-packages >/dev/null 2>&1 || true
+    log_info "Executing pip install for {{ pypi_package }}..."
+{% if is_cn %}
+    "${PYTHON_CMD}" -m pip install -i {{ pypi_index_url }} --upgrade {{ pypi_package }} >/dev/null 2>&1 || \
+    pip install -i {{ pypi_index_url }} --upgrade {{ pypi_package }} >/dev/null 2>&1 || \
+    pip3 install -i {{ pypi_index_url }} --upgrade {{ pypi_package }} --break-system-packages >/dev/null 2>&1 || true
+{% else %}
+    "${PYTHON_CMD}" -m pip install --upgrade {{ pypi_package }} >/dev/null 2>&1 || \
+    pip install --upgrade {{ pypi_package }} >/dev/null 2>&1 || \
+    pip3 install --upgrade {{ pypi_package }} --break-system-packages >/dev/null 2>&1 || true
+{% endif %}
 
-    new_ver="$("${PYTHON_CMD}" -m kapsel.cli -v 2>/dev/null || echo "v0.1.9")"
-    log_ok "Kapsel Core CLI ready: ${new_ver}"
+    new_ver="$("${PYTHON_CMD}" -m kapsel.cli -v 2>/dev/null || echo "v{{ version }}")"
+    log_ok "{{ app_name }} Core CLI ready: ${new_ver}"
 fi
 
 # ------------------------------------------------------------------------------
@@ -360,10 +376,12 @@ else
         CARA_OS="darwin"
     fi
 
-    CARAPACE_URL="https://github.com/carapace-sh/carapace-bin/releases/download/v1.7.3/carapace-bin_1.7.3_${CARA_OS}_${CARA_ARCH}.tar.gz"
-    CARAPACE_URL="https://ghproxy.net/${CARAPACE_URL}"
+    CARAPACE_URL="https://github.com/carapace-sh/carapace-bin/releases/download/v{{ carapace_version }}/carapace-bin_{{ carapace_version }}_${CARA_OS}_${CARA_ARCH}.tar.gz"
+{% if is_cn %}
+    CARAPACE_URL="{{ gh_mirror_prefix }}${CARAPACE_URL}"
+{% endif %}
 
-    log_info "Downloading Carapace (v1.7.3 for ${CARA_OS}_${CARA_ARCH})..."
+    log_info "Downloading Carapace (v{{ carapace_version }} for ${CARA_OS}_${CARA_ARCH})..."
     TMP_DIR="$(mktemp -d)"
     if curl -fsSL "${CARAPACE_URL}" -o "${TMP_DIR}/carapace.tar.gz" 2>/dev/null; then
         tar -xzf "${TMP_DIR}/carapace.tar.gz" -C "${TMP_DIR}" 2>/dev/null
@@ -412,10 +430,10 @@ if [ "${EDITION}" = "full" ]; then
     fi
 
     if [ "${NUM_MISSING}" -eq 0 ]; then
-        log_ok "All 11 official plugins are already installed - Skipping 'kapsel add'"
+        log_ok "All {{ plugins|length }} official plugins are already installed - Skipping 'kapsel add'"
     else
         echo ""
-        echo -e "${PURPLE}  Installing ${NUM_MISSING} Missing Kapsel Plugins via 'kapsel add'...${RESET}"
+        echo -e "${PURPLE}  Installing ${NUM_MISSING} Missing {{ app_name }} Plugins via 'kapsel add'...${RESET}"
         for pid in "${MISSING_PLUGINS[@]}"; do
             echo -e "  ${SKY}➜${RESET} Adding plugin ${BOLD}${pid}${RESET}..."
             "${PYTHON_CMD}" -m kapsel.cli add "${pid}" >/dev/null 2>&1 || kapsel add "${pid}" >/dev/null 2>&1 || true
@@ -435,7 +453,7 @@ fi
 # ------------------------------------------------------------------------------
 echo ""
 echo -e "${CYAN}╭────────────────────────────────────────────────────────────────────────╮${RESET}"
-echo -e "${CYAN}│${GREEN}  ✔ Kapsel ${EDITION_TITLE} installed successfully!                       ${CYAN}│${RESET}"
+echo -e "${CYAN}│${GREEN}  ✔ {{ app_name }} ${EDITION_TITLE} installed successfully!                       ${CYAN}│${RESET}"
 echo -e "${CYAN}│                                                                        │${RESET}"
 echo -e "${CYAN}│${BOLD}  Quick Start Commands:                                                 ${CYAN}│${RESET}"
 echo -e "${CYAN}│   ${CYAN}• kapsel${RESET}         Enter the interactive smart capsule shell           ${CYAN}│${RESET}"

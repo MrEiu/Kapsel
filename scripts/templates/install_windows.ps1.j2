@@ -1,13 +1,17 @@
-﻿# ==============================================================================
-# Kapsel - Modern Cross-Platform Terminal Capsule Installer for Windows
+# ==============================================================================
+# {{ app_name }} - Modern Cross-Platform Terminal Capsule Installer for Windows
 # Generated automatically by scripts/generate_installers.py - DO NOT EDIT DIRECTLY!
 #
 # Provides two installation editions:
-# 1. Lightweight (-Lite): Kapsel Core + Carapace completion engine (~20MB, ultra fast)
-# 2. Full (-Full):        Lightweight + Scoop package manager + 11 official plugins
+# 1. Lightweight (-Lite): {{ app_name }} Core + Carapace completion engine (~20MB, ultra fast)
+# 2. Full (-Full):        Lightweight + Scoop package manager + {{ plugins|length }} official plugins
 #
 # Usage:
+{% if is_cn %}
 #   irm https://ghproxy.net/https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_cn.ps1 | iex
+{% else %}
+#   irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_windows.ps1 | iex
+{% endif %}
 #   & { $(irm ...) } -Lite
 #   & { $(irm ...) } -Full
 # ==============================================================================
@@ -31,14 +35,14 @@ $ErrorActionPreference = "Continue"
 
 function Show-Help {
     Write-Host @"
-Kapsel Windows Installer (v0.1.9)
+{{ app_name }} Windows Installer (v{{ version }})
 
 Usage:
   installer.ps1 [-Lite] [-Full] [-Help]
 
 Parameters:
-  -Lite       Install Lightweight Edition (Core Kapsel CLI + Carapace autocompletion)
-  -Full       Install Full Edition (Core + Scoop Package Manager + 11 Official Plugins)
+  -Lite       Install Lightweight Edition (Core {{ app_name }} CLI + Carapace autocompletion)
+  -Full       Install Full Edition (Core + Scoop Package Manager + {{ plugins|length }} Official Plugins)
   -Help       Show this help documentation
 
 Examples:
@@ -55,9 +59,9 @@ function Write-Logo {
     Write-Host ""
     Write-Host '╭────────────────────────────────────────────────────────────────────────╮' -ForegroundColor Cyan
     Write-Host '│  _  __                 _                                           │' -ForegroundColor Cyan
-    Write-Host "│ | |/ /__ _ _ __  ___  | |   ⚡ KAPSEL CLI (v0.1.9)                  │" -ForegroundColor Cyan
+    Write-Host "│ | |/ /__ _ _ __  ___  | |   ⚡ {{ app_name|upper }} CLI (v{{ version }})                  │" -ForegroundColor Cyan
     Write-Host "│ | ' // _  | '_ \/ __| | |    Next-Gen Intelligent Terminal Capsule │" -ForegroundColor Cyan
-    Write-Host '│ | . \ (_| | |_) \__ \ | |    https://github.com/MrEiu/Kapsel          │' -ForegroundColor Cyan
+    Write-Host '│ | . \ (_| | |_) \__ \ | |    {{ repo_url }}          │' -ForegroundColor Cyan
     Write-Host '│ |_|\_\__,_| .__/|___/ |_|                                           │' -ForegroundColor Cyan
     Write-Host ('│           |_|             [' + $EditionLabel + ']                         │') -ForegroundColor Cyan
     Write-Host '╰────────────────────────────────────────────────────────────────────────╯' -ForegroundColor Cyan
@@ -107,10 +111,10 @@ if ($Lite) {
     try {
         if ([Environment]::UserInteractive) {
             Write-Host "╭────────────────────────────────────────────────────────────────────────╮" -ForegroundColor Cyan
-            Write-Host "│  Please select the Kapsel installation edition:                        │" -ForegroundColor Cyan
+            Write-Host "│  Please select the {{ app_name }} installation edition:                        │" -ForegroundColor Cyan
             Write-Host "│                                                                        │" -ForegroundColor Cyan
             Write-Host "│  [1] Lightweight Edition (Core + Carapace completions) ~20MB           │" -ForegroundColor Green
-            Write-Host "│  [2] Full Edition (Core + Scoop + All 11 Plugins) [Default]        │" -ForegroundColor Magenta
+            Write-Host "│  [2] Full Edition (Core + Scoop + All {{ plugins|length }} Plugins) [Default]        │" -ForegroundColor Magenta
             Write-Host "│                                                                        │" -ForegroundColor Cyan
             Write-Host "╰────────────────────────────────────────────────────────────────────────╯" -ForegroundColor Cyan
             $choice = $null
@@ -182,7 +186,7 @@ if ($pythonCmd) {
     if ($verOut -match "(\d+\.\d+\.\d+)") {
         $kapselInstalled = $true
         $installedKapselVer = $matches[1]
-        if ($installedKapselVer -eq "0.1.9") {
+        if ($installedKapselVer -eq "{{ version }}") {
             $kapselUpToDate = $true
         }
     }
@@ -192,7 +196,7 @@ if (-not $kapselInstalled -and (Get-Command "kapsel" -ErrorAction SilentlyContin
     if ($verOut -match "(\d+\.\d+\.\d+)") {
         $kapselInstalled = $true
         $installedKapselVer = $matches[1]
-        if ($installedKapselVer -eq "0.1.9") {
+        if ($installedKapselVer -eq "{{ version }}") {
             $kapselUpToDate = $true
         }
     }
@@ -227,7 +231,7 @@ if ($pyScripts) {
 $hasScoop = (Get-Command "scoop" -ErrorAction SilentlyContinue) -ne $null
 $installedPlugins = @()
 $missingPlugins = @()
-$allPluginIds = @("alias", "portal", "init", "shore", "ai", "install", "autopilot", "rec", "profile", "fuck", "help")
+$allPluginIds = @({% for p in plugins %}"{{ p.id }}"{% if not loop.last %}, {% endif %}{% endfor %})
 
 if ($edition -eq "Full") {
     $foundNames = @()
@@ -267,17 +271,17 @@ if ($pythonCmd) {
 }
 
 if ($kapselUpToDate) {
-    Write-Host "  │ Kapsel Core CLI:    ✔ Up-to-date (v$installedKapselVer)" -ForegroundColor Green
+    Write-Host "  │ {{ app_name }} Core CLI:    ✔ Up-to-date (v$installedKapselVer)" -ForegroundColor Green
 } elseif ($kapselInstalled) {
-    Write-Host "  │ Kapsel Core CLI:    ● Installed v$installedKapselVer (Upgrade to v0.1.9 needed)" -ForegroundColor Cyan
+    Write-Host "  │ {{ app_name }} Core CLI:    ● Installed v$installedKapselVer (Upgrade to v{{ version }} needed)" -ForegroundColor Cyan
 } else {
-    Write-Host "  │ Kapsel Core CLI:    ● Not installed (Target: v0.1.9)" -ForegroundColor Yellow
+    Write-Host "  │ {{ app_name }} Core CLI:    ● Not installed (Target: v{{ version }})" -ForegroundColor Yellow
 }
 
 if ($carapaceInstalled) {
     Write-Host "  │ Carapace Engine:    ✔ Installed ($carapaceVer)" -ForegroundColor Green
 } else {
-    Write-Host "  │ Carapace Engine:    ● Not installed (Target: v1.7.3)" -ForegroundColor Yellow
+    Write-Host "  │ Carapace Engine:    ● Not installed (Target: v{{ carapace_version }})" -ForegroundColor Yellow
 }
 
 if ($pathConfigured) {
@@ -306,7 +310,7 @@ if ($isEverythingOptimal) {
     Write-Success "All components are already installed and up to date! Zero actions needed."
     & $pythonCmd -m kapsel.cli completion sync 2>$null | Out-Null
     Write-Host ""
-    Write-Host "✨ Instant preflight check passed. Your Kapsel environment is ready to use." -ForegroundColor Green
+    Write-Host "✨ Instant preflight check passed. Your {{ app_name }} environment is ready to use." -ForegroundColor Green
     Write-Host ""
     exit 0
 }
@@ -331,17 +335,21 @@ if (-not $pythonCmd) {
 }
 
 # ------------------------------------------------------------------------------
-# 4. Install / Upgrade Kapsel Core CLI
+# 4. Install / Upgrade {{ app_name }} Core CLI
 # ------------------------------------------------------------------------------
-Write-Step "3/5" "Installing / Upgrading Kapsel Core CLI"
+Write-Step "3/5" "Installing / Upgrading {{ app_name }} Core CLI"
 
 if ($kapselUpToDate) {
-    Write-Success "Kapsel Core is already up-to-date (v$installedKapselVer) - Skipping pip install"
+    Write-Success "{{ app_name }} Core is already up-to-date (v$installedKapselVer) - Skipping pip install"
 } else {
-    Write-Info "Executing pip package install for kapsel-cli..."
-    & $pythonCmd -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli 2>$null | Out-Null
+    Write-Info "Executing pip package install for {{ pypi_package }}..."
+{% if is_cn %}
+    & $pythonCmd -m pip install -i {{ pypi_index_url }} --upgrade {{ pypi_package }} 2>$null | Out-Null
+{% else %}
+    & $pythonCmd -m pip install --upgrade {{ pypi_package }} 2>$null | Out-Null
+{% endif %}
     $newVer = & $pythonCmd -m kapsel.cli -v 2>$null
-    Write-Success "Kapsel CLI ready: $newVer"
+    Write-Success "{{ app_name }} CLI ready: $newVer"
 }
 
 # ------------------------------------------------------------------------------
@@ -352,12 +360,14 @@ Write-Step "4/5" "Checking Carapace Autocompletion Engine"
 if ($carapaceInstalled) {
     Write-Success "Carapace engine is already installed ($carapaceVer) - Skipping download"
 } else {
-    Write-Info "Downloading Carapace binary (v1.7.3)..."
+    Write-Info "Downloading Carapace binary (v{{ carapace_version }})..."
     $arch = if ([IntPtr]::Size -eq 8) { "amd64" } else { "386" }
     if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $arch = "arm64" }
     
-    $carapaceUrl = "https://github.com/carapace-sh/carapace-bin/releases/download/v1.7.3/carapace-bin_1.7.3_windows_${arch}.zip"
-    $carapaceUrl = "https://ghproxy.net/" + $carapaceUrl
+    $carapaceUrl = "https://github.com/carapace-sh/carapace-bin/releases/download/v{{ carapace_version }}/carapace-bin_{{ carapace_version }}_windows_${arch}.zip"
+{% if is_cn %}
+    $carapaceUrl = "{{ gh_mirror_prefix }}" + $carapaceUrl
+{% endif %}
 
     $tempDir = Join-Path $env:TEMP ("kapsel_cara_" + [System.Guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
@@ -426,10 +436,10 @@ if ($edition -eq "Full") {
     }
 
     if ($missingPlugins.Count -eq 0) {
-        Write-Success "All 11 official plugins are already installed - Skipping 'kapsel add'"
+        Write-Success "All {{ plugins|length }} official plugins are already installed - Skipping 'kapsel add'"
     } else {
         Write-Host ""
-        Write-Host "  Installing $($missingPlugins.Count) Missing Kapsel Plugins via 'kapsel add'..." -ForegroundColor Magenta
+        Write-Host "  Installing $($missingPlugins.Count) Missing {{ app_name }} Plugins via 'kapsel add'..." -ForegroundColor Magenta
         foreach ($pluginId in $missingPlugins) {
             Write-Host "  ➜ Adding plugin $pluginId..." -ForegroundColor Cyan
             & $pythonCmd -m kapsel.cli add $pluginId 2>$null | Out-Null
@@ -449,7 +459,7 @@ if ($edition -eq "Full") {
 # ------------------------------------------------------------------------------
 Write-Host ""
 Write-Host "╭────────────────────────────────────────────────────────────────────────╮" -ForegroundColor Cyan
-Write-Host "│  ✔ Kapsel $editionTitle installed successfully!                       │" -ForegroundColor Green
+Write-Host "│  ✔ {{ app_name }} $editionTitle installed successfully!                       │" -ForegroundColor Green
 Write-Host "│                                                                        │" -ForegroundColor Cyan
 Write-Host "│  Quick Start Commands:                                                 │" -ForegroundColor White
 Write-Host "│   • kapsel         Enter the interactive smart capsule shell           │" -ForegroundColor Cyan

@@ -454,6 +454,28 @@ def create_key_bindings(
 
         buffer.validate_and_handle()
 
+    # Ctrl+Enter (c-j) / Alt+Enter (escape, enter):
+    # - Execute current input as a Command Block (kp runner)
+    # - If command doesn't start with 'kp ', automatically prepends 'kp ' and executes as a block
+    @kb.add("c-j", filter=is_not_roaming)
+    @kb.add("escape", "enter", filter=is_not_roaming)
+    def _(event: KeyPressEvent) -> None:
+        buffer = event.current_buffer
+        if buffer.complete_state and buffer.complete_state.complete_index is not None:
+            buffer.apply_completion(buffer.complete_state.current_completion)
+            return
+
+        text = buffer.text.strip()
+        if not text:
+            return
+
+        # Prepend 'kp ' if not already prefixed with 'kp ' or 'kp\n'
+        if not text.startswith("kp ") and not text.startswith("kp\n"):
+            buffer.text = "kp " + buffer.text
+            buffer.cursor_position = len(buffer.text)
+
+        buffer.validate_and_handle()
+
     # Tab: accept completion candidate if selected; otherwise trigger/cycle completions
     @kb.add("tab")
     def _(event: KeyPressEvent) -> None:

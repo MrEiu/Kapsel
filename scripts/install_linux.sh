@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# Kapsel - Modern Cross-Platform Terminal Capsule Installer for POSIX Systems (macOS & Linux)
+# Kapsel - Modern Cross-Platform Terminal Capsule Installer for Linux
 # Generated automatically by scripts/generate_installers.py - DO NOT EDIT DIRECTLY!
 #
 # Provides two installation editions:
@@ -8,7 +8,7 @@
 # 2. Full (--full):        Lightweight + System package manager + 11 official plugins
 #
 # Usage:
-#   curl -fsSL https://ghproxy.net/https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_cn.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_linux.sh | bash
 #   curl -fsSL ... | bash -s -- --lite
 #   curl -fsSL ... | bash -s -- --full
 # ==============================================================================
@@ -333,9 +333,9 @@ if [ "${KAPSEL_UP_TO_DATE}" -eq 1 ]; then
     log_ok "Kapsel Core is already up-to-date (v${INSTALLED_KAPSEL_VER}) - Skipping pip install"
 else
     log_info "Executing pip install for kapsel-cli..."
-    "${PYTHON_CMD}" -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli >/dev/null 2>&1 || \
-    pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli >/dev/null 2>&1 || \
-    pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli --break-system-packages >/dev/null 2>&1 || true
+    "${PYTHON_CMD}" -m pip install --upgrade kapsel-cli >/dev/null 2>&1 || \
+    pip install --upgrade kapsel-cli >/dev/null 2>&1 || \
+    pip3 install --upgrade kapsel-cli --break-system-packages >/dev/null 2>&1 || true
 
     new_ver="$("${PYTHON_CMD}" -m kapsel.cli -v 2>/dev/null || echo "v0.1.9")"
     log_ok "Kapsel Core CLI ready: ${new_ver}"
@@ -361,7 +361,6 @@ else
     fi
 
     CARAPACE_URL="https://github.com/carapace-sh/carapace-bin/releases/download/v1.7.3/carapace-bin_1.7.3_${CARA_OS}_${CARA_ARCH}.tar.gz"
-    CARAPACE_URL="https://ghproxy.net/${CARAPACE_URL}"
 
     log_info "Downloading Carapace (v1.7.3 for ${CARA_OS}_${CARA_ARCH})..."
     TMP_DIR="$(mktemp -d)"

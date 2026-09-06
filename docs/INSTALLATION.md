@@ -165,20 +165,22 @@ sudo dpkg -i kapsel_amd64.deb || sudo apt-get install -f -y
 
 ## 4. 🌐 国际版全套工具链自动部署脚本 (Global Toolchain Installers)
 
-一键自动安装 Kapsel 及其官方推荐的现代命令行套件（`carapace` 补全引擎、`zoxide` 极速目录跳转、`mise` 运行时管理器、`chsrc` 换源神器、`aichat` 终端 AI 等）：
-
-```powershell
-# Windows (PowerShell):
-irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_windows.ps1 | iex
-```
+国际通用极速单命令安装入口，全自动检测当前操作系统与已有环境状态：
 
 ```bash
-# macOS (Homebrew 辅助):
-curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_macos.sh | bash
+# macOS & Linux (Bash / Zsh):
+curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.sh | bash
 
-# Linux (Debian / Ubuntu / Arch / Fedora):
-curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_linux.sh | bash
+# Windows (PowerShell):
+irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.ps1 | iex
 ```
+
+### ✨ 特性亮点：
+1. **智能环境预检与极速旁路 (Fast-Path)**：自动探测系统中已就绪的 Python 运行时、Kapsel CLI、Carapace 引擎、PATH 变量及插件，已满足条件的组件直接跳过，零重复耗时，秒级完成预检。
+2. **多版本随心切换**：
+   - **轻量版 (`--lite` / `-Lite`)**：Kapsel 核心 + Carapace 补全引擎（~20MB，极速初始化）。
+   - **完全版 (`--full` / `-Full`，默认)**：轻量版 + 对应操作系统包管理器 + 逐一自动安装全部 11 个官方插件。
+3. **跨 Shell 智能派发**：在 Windows Git Bash / MSYS 下运行 `install.sh` 亦会自动无缝唤起 PowerShell 引擎完成原生 Windows 安装。
 
 ---
 

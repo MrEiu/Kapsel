@@ -165,10 +165,23 @@ def test_provide_completions(portal_plugin):
         "C:\\Users\\meru6\\Desktop\\plugins",
     ]
     with patch.object(portal_plugin, "_list_zoxide_entries", return_value=mock_entries):
+        # 1. Trailing space after 'z ': start_position must be 0 so space is not eaten
+        comps_space = portal_plugin.provide_completions("z ")
+        assert len(comps_space) == 2
+        assert comps_space[0]["text"] == "Kapsel"
+        assert comps_space[0]["start_position"] == 0
+
+        # 2. Typing 'z kap': start_position must be -3 to replace 'kap'
         comps = portal_plugin.provide_completions("z kap")
         assert len(comps) == 2
         assert comps[0]["text"] == "Kapsel"
+        assert comps[0]["start_position"] == -3
         assert comps[0]["display_meta"] == "[portal]"
+
+        # 3. Trailing space after 'portal ': start_position must be 0
+        comps_portal = portal_plugin.provide_completions("portal ")
+        assert len(comps_portal) == 2
+        assert comps_portal[0]["start_position"] == 0
 
         # Non-matching command prefix
         assert portal_plugin.provide_completions("ls -la") == []

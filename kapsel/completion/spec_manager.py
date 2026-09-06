@@ -313,11 +313,25 @@ class CarapaceSpecManager:
                 if enabled_plugins and plugin_name not in enabled_plugins:
                     continue
 
-                candidate_files = [
+                try:
+                    from kapsel.i18n import get_current_language
+                    active_lang = get_current_language()
+                except Exception:
+                    active_lang = "en"
+
+                candidate_files = []
+                if active_lang and active_lang != "en":
+                    candidate_files.extend([
+                        item / "locales" / active_lang / "spec.yaml",
+                        item / f"spec.{active_lang}.yaml",
+                        item / f"spec_{active_lang}.yaml",
+                    ])
+                candidate_files.extend([
+                    item / "locales" / "en" / "spec.yaml",
                     item / "spec.yaml",
                     item / f"{plugin_name}.yaml",
                     item / "completions.yaml",
-                ]
+                ])
                 for c_file in candidate_files:
                     if c_file.is_file():
                         cmd_name, desc, aliases, standalone, raw_data = _parse_spec_file(c_file)

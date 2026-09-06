@@ -149,20 +149,21 @@ No Python runtime or external package managers required. Simply extract and run:
 
 ### 3. 🌐 Automated Toolchain Installers
 
-Automatically detects your platform, sets up Kapsel, and configures modern command-line utilities (`carapace`, `zoxide`, `mise`, `chsrc`, `aichat`, `pueue`, `chezmoi`, `pet`, `tealdeer`, `fzf`):
-
-```powershell
-# Windows (PowerShell):
-irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_windows.ps1 | iex
-```
+A unified single-command installer that automatically detects your OS platform, runs intelligent environment preflight inspections, and configures Kapsel with your preferred edition:
 
 ```bash
-# macOS:
-curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_macos.sh | bash
+# macOS & Linux (Bash / Zsh):
+curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.sh | bash
 
-# Linux (Debian / Ubuntu / Fedora / Arch):
-curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_linux.sh | bash
+# Windows (PowerShell):
+irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.ps1 | iex
 ```
+
+> ⚡ **Intelligent Fast-Path & Preflight**: The installer first inspects your existing Python runtime, Kapsel version, Carapace engine, PATH configurations, and installed plugins. Anything already up to date is skipped automatically (finishing in < 1 second).
+>
+> 📦 **Available Editions**:
+> - **Lightweight Edition (`--lite` / `-Lite`)**: Core Kapsel CLI + Carapace completion engine (~20MB, ultra fast bootstrap).
+> - **Full Edition (`--full` / `-Full`, default)**: Core + system package manager (Scoop / Homebrew / apt) + all 11 official plugins.
 
 ---
 
@@ -190,7 +191,7 @@ Kapsel maintains a modular, decoupled plugin suite designed to satisfy modern en
 | **`shore`** | `kps shore` | **`chsrc`** (C) | Automated ultra-fast mirror switcher (PyPI, Rust, Node, Go, OS mirrors). |
 | **`install`** | `kps install` | **`mpm`** (Python) | Unified CLI package manager aggregating 20+ package managers. |
 | **`alias`** | `kps alias` | *Native Engine* | Universal command alias translation and multi-terminal cross-mapping. |
-| **`ai`** | `kps ai` | **`aichat`** (Rust) | Terminal AI copilot supporting OpenAI, Claude, Gemini, DeepSeek, and Ollama. |
+| **`ai`** | `kps ai` | *Native (OpenAI SDK)* | Terminal AI copilot supporting OpenAI, Claude, Gemini, DeepSeek, and Ollama. |
 | **`autopilot`**| `kps autopilot`| **`pueue`** (Rust) | Autonomous background task queue and long-running daemon execution manager. |
 | **`fuck`** | `kps fuck` | **`thefuck`** (Python) | Intelligent terminal input error correction and automated syntax fixing. |
 | **`help`** | `kps help <cmd>`| **`tealdeer`** (Rust) | Instantaneous practical command cheat sheets and quick lookup (tldr). |

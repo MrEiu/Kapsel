@@ -54,3 +54,7 @@ data/
 .cursorrules
 AGENTS.md
 
+scripts/sync_i18n.py
+scripts/translate*.py
+scripts/translate/
+.env*

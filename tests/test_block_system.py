@@ -227,3 +227,81 @@ def test_block_roaming_controller():
     controller.exit_roaming(mock_buffer, restore=True)
     assert controller.is_active is False
     assert mock_buffer.text == "typing something"
+
+
+def test_kp_autocompletion_proxy():
+    """Verify that 'kp' and 'kp -c' transparently proxy autocompletions to native engines."""
+    from prompt_toolkit.document import Document
+    from prompt_toolkit.completion import CompleteEvent
+    from kapsel.completion.completer import DualStateCompleter
+
+    completer = DualStateCompleter()
+
+    # 1. 'kp ' (empty body) -> suggests -c flag and native builtins (git, docker, npm...)
+    kp_empty_cands = list(completer.get_completions(Document("kp "), CompleteEvent()))
+    texts_empty = [c.text for c in kp_empty_cands]
+    assert "-c" in texts_empty
+    assert "--concurrent" in texts_empty
+    assert "git" in texts_empty
+    assert "npm" in texts_empty
+    # start_position must be 0 (no characters eaten)
+    minus_c_comp = [c for c in kp_empty_cands if c.text == "-c"][0]
+    assert minus_c_comp.start_position == 0
+
+    # 2. 'kp -' (typing flags) -> suggests -c and --concurrent
+    kp_flag_cands = list(completer.get_completions(Document("kp -"), CompleteEvent()))
+    flag_texts = [c.text for c in kp_flag_cands]
+    assert "-c" in flag_texts
+    assert "--concurrent" in flag_texts
+    minus_c_flag = [c for c in kp_flag_cands if c.text == "-c"][0]
+    assert minus_c_flag.start_position == -1
+
+    # 3. 'kp git' or 'kp g' -> suggests git
+    kp_g_cands = list(completer.get_completions(Document("kp g"), CompleteEvent()))
+    assert any(c.text == "git" for c in kp_g_cands)
+
+    # 4. 'kp -c git' or 'kp -c g' -> suggests git
+    kp_c_g_cands = list(completer.get_completions(Document("kp -c g"), CompleteEvent()))
+    assert any(c.text == "git" for c in kp_c_g_cands)
+
+    # 5. Multi-line: line 1 is 'kp', line 2 is 'g' -> suggests git on line 2
+    multi_doc = Document("kp\ng", cursor_position=4)
+    multi_cands = list(completer.get_completions(multi_doc, CompleteEvent()))
+    assert any(c.text == "git" for c in multi_cands)
+
+
+def test_ctrl_enter_block_execution_keybinding():
+    """Verify Ctrl+Enter (c-j) automatically wraps input with 'kp ' and executes as a block."""
+    from kapsel.ui.prompt import create_key_bindings
+    from kapsel.storage.config import KapselConfig
+
+    cfg = KapselConfig()
+    kb = create_key_bindings(cfg)
+
+    # Check that 'c-j' handler is bound
+    c_j_bindings = kb.get_bindings_for_keys(("c-j",))
+    assert len(c_j_bindings) > 0
+
+    handler = c_j_bindings[0].handler
+
+    # 1. User typed 'git status' (without kp)
+    mock_event = MagicMock()
+    mock_buffer = MagicMock()
+    mock_buffer.complete_state = None
+    mock_buffer.text = "git status"
+    mock_event.current_buffer = mock_buffer
+
+    handler(mock_event)
+    assert mock_buffer.text == "kp git status"
+    mock_buffer.validate_and_handle.assert_called_once()
+
+    # 2. User typed 'kp echo 1' (already has kp)
+    mock_event2 = MagicMock()
+    mock_buffer2 = MagicMock()
+    mock_buffer2.complete_state = None
+    mock_buffer2.text = "kp echo 1"
+    mock_event2.current_buffer = mock_buffer2
+
+    handler(mock_event2)
+    assert mock_buffer2.text == "kp echo 1"
+    mock_buffer2.validate_and_handle.assert_called_once()

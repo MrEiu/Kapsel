@@ -218,3 +218,30 @@ def test_handle_completion_cli(temp_spec_env):
         code_sync = handle_completion(["sync"], console)
         assert code_sync == 0
         assert "Synchronizing completion specifications" in console.export_text()
+
+
+def test_localized_spec_discovery(tmp_path):
+    kapsel_dir = tmp_path / "kapsel_data"
+    carapace_dir = tmp_path / "carapace_specs"
+    kapsel_dir.mkdir()
+    carapace_dir.mkdir()
+
+    plugin_dir = tmp_path / "plugins" / "sample"
+    (plugin_dir / "locales" / "zh_CN").mkdir(parents=True)
+    (plugin_dir / "spec.yaml").write_text("name: sample\ndescription: English Sample\n", encoding="utf-8")
+    (plugin_dir / "locales" / "zh_CN" / "spec.yaml").write_text("name: sample\ndescription: 中文示例\n", encoding="utf-8")
+
+    mgr = CarapaceSpecManager(kapsel_dir=kapsel_dir, carapace_dir=carapace_dir)
+
+    # When language is zh_CN
+    with patch("kapsel.i18n.get_current_language", return_value="zh_CN"):
+        specs_zh = mgr.discover_specs(plugin_dirs=[tmp_path / "plugins"], enabled_plugins=["sample"])
+        assert "sample" in specs_zh
+        assert specs_zh["sample"].description == "中文示例"
+
+    # When language is en
+    with patch("kapsel.i18n.get_current_language", return_value="en"):
+        specs_en = mgr.discover_specs(plugin_dirs=[tmp_path / "plugins"], enabled_plugins=["sample"])
+        assert "sample" in specs_en
+        assert specs_en["sample"].description == "English Sample"
+

@@ -7,7 +7,7 @@
 # 2. Full (-Full):        Lightweight + Scoop package manager + 11 official plugins
 #
 # Usage:
-#   irm https://ghproxy.net/https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_cn.ps1 | iex
+#   irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_windows.ps1 | iex
 #   & { $(irm ...) } -Lite
 #   & { $(irm ...) } -Full
 # ==============================================================================
@@ -339,7 +339,7 @@ if ($kapselUpToDate) {
     Write-Success "Kapsel Core is already up-to-date (v$installedKapselVer) - Skipping pip install"
 } else {
     Write-Info "Executing pip package install for kapsel-cli..."
-    & $pythonCmd -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade kapsel-cli 2>$null | Out-Null
+    & $pythonCmd -m pip install --upgrade kapsel-cli 2>$null | Out-Null
     $newVer = & $pythonCmd -m kapsel.cli -v 2>$null
     Write-Success "Kapsel CLI ready: $newVer"
 }
@@ -357,7 +357,6 @@ if ($carapaceInstalled) {
     if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") { $arch = "arm64" }
     
     $carapaceUrl = "https://github.com/carapace-sh/carapace-bin/releases/download/v1.7.3/carapace-bin_1.7.3_windows_${arch}.zip"
-    $carapaceUrl = "https://ghproxy.net/" + $carapaceUrl
 
     $tempDir = Join-Path $env:TEMP ("kapsel_cara_" + [System.Guid]::NewGuid().ToString("N"))
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null

@@ -46,7 +46,11 @@ class DualStateCompleter(Completer):
         text_before = document.text_before_cursor
         stripped = text_before.lstrip()
 
-        # 1. User is typing 'kapsel' or 'kps' (offer transition without trailing space)
+        # Multi-line awareness: extract active line where cursor is situated
+        curr_line = document.current_line_before_cursor
+        stripped_line = curr_line.lstrip()
+
+        # 1. User is typing 'kapsel', 'kps', or 'kp' (offer transition without trailing space)
         if stripped in ("k", "ka", "kap", "kaps", "kapse", "kapsel"):
             yield Completion(
                 text="kapsel",
@@ -60,8 +64,20 @@ class DualStateCompleter(Completer):
                 display="kps",
                 display_meta="Kapsel command alias (kps)",
             )
+            yield Completion(
+                text="kp",
+                start_position=-len(stripped),
+                display="kp",
+                display_meta="⚡ Kapsel block & parallel runner (kp [-c])",
+            )
             return
         if stripped in ("kp", "kps"):
+            yield Completion(
+                text="kp",
+                start_position=-len(stripped),
+                display="kp",
+                display_meta="⚡ Kapsel block & parallel runner (kp [-c])",
+            )
             yield Completion(
                 text="kps",
                 start_position=-len(stripped),
@@ -70,7 +86,19 @@ class DualStateCompleter(Completer):
             )
             return
 
-        # 2. Command Modes: 'kapsel <cmd>' (System) or 'kps <cmd>' (Tools)
+        # 2. Block execution mode ('kp [-c] <commands...>')
+        if stripped_line.startswith("kp ") or stripped_line.startswith("kp\t"):
+            sub = stripped_line[3:]
+            yield from self._complete_kp_mode(sub, document, complete_event)
+            return
+
+        # Multi-line subsequent lines in a block starting with kp:
+        if "\n" in text_before and stripped.startswith("kp"):
+            sub_doc = Document(text=stripped_line, cursor_position=len(stripped_line))
+            yield from self._complete_native_mode(stripped_line, sub_doc, complete_event)
+            return
+
+        # 3. Command Modes: 'kapsel <cmd>' (System) or 'kps <cmd>' (Tools)
         if stripped.startswith("kapsel "):
             sub = stripped[7:]
             yield from self._complete_kapsel_mode(sub, mode="kapsel")
@@ -81,7 +109,7 @@ class DualStateCompleter(Completer):
             yield from self._complete_kapsel_mode(sub, mode="kps")
             return
 
-        # 3. Native Mode: Carapace (1000+ tools), Fig fallback, builtins, & paths
+        # 4. Native Mode: Carapace (1000+ tools), Fig fallback, builtins, & paths
         yield from self._complete_native_mode(stripped, document, complete_event)
 
     def _complete_kapsel_mode(self, query: str, mode: str = "kps") -> Iterable[Completion]:
@@ -165,6 +193,98 @@ class DualStateCompleter(Completer):
                     display_meta=cand.get("display_meta", "Plugin"),
                 )
 
+    def _complete_kp_mode(
+        self, kp_body: str, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
+        """
+        Transparently proxies autocompletion for 'kp [-c] <commands...>'
+        to Carapace native completions, tool builtins, and path completer.
+        """
+        stripped_body = kp_body.lstrip()
+
+        # A. User just typed 'kp ' (empty body)
+        if not stripped_body:
+            # Suggest '-c' / '--concurrent' flag for parallel execution
+            yield Completion(
+                text="-c",
+                start_position=0,
+                display="-c",
+                display_meta="⚡ 并发执行所有子任务 (kp -c)",
+            )
+            yield Completion(
+                text="--concurrent",
+                start_position=0,
+                display="--concurrent",
+                display_meta="⚡ 并发执行所有子任务 (kp -c)",
+            )
+            # Also suggest primary native tools
+            native_builtins = [
+                ("git", _("Git version control")),
+                ("docker", _("Docker container platform")),
+                ("npm", _("Node.js package manager")),
+                ("pnpm", _("Fast disk space efficient package manager")),
+                ("cargo", _("Rust package manager")),
+                ("python", _("Python interpreter")),
+                ("cd", _("Change directory")),
+            ]
+            for cmd, desc in native_builtins:
+                yield Completion(
+                    text=cmd,
+                    start_position=0,
+                    display=cmd,
+                    display_meta=desc,
+                )
+            return
+
+        # B. User is typing flags: 'kp -' or 'kp --'
+        if stripped_body.startswith("-") and not stripped_body.startswith("-c ") and not stripped_body.startswith("--concurrent "):
+            if "-c".startswith(stripped_body):
+                yield Completion(
+                    text="-c",
+                    start_position=-len(stripped_body),
+                    display="-c",
+                    display_meta="⚡ 并发执行所有子任务 (kp -c)",
+                )
+            if "--concurrent".startswith(stripped_body):
+                yield Completion(
+                    text="--concurrent",
+                    start_position=-len(stripped_body),
+                    display="--concurrent",
+                    display_meta="⚡ 并发执行所有子任务 (kp -c)",
+                )
+            if not stripped_body.endswith(" "):
+                return
+
+        # C. User typed 'kp -c ...' or 'kp --concurrent ...'
+        inner_cmd = stripped_body
+        if stripped_body.startswith("-c "):
+            inner_cmd = stripped_body[3:].lstrip()
+        elif stripped_body.startswith("--concurrent "):
+            inner_cmd = stripped_body[13:].lstrip()
+
+        if not inner_cmd:
+            # Just typed 'kp -c ' -> suggest primary native tools
+            native_builtins = [
+                ("git", _("Git version control")),
+                ("docker", _("Docker container platform")),
+                ("npm", _("Node.js package manager")),
+                ("pnpm", _("Fast disk space efficient package manager")),
+                ("cargo", _("Rust package manager")),
+                ("python", _("Python interpreter")),
+            ]
+            for cmd, desc in native_builtins:
+                yield Completion(
+                    text=cmd,
+                    start_position=0,
+                    display=cmd,
+                    display_meta=desc,
+                )
+            return
+
+        # D. Transparently proxy inner_cmd to native completion mode
+        sub_doc = Document(text=inner_cmd, cursor_position=len(inner_cmd))
+        yield from self._complete_native_mode(inner_cmd, sub_doc, complete_event)
+
     def _complete_native_mode(
         self, stripped: str, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
@@ -214,10 +334,11 @@ class DualStateCompleter(Completer):
         # C. Plugin-provided completions for native mode (e.g. mapping plugins)
         if self.plugin_manager:
             plugin_cands = self.plugin_manager.get_plugin_completions(stripped)
+            curr_word = "" if stripped.endswith(" ") else (parts[-1] if parts else "")
             for cand in plugin_cands:
                 yield Completion(
                     text=cand.get("text", ""),
-                    start_position=cand.get("start_position", -len(parts[-1]) if parts else 0),
+                    start_position=cand.get("start_position", -len(curr_word)),
                     display=cand.get("display", cand.get("text", "")),
                     display_meta=cand.get("display_meta", "🔌 插件提供"),
                 )

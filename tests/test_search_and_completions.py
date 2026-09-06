@@ -149,3 +149,31 @@ def test_bare_kps_and_kapsel_completion_no_crash():
     assert len(kapsel_cands) > 0
     assert "status" in kapsel_cands or "config" in kapsel_cands
 
+
+def test_native_plugin_completion_trailing_space():
+    """Verify that plugin candidates without explicit start_position do not eat trailing space."""
+    from unittest.mock import MagicMock
+    from prompt_toolkit.document import Document
+    from prompt_toolkit.completion import CompleteEvent
+    from kapsel.completion.completer import DualStateCompleter
+
+    mock_pm = MagicMock()
+    # Plugin returns candidate without start_position
+    mock_pm.get_plugin_completions.return_value = [{"text": "Kapsel"}]
+
+    completer = DualStateCompleter(plugin_manager=mock_pm)
+
+    # User typed 'z ' (ends with space)
+    cands_space = list(completer.get_completions(Document("z "), CompleteEvent()))
+    matching = [c for c in cands_space if c.text == "Kapsel"]
+    assert len(matching) == 1
+    # Must be 0 so trailing space is not deleted!
+    assert matching[0].start_position == 0
+
+    # User typed 'z kap' (does not end with space)
+    cands_word = list(completer.get_completions(Document("z kap"), CompleteEvent()))
+    matching_word = [c for c in cands_word if c.text == "Kapsel"]
+    assert len(matching_word) == 1
+    # Must be -len('kap') = -3
+    assert matching_word[0].start_position == -3
+

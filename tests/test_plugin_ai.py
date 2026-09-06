@@ -12,7 +12,15 @@ import pytest
 from rich.console import Console
 
 from plugins.ai.plugin import AiPlugin
-from plugins.ai.config import save_ai_config, load_ai_config, get_ai_config_file
+from plugins.ai.config import (
+    save_ai_config,
+    load_ai_config,
+    get_ai_config_file,
+    DEFAULT_PROVIDERS,
+    get_provider,
+    fetch_dynamic_models,
+    get_provider_models,
+)
 from plugins.ai.client import AiClient
 from plugins.ai.actions import (
     action_do,
@@ -37,10 +45,10 @@ def temp_ai_config(tmp_path, monkeypatch):
 
 
 def test_ai_plugin_manifest():
-    """Manifest must specify version 0.1.1 and zero external binary dependencies."""
+    """Manifest must specify version 0.1.2 and zero external binary dependencies."""
     plugin = AiPlugin()
     assert plugin.manifest.id == "ai"
-    assert plugin.manifest.version == "0.1.1"
+    assert plugin.manifest.version == "0.1.2"
     assert plugin.manifest.dependencies == []
 
 
@@ -214,3 +222,100 @@ def test_action_scout(tmp_path, monkeypatch):
     code = action_scout(con, mock_client)
     assert code == 0
     mock_client.chat_completion.assert_called_once()
+
+
+def test_default_providers_catalog():
+    """DEFAULT_PROVIDERS must contain 10 official providers with required structure."""
+    assert len(DEFAULT_PROVIDERS) == 10
+    expected_ids = [
+        "openai", "anthropic", "gemini", "xai", "deepseek",
+        "mistral", "cohere", "siliconflow", "ollama", "custom",
+    ]
+    actual_ids = [p["id"] for p in DEFAULT_PROVIDERS]
+    assert actual_ids == expected_ids
+
+    # get_provider lookup
+    openai_prov = get_provider("openai")
+    assert openai_prov is not None
+    assert openai_prov["model"] == "gpt-5.6-sol"
+    assert "gpt-5.6-terra" in openai_prov["models"]
+
+    deepseek_prov = get_provider("deepseek")
+    assert deepseek_prov is not None
+    assert deepseek_prov["model"] == "deepseek-v4-pro"
+
+    assert get_provider("non_existent") is None
+
+
+def test_fetch_dynamic_models_success():
+    """fetch_dynamic_models parses standard OpenAI schema models."""
+    mock_response = MagicMock()
+    mock_response.status = 200
+    mock_response.read.return_value = b'{"data": [{"id": "model-1"}, {"id": "model-2"}]}'
+    mock_response.__enter__.return_value = mock_response
+
+    with patch("urllib.request.urlopen", return_value=mock_response):
+        models = fetch_dynamic_models("https://api.example.com/v1", api_key="sk-test")
+        assert models == ["model-1", "model-2"]
+
+
+def test_fetch_dynamic_models_cohere_ollama():
+    """fetch_dynamic_models handles models[] list schema."""
+    mock_response = MagicMock()
+    mock_response.status = 200
+    mock_response.read.return_value = b'{"models": [{"name": "cmd-a"}, {"name": "cmd-b"}]}'
+    mock_response.__enter__.return_value = mock_response
+
+    with patch("urllib.request.urlopen", return_value=mock_response):
+        models = fetch_dynamic_models("https://api.cohere.com/v2", provider_id="cohere")
+        assert models == ["cmd-a", "cmd-b"]
+
+
+def test_fetch_dynamic_models_failure():
+    """fetch_dynamic_models returns empty list on network failure."""
+    with patch("urllib.request.urlopen", side_effect=Exception("Network error")):
+        models = fetch_dynamic_models("https://api.example.com/v1")
+        assert models == []
+
+
+def test_get_provider_models_dynamic_and_fallback():
+    """get_provider_models returns dynamic models when probe succeeds, or static fallback when it fails."""
+    # 1. Success case: dynamic models returned
+    mock_response = MagicMock()
+    mock_response.status = 200
+    mock_response.read.return_value = b'{"data": [{"id": "live-model-1"}, {"id": "live-model-2"}]}'
+    mock_response.__enter__.return_value = mock_response
+    with patch("urllib.request.urlopen", return_value=mock_response):
+        res = get_provider_models("deepseek", api_key="sk-test")
+        assert res == ["live-model-1", "live-model-2"]
+
+    # 2. Failure case: static fallback models returned
+    with patch("urllib.request.urlopen", side_effect=Exception("Timeout")):
+        res = get_provider_models("deepseek")
+        assert res == ["deepseek-v4-pro", "deepseek-v4-flash", "deepseek-v4-flash-vision-exp"]
+
+    # 3. Custom provider without models returns default model or empty
+    with patch("urllib.request.urlopen", side_effect=Exception("Connection refused")):
+        res = get_provider_models("custom")
+        assert res == ["gpt-5.6-sol"]
+
+
+def test_ai_config_models_command(temp_ai_config):
+    """'kps ai config models' outputs current model and available models."""
+    save_ai_config({
+        "provider": "openai",
+        "api_base": "https://api.openai.com/v1",
+        "api_key": "sk-mock",
+        "model": "gpt-5.6-sol",
+    })
+
+    plugin = AiPlugin()
+    out = StringIO()
+    con = Console(file=out, legacy_windows=False)
+
+    code = plugin.handle_ai(["config", "models"], console=con)
+    assert code == 0
+    text = out.getvalue()
+    assert "gpt-5.6-sol" in text
+    assert "gpt-5.6-terra" in text
+

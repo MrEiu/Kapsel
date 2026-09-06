@@ -200,20 +200,21 @@ sudo dpkg -i kapsel_amd64.deb || sudo apt-get install -f -y
 
 ### 4. 🌐 国际版全套工具链自动安装脚本
 
-全自动安装 Kapsel 并配置官方推荐的全部 CLI 工具套件（`carapace`、`zoxide`、`mise`、`chsrc`、`aichat`、`pueue`、`chezmoi`、`pet`、`tealdeer`、`fzf`）：
-
-```powershell
-# Windows (PowerShell):
-irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_windows.ps1 | iex
-```
+一行命令全自动识别操作系统，执行环境预检并按需配置 Kapsel 环境：
 
 ```bash
-# macOS:
-curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_macos.sh | bash
+# macOS & Linux (Bash / Zsh):
+curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.sh | bash
 
-# Linux:
-curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install_tools_linux.sh | bash
+# Windows (PowerShell):
+irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.ps1 | iex
 ```
+
+> ⚡ **智能环境预检与极速旁路 (Fast-Path)**：安装脚本运行前会自动扫描当前 Python 运行时、Kapsel 版本、Carapace 补全引擎、PATH 变量及已安装插件。已安装且处于最新状态的组件自动跳过，无需重复下载（全量环境预检仅需不到 1 秒即可秒级完成）。
+>
+> 📦 **支持两种安装模式**：
+> - **轻量版 (`--lite` / `-Lite`)**：核心 Kapsel CLI + Carapace 深度补全引擎（~20MB，秒级极速就绪）。
+> - **完全版 (`--full` / `-Full`，默认)**：轻量版 + 对应平台包管理器（Scoop / Homebrew / apt）+ 逐一自动安装全部 11 个官方插件。
 
 ---
 
@@ -239,7 +240,7 @@ Kapsel 官方维护了一套高性能、即装即用的工程化插件家族：
 | **`shore`** | `kps shore` | **`chsrc`** (C) | 全平台换源神器，自动将 PyPI、Rust、Node、Go 及系统镜像切换至最快源。 |
 | **`install`** | `kps install` | **`mpm`** (Python) | 统一包管理客户端，一站式纳管 Scoop、Winget、Brew、APT 等 20+ 包管理器。 |
 | **`alias`** | `kps alias` | *原生引擎* | 跨终端通用的命令别名系统，提供跨 Shell 无缝翻译映射。 |
-| **`ai`** | `kps ai` | **`aichat`** (Rust) | 终端原生 AI 智能助手，支持 OpenAI、Claude、Gemini、DeepSeek、Ollama 等模型。 |
+| **`ai`** | `kps ai` | *原生 (OpenAI SDK)* | 终端原生 AI 智能助手，支持 OpenAI、Claude、Gemini、DeepSeek、Ollama 等模型。 |
 | **`autopilot`**| `kps autopilot`| **`pueue`** (Rust) | 后台异步守护任务队列与耗时命令编排调度管理器。 |
 | **`fuck`** | `kps fuck` | **`thefuck`** (Python) | 智能终端敲错自动纠正，快速修复上一条敲错的命令。 |
 | **`help`** | `kps help <cmd>`| **`tealdeer`** (Rust) | 高性能终端实用示例速查表（替代臃肿的 man 手册）。 |

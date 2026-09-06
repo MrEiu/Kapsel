@@ -2,26 +2,33 @@
 
 # ⚡ Kapsel
 
-**Eine plattformübergreifende Terminal-Umgebung, die Ihre Shell mit einheitlichen Befehlen, kontextbezogener Autovervollständigung und null globaler Verschmutzung umhüllt.**
+**Eine plattformübergreifende Terminal-Kapsel für ein saubereres, konsistentes Befehlszeilenerlebnis.**
 
 [![PyPI Version](https://img.shields.io/pypi/v/kapsel-cli?color=3776AB&logo=pypi&logoColor=white&style=flat-square)](https://pypi.org/project/kapsel-cli/)
 [![Python Version](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/kapsel-cli/)
 [![Platform Support](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-4D4D4D.svg?style=flat-square&logo=linux&logoColor=white)](https://github.com/MrEiu/Kapsel)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-[Warum Kapsel?](#-warum-kapsel) •
-[Funktionen](#-funktionen) •
-[Schnellstart](#-schnellstart) •
-[Integrierte Plugins](#-integrierte-plugins) •
-[Installation](#-installation) •
-[Architektur](#-architektur--sandboxing) •
-[🇨🇳 简体中文](README_zh.md)
+[Schnellstart](#-schnellstart) ·
+[Funktionen](#-funktionen) ·
+[Plugins](#-plugin-ökosystem) ·
+[Installation](#-installation) ·
+[Architektur](#-architektur) ·
+[Dokumentation](#-dokumentation)
+
+[English](README.md) ·
+[🇨🇳 简体中文](README_zh.md) ·
+[🇯🇵 日本語](README_ja.md) ·
+[🇷🇺 Русский](README_ru.md) ·
+[🇪🇸 Español](README_es.md) ·
+[🇫🇷 Français](README_fr.md) ·
+[🇵🇱 Polski](README_pl.md)
 
 </div>
 
 ---
 
-### 📺 Interaktive Kapsel in Aktion
+## 📺 Kapsel in Aktion
 
 ```text
 ╭─ kapsel [pwsh] ~/Projects/Kapsel 14:32:05
@@ -29,172 +36,437 @@
 ✔ 0  git checkout -b feature/dynamic-specs  ⏱ 24ms
 ```
 
-> **Komplexität umhüllen, Einfachheit offenlegen.**
-> Führen Sie Ihre nativen Shell-Executables wie gewohnt aus und genießen Sie gleichzeitig automatische Befehlsübersetzung, Inline-Vorschläge, umfangreiche Vervollständigungsspezifikationen und eine modulare Toolchain – alles in `~/.kapsel/` sandboxed.
+> **Komplexität kapseln, Einfachheit freisetzen.**
+>
+> Nutzen Sie Ihre gewohnte Shell und Systemprogramme wie gewohnt weiter, während Kapsel eine einheitliche Befehlsebene, kontextbezogene Autovervollständigung, intelligente Verlaufsvorschläge und ein erweiterbares Plugin-Ökosystem hinzufügt — alles vollständig gekapselt in `~/.kapsel/`.
 
 ---
 
 ## 💡 Warum Kapsel?
 
-Der Wechsel zwischen Betriebssystemen führt oft zu gebrochenem Muskelgedächtnis, unübersichtlichen Dotfiles und fragmentierten Autovervollständigungs-Setups. Kapsel überbrückt diese Lücke mit einer nicht-invasiven Kapsel-Schicht:
+Entwickler-Workflows im Terminal sind noch immer stark vom zugrundeliegenden Betriebssystem und der verwendeten Shell geprägt.
 
-| Herausforderung | Traditionelles Shell-Setup | Mit Kapsel |
+Dieselbe alltägliche Aufgabe erfordert oft unterschiedliche Befehle unter Windows, macOS und Linux. Shell-Konfigurationen sind über Dateien wie `.bashrc`, `.zshrc` und PowerShell-Profile verstreut, während Autovervollständigungen und Hilfswerkzeuge separat installiert werden müssen.
+
+Kapsel legt eine nicht-invasive Kapsel-Schicht um Ihr bestehendes Terminal:
+
+| Herausforderung | Traditioneller Ansatz | Kapsel-Ansatz |
 | :--- | :--- | :--- |
-| **Plattformübergreifende Reibung** | Fragmentierte Befehle über Betriebssysteme hinweg (`dir` vs. `ls`, `rmdir` vs. `rm -rf`) | Einheitliche Linux-first-Befehlsebene für Windows, macOS und Linux |
-| **Shell-Profil-Verschmutzung** | Aufgeblähte `.bashrc` oder `$PROFILE` mit fragilen globalen Skripten | 100% eigenständige Sandbox in `~/.kapsel/` (null globale Mutation) |
-| **Autovervollständigungs-Setup** | Manuelles Setup pro Shell, oft unvollständig oder langsam | Sofortige kontextbezogene Vervollständigungen für über 1.000 CLI-Tools über Carapace |
-| **Toolchain- & Sync-Ausbreitung** | Zusammenhanglose Tools, die wiederholte manuelle Installation erfordern | Integrierte `kps`-Plugins für Laufzeiten, Spiegel, Verzeichnissprünge und Synchronisierung |
+| **Plattformübergreifende Befehle** | Unterschiedliche Befehle und Syntax pro OS | Einheitliche Linux-First Befehlsebene |
+| **Shell-Konfiguration** | Globale Profildateien und fragmentierte Skripte | Vollständig isolierter Zustand unter `~/.kapsel/` |
+| **Autovervollständigung** | Aufwendige Konfiguration pro Tool und Shell | Kontextbezogene Vervollständigung mit Carapace |
+| **Entwickler-Tools** | Viele unverbundene Werkzeuge | Einheitliches Plugin-Ökosystem unter `kps` |
+| **Erweiterbarkeit** | Shell-spezifische Skriptabhängigkeiten | Isolierte modulare Plugin-Architektur |
+
+Kapsel ersetzt weder Ihre Shell noch Ihre Systembefehle. Es arbeitet Hand in Hand mit ihnen und bietet eine konsistente Arbeitsumgebung.
 
 ---
 
 ## ✨ Funktionen
 
-- **🌐 Plattformübergreifende Befehls-Konsistenz**: Geben Sie Standardbefehle (`ls -la`, `cat`, `rm -rf`, `grep`) natürlich in jedem Terminal ein – sie werden automatisch in native Host-Primitive übersetzt, ohne die integrierten Host-Befehle zu übernehmen.
-- **⚡ Kontextbezogene Autovervollständigung**: Integriert mit [Carapace](https://carapace.sh), um mehrstufige Argument- und Kontextvervollständigungen (Git-Branches, Docker-Images, npm-Skripte) in PowerShell, Bash und Zsh bereitzustellen.
-- **🛡️ Null-Verschmutzungs-Sandboxing**: Alles (Binärdateien, SQLite-Verlauf, deklarative Spezifikationen, Plugins und Protokolle) befindet sich in `~/.kapsel/`. Ihre Host-Shell-Konfigurationsdateien bleiben vollständig unberührt.
-- **🧩 Kuratierte Plugin-Ökologie**: Greifen Sie direkt über den einheitlichen `kps`-Befehl auf leistungsstarke Entwicklerwerkzeuge (`zoxide`, `mise`, `chsrc`, `pueue`, KI-Assistenten) zu.
-- **🎨 Moderne Kartenrahmen-Ästhetik**: Saubere visuelle Befehls-Kartenrahmen mit Exit-Code-Abzeichen (`✔ 0` / `✘ 1`), Stoppuhr-Zeitmessung der Ausführung und nativer i18n-Unterstützung in 7 Sprachen.
+### 🌐 Native & plattformübergreifende Ausführung
+
+Verwenden Sie Ihre normalen Systembefehle direkt:
+
+```bash
+git
+docker
+python
+npm
+cargo
+vim
+```
+
+Gleichzeitig bietet Kapsel eine Linux-First-Befehlsebene für gängige plattformübergreifende Operationen:
+
+```bash
+ls -la
+cat package.json
+rm -rf ./dist
+grep -r "TODO" .
+```
+
+Eingebaute Befehle der Host-Shell sind zuverlässig vor versehentlichem Abfangen geschützt.
 
 ---
 
-## 🚀 Schnellstart
+### ⚡ Kontextbezogene Autovervollständigung
 
-Starten Sie die interaktive Kapsel-Shell:
+Kapsel integriert [Carapace](https://carapace.sh) für eine tiefe, mehrstufige Befehlsvervollständigung:
+
+Die Engine versteht Befehle, Argumente, Optionen und dynamischen Kontext:
+
+- Git-Branches und Tags
+- Docker-Container und Images
+- Kubernetes-Ressourcen
+- npm-Skripte
+- Über 1.000 weitere CLI-Spezifikationen
+
+Vervollständigungsspezifikationen werden deklarativ verwaltet und können leicht durch Plugins erweitert werden.
+
+---
+
+### 💡 Intelligente Inline-Vorschläge
+
+Kapsel verwaltet einen lokalen SQLite-Verlaufsspeicher und schlägt während der Eingabe passende frühere Befehle vor.
+
+Drücken Sie `→`, um einen Vorschlag direkt zu übernehmen.
+
+Der Verlauf und der Laufzeitzustand verbleiben sicher in der Kapsel-Sandbox.
+
+---
+
+### 🛡️ Saubere Null-Verschmutzungs-Sandbox
+
+Kapsel speichert Konfigurationen, Binärdateien, Verlauf, Spezifikationen, Plugins und Protokolle unter:
+
+```text
+~/.kapsel/
+```
+
+Bestehende Shell-Konfigurationsdateien werden nicht verändert:
+
+```text
+.bashrc
+.zshrc
+config.fish
+PowerShell-Profile
+```
+
+Ihre Host-Shell bleibt unangetastet.
+
+---
+
+### 🧩 Modulare Plugin-Architektur
+
+Kapsel bietet eine Plugin-Laufzeitumgebung unter dem Namensraum `kps`.
+
+Plugins können Befehle, Workflows, Vervollständigungsspezifikationen und externe CLI-Tools hinzufügen, ohne den Kern von Kapsel zu verändern.
+
+---
+
+### 🎨 Moderne interaktive Terminal-Erfahrung
+
+Die interaktive Kapsel bietet ein kompaktes zweizeiliges Kartenlayout:
+
+```text
+╭─ ...
+╰─ ❯ ...
+✔ 0  ...  ⏱ 24ms
+```
+
+Beendigungsstatus und Ausführungszeit in Millisekunden werden unmittelbar angezeigt. Die Benutzeroberfläche ist mehrsprachig lokalisiert.
+
+---
+
+# 🚀 Schnellstart
+
+## 1. Installation
+
+Empfohlene Installationsmethode (über `pipx`):
+
+```bash
+pipx install kapsel-cli
+```
+
+Oder über `pip`:
+
+```bash
+pip install --upgrade kapsel-cli
+```
+
+## 2. Kapsel starten
 
 ```bash
 kapsel
 ```
 
-Innerhalb von Kapsel laufen Befehle nativ mit erweitertem Feedback:
+Nutzen Sie Ihr Terminal wie gewohnt:
 
 ```bash
-# 1. Nativer Durchgriff mit Zeitmessung & Exit-Code-Karte
 git status
 docker ps
-
-# 2. Universelle Befehlsübersetzung auf jedem Betriebssystem
-rm -rf ./temp_dir
-cat package.json
-
-# 3. Integrierte Plugins jederzeit nutzen
-kps portal work        # Zum Verzeichnis springen (zoxide)
-kps ai "explain git rebase"  # Terminal-KI-Assistenten fragen
-kps shore get          # Schnellste Paket-Mirrors automatisch auswählen
-
-# 4. Kapsel-Zustand prüfen
-kps status
+python --version
 ```
 
-> **Einmalige Ausführung**: Sie können Kapsel-Werkzeuge auch direkt aus Ihrer regulären Shell mit `kps <Befehl>` aufrufen (z. B. `kps portal`, `kps status`, `kps ai`).
-
----
-
-## 🧩 Integrierte Plugins
-
-Kapsel wird mit 11 entkoppelten, offiziellen Plugins unter dem Namespace `kps` vorkonfiguriert geliefert:
-
-| Plugin | Befehl | Funktion | Unterstützt durch |
-| :--- | :--- | :--- | :--- |
-| **`portal`** | `kps portal` / `z` | Schnelles Verzeichniswechseln mit Frecency-Gewichtung | [zoxide](https://github.com/ajeetdsouza/zoxide) |
-| **`ai`** | `kps ai` | Terminal-KI-Copilot zum Generieren und Erklären von Befehlen | OpenAI / Claude / Ollama |
-| **`init`** | `kps init` | Multi-Sprachen-Toolchain-Laufzeitmanager (Node, Python, Go, Rust) | [mise](https://github.com/jdx/mise) |
-| **`shore`** | `kps shore` | Benchmark und Wechsel zu schnellsten Paket- & OS-Download-Mirrors | [chsrc](https://github.com/AkihiroSuda/chsrc) |
-| **`install`** | `kps install` | Universeller Software-Installer, der 20+ Paketmanager aggregiert | [mpm](https://github.com/MrEiu/mpm) |
-| **`alias`** | `kps alias` | Plattformübergreifende Alias-Übersetzung ohne Namespace-Kollisionen | Native Engine |
-| **`autopilot`**| `kps autopilot`| Hintergrund-Warteschlange & autonomer Daemon-Aufgabenausführer | [pueue](https://github.com/Nukesor/pueue) |
-| **`help`** | `kps help <cmd>`| Sofortige, community-getriebene praktische Befehls-Spickzettel | [tealdeer](https://github.com/dbrgn/tealdeer) |
-| **`fuck`** | `kps fuck` | Intelligente Autokorrektur und Syntax-Fix für falsch getippte Befehle | [thefuck](https://github.com/nvbn/thefuck) |
-| **`profile`** | `kps profile` | Plattformübergreifende Dotfile- und Workstation-Konfigurationssynchronisierung | [chezmoi](https://github.com/twpayne/chezmoi) |
-| **`rec`** | `kps rec` | Interaktives CLI-Befehls-Snippet-Lesezeichen & Ausführer | [pet](https://github.com/knqyf263/pet) |
-
----
-
-## 📦 Installation
-
-### Empfohlen (pipx / pip)
+Verwenden Sie bei Bedarf universelle Befehle:
 
 ```bash
-# Isolierte Installation über pipx (empfohlen)
-pipx install kapsel-cli
+ls -la
+cat package.json
+rm -rf ./temp
+```
 
-# Oder Standard-pip
+## 3. Kapsel-Werkzeuge nutzen
+
+Kapsel-Befehle sind über `kps` verfügbar:
+
+```bash
+kps status
+kps config
+kps portal
+kps ai
+```
+
+Beispiele:
+
+```bash
+kps portal work
+kps ai "Erkläre git rebase"
+kps shore get
+```
+
+## 4. Einmalige Befehlsausführung
+
+Sie müssen die interaktive Kapsel nicht betreten, um Kapsel-Tools zu nutzen:
+
+```bash
+kps status
+kps portal
+kps ai "Finde große Dateien"
+```
+
+Ideal für Skripte, Aliase und automatisierte Workflows.
+
+---
+
+# 🧩 Plugin-Ökosystem
+
+Kapsel ist als Plugin-orientierte Umgebung konzipiert und nicht als starrer monolithischer Funktionsblock.
+
+## Offizielle Plugins
+
+| Plugin | Befehl | Beschreibung | Angetrieben durch |
+| :--- | :--- | :--- | :--- |
+| **`portal`** | `kps portal` / `z` | Blitzschnelle Verzeichnisnavigation basierend auf Nutzungshäufigkeit | [zoxide](https://github.com/ajeetdsouza/zoxide) |
+| **`ai`** | `kps ai` | KI-Terminalassistent zum Erzeugen, Erklären und Ausführen von Befehlen | OpenAI / Claude / Ollama |
+| **`init`** | `kps init` | Laufzeit- und Toolchain-Manager für Node, Python, Go, Rust u.v.m. | [mise](https://github.com/jdx/mise) |
+| **`shore`** | `kps shore` | Geschwindigkeitsmessung und Wechsel zu den schnellsten Paket-Spiegeln | [chsrc](https://github.com/AkihiroSuda/chsrc) |
+| **`install`** | `kps install` | Paketmanager-übergreifende Softwareinstallation | [mpm](https://github.com/MrEiu/mpm) |
+| **`alias`** | `kps alias` | Plattformübergreifende Befehlsübersetzung und Aliase | Native Engine |
+| **`autopilot`** | `kps autopilot` | Hintergrund-Aufgabenwarteschlangen und Prozessverwaltung | [pueue](https://github.com/Nukesor/pueue) |
+| **`help`** | `kps help <cmd>` | Praxisnahe Spickzettel und Befehlsbeispiele | [tealdeer](https://github.com/dbrgn/tealdeer) |
+| **`fuck`** | `kps fuck` | Automatische Syntaxkorrektur von fehlerhaften Befehlen | [thefuck](https://github.com/nvbn/thefuck) |
+| **`profile`** | `kps profile` | Versionsverwaltung von Dotfiles und Konfigurationen | [chezmoi](https://github.com/twpayne/chezmoi) |
+| **`rec`** | `kps rec` | Lesezeichen für Befehlsschnipsel mit Parametern | [pet](https://github.com/knqyf263/pet) |
+
+---
+
+## 🌍 Community-Plugins
+
+Entwickler können Kapsel durch eigene Plugins erweitern:
+
+- Neue CLI-Befehle und Integrationen
+- Cloud- und Deployment-Workflows
+- Benutzerdefinierte Carapace-Spezifikationen
+
+Beiträge können über das **[Kapsel Plugin Repository](https://github.com/MrEiu/plugins)** eingereicht werden.
+
+---
+
+# 📦 Installation
+
+## Empfohlene Methoden
+
+### pipx
+
+```bash
+pipx install kapsel-cli
+```
+
+### pip
+
+```bash
 pip install --upgrade kapsel-cli
 ```
 
-### Automatisierte Ein-Zeilen-Installationsprogramme
+---
 
-Schnelle Bootstrap-Skripte, die Ihr Betriebssystem automatisch erkennen und Vervollständigungen konfigurieren:
+## Automatisierte Ein-Zeilen-Installation
+
+### macOS & Linux
 
 ```bash
-# macOS & Linux:
 curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.sh | bash
+```
 
-# Windows (PowerShell):
+### Windows PowerShell
+
+```powershell
 irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.ps1 | iex
 ```
 
-### Weitere Installationsoptionen
+---
 
-- **Eigenständige vorkompilierte Binärdateien**: Laden Sie sofort ausführbare Releases von [GitHub Releases](https://github.com/MrEiu/Kapsel/releases/latest) herunter.
-- **Paketmanager**: Verfügbar über Scoop (`scoop install kapsel`), Homebrew und Debian/Ubuntu `.deb`.
-- **Aus dem Quellcode erstellen**: `git clone https://github.com/MrEiu/Kapsel.git && cd Kapsel && pip install -e .`
+## Eigenständige Binärdateien (Ohne Python)
 
-👉 *Für China-Mirror-Beschleunigung und Details zu Paketmanagern auf allen Plattformen, siehe **[docs/INSTALLATION.md](docs/INSTALLATION.md)**.*
+Vorkompilierte Releases stehen für Systeme ohne Python zur Verfügung:
 
-## ⚙️ Konfiguration
+| Plattform / Architektur | Datei |
+| :--- | :--- |
+| **Windows x86_64** | `kapsel-windows-x86_64.zip` |
+| **Linux x86_64** | `kapsel-linux-x86_64.tar.gz` |
+| **macOS Universal** | `kapsel-macos-universal.tar.gz` |
+| **Debian / Ubuntu** | `kapsel_amd64.deb` |
 
-Kapsel speichert seine Konfiguration in `~/.kapsel/config.yaml`. Verwalten Sie Einstellungen direkt über Ihr Terminal:
+Aktuelle Downloads finden Sie unter **[GitHub Releases](https://github.com/MrEiu/Kapsel/releases/latest)**.
+
+---
+
+## Paketmanager
+
+- **Scoop**
+- **Homebrew**
+- **Debian / Ubuntu (.deb)**
+
+Ausführliche Anleitungen finden Sie im **[Installationshandbuch](docs/INSTALLATION.md)**.
+
+---
+
+## Aus Quellcode bauen
 
 ```bash
-# Konfigurations-Dashboard anzeigen
+git clone https://github.com/MrEiu/Kapsel.git
+cd Kapsel
+pip install -e .
+kps completion sync
+```
+
+---
+
+# ⚙️ Konfiguration
+
+Hauptkonfigurationsdatei:
+
+```text
+~/.kapsel/config.yaml
+```
+
+Konfiguration direkt über das Terminal einsehen und bearbeiten:
+
+```bash
 kps config
+```
 
-# Konfigurationsdatei im externen Editor öffnen
+Im Standardeditor öffnen:
+
+```bash
 kps config edit
+```
 
-# Einstellungen spontan anpassen
+Einzelne Einstellungen anpassen:
+
+```bash
 kps config set ui.enable_banner false
 kps config set interaction.autosuggest_sensitivity 0.2
 ```
 
+Änderungen werden sofort im laufenden Betrieb wirksam. Details im **[Konfigurationsleitfaden](docs/configuration.md)**.
+
 ---
 
-## 🏛️ Architektur & Sandboxing
+# 🏛️ Architektur
 
-Kapsel folgt einem **Zero-Pollution-Prinzip**. Der gesamte Laufzeitzustand ist strikt gekapselt:
+Kapsel arbeitet als nicht-invasive Ebene um die Host-Shell herum:
+
+```text
+                     Host-Terminal
+                           │
+                           ▼
+                ┌─────────────────────┐
+                │       Kapsel        │
+                │                     │
+                │  Befehls-Dispatcher │
+                │  Completion Engine  │
+                │  Plugin-Registry    │
+                │  Verlauf & Zustand  │
+                └──────────┬──────────┘
+                           │
+                 ┌─────────┴─────────┐
+                 ▼                   ▼
+           Systembefehle       Kapsel-Befehle
+         git / docker / ...     kps <befehl>
+```
+
+## Dual-State-Ausführung
+
+- **Native Ausführung**: Systemprogramme werden unverändert transparent an die Host-Umgebung durchgereicht. TTY, Signale und Pipes bleiben vollständig erhalten.
+- **Kapsel-Ausführung**: Über den Namensraum `kps` werden Kapsel-eigene Werkzeuge und Plugins ausgeführt.
+
+## Kollisionssichere Namensräume
+
+Befehle wie `alias`, `help`, `install`, `history`, `profile`, `ps`, `kill` und `dir` verbleiben im `kps`-Namensraum, um Systembefehle nicht zu überschreiben.
+
+## Null-Verschmutzungs-Struktur
 
 ```text
 ~/.kapsel/
-├── config.yaml          # Systemweite UI-Konfiguration, Themes und Interaktionseinstellungen
-├── history.db           # Persistente SQLite-Datenbank zur Speicherung von Befehlsverlauf und Statistiken
-├── bin/                 # Eigenständige Binärwerkzeuge im Benutzerbereich (carapace, zoxide, mise...)
-├── specs/               # Deklarative YAML-Spezifikationen für die automatische Vervollständigung
-├── plugins/             # Installierte offizielle und Community-Plugin-Erweiterungen
-└── logs/                # Diagnoseprotokolle und Sitzungsmetriken
+├── config.yaml          # Konfiguration
+├── history.db           # SQLite-Befehlsverlauf
+├── bin/                 # Benutzerdefinierte Binärdateien
+├── specs/               # Carapace-Spezifikationen
+├── plugins/             # Installierte Plugins
+└── logs/                # Diagnose- und Sitzungsprotokolle
 ```
-
-- **Dual-State-Engine**: Native ausführbare Dateien laufen direkt über die Host-Subshell-Durchreichung; Kapsel-Dienstprogramme laufen über die einheitliche `kps`-Registry.
-- **Kollisions-Sentinel**: Stellt sicher, dass native Shell-Built-ins (z. B. PowerShells `Get-Alias`, `Get-Help`) niemals abgefangen oder gekapert werden.
-- **Isolierte Plugins**: Plugins laufen unabhängig und stellen sicher, dass Erweiterungen von Drittanbietern die Kern-Shell nicht zum Absturz bringen können.
 
 ---
 
-## 🧪 Entwicklung & Testen
+# 📚 Dokumentation
+
+| Dokument | Beschreibung |
+| :--- | :--- |
+| [Installationshandbuch](docs/INSTALLATION.md) | Detaillierte Plattform-Installationsanleitungen |
+| [Konfiguration](docs/configuration.md) | Alle Konfigurationsparameter im Überblick |
+| [Befehlsreferenz](docs/commands.md) | Vollständige Befehlsübersicht |
+| [Plugins](docs/plugins.md) | Plugin-Nutzung und Einrichtung |
+| [Plugin-Entwicklung](https://github.com/MrEiu/plugins) | Eigene Plugins erstellen und veröffentlichen |
+| [Architektur](docs/architecture.md) | Systemdesign und technische Details |
+
+---
+
+# 🧪 Entwicklung & Tests
+
+Repository klonen:
 
 ```bash
-# Repository klonen
 git clone https://github.com/MrEiu/Kapsel.git
 cd Kapsel
+```
 
-# Editierbares Paket mit Testabhängigkeiten installieren
+Abhängigkeiten installieren:
+
+```bash
 pip install -e ".[test]"
+```
 
-# Unit-Test-Suite ausführen
+Tests ausführen:
+
+```bash
 pytest tests/ -v
 ```
 
 ---
 
-## 📄 Lizenz
+# 🤝 Mitwirken
 
-Verteilt unter der **[MIT-Lizenz](LICENSE)**. Entwickelt von MrEiu und Open-Source-Mitwirkenden.
+Wir freuen uns über jede Unterstützung für Kapsel:
+
+- **Kern**: Fehlerbehebungen, Verbesserungen und neue Funktionen
+- **Plugins**: Eigene Werkzeuge im **[Plugin-Repository](https://github.com/MrEiu/plugins)** veröffentlichen
+- **Dokumentation**: Übersetzungen und Anwendungsbeispiele erweitern
+
+---
+
+# 📄 Lizenz
+
+Kapsel ist Open-Source-Software unter der **[MIT-Lizenz](LICENSE)**.
+
+---
+
+<div align="center">
+
+**Kapsel — Komplexität kapseln, Einfachheit freisetzen.**
+
+Entwickelt von [MrEiu](https://github.com/MrEiu) und Open-Source-Mitwirkenden.
+
+</div>

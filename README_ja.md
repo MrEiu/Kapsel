@@ -2,26 +2,33 @@
 
 # ⚡ Kapsel
 
-**シェルを統合コマンド、コンテキスト認識型オートコンプリート、そしてグローバル環境の汚染ゼロで包み込む、クロスプラットフォームなターミナル環境。**
+**よりクリーンで一貫したコマンドライン体験を実現する、クロスプラットフォーム・ターミナルカプセル。**
 
 [![PyPI Version](https://img.shields.io/pypi/v/kapsel-cli?color=3776AB&logo=pypi&logoColor=white&style=flat-square)](https://pypi.org/project/kapsel-cli/)
 [![Python Version](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://pypi.org/project/kapsel-cli/)
 [![Platform Support](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-4D4D4D.svg?style=flat-square&logo=linux&logoColor=white)](https://github.com/MrEiu/Kapsel)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-[なぜKapselなのか？](#-なぜkapselなのか) •
-[特徴](#-特徴) •
-[クイックスタート](#-クイックスタート) •
-[内蔵プラグイン](#-内蔵プラグイン) •
-[インストール](#-インストール) •
-[アーキテクチャ](#-アーキテクチャ--サンドボックス化) •
-[🇨🇳 简体中文](README_zh.md)
+[クイックスタート](#-クイックスタート) ·
+[機能](#-機能) ·
+[プラグイン](#-プラグインエコシステム) ·
+[インストール](#-インストール) ·
+[アーキテクチャ](#-アーキテクチャ) ·
+[ドキュメント](#-ドキュメント)
+
+[English](README.md) ·
+[🇨🇳 简体中文](README_zh.md) ·
+[🇷🇺 Русский](README_ru.md) ·
+[🇩🇪 Deutsch](README_de.md) ·
+[🇪🇸 Español](README_es.md) ·
+[🇫🇷 Français](README_fr.md) ·
+[🇵🇱 Polski](README_pl.md)
 
 </div>
 
 ---
 
-### 📺 動作中のインタラクティブカプセル
+## 📺 デモ
 
 ```text
 ╭─ kapsel [pwsh] ~/Projects/Kapsel 14:32:05
@@ -29,174 +36,440 @@
 ✔ 0  git checkout -b feature/dynamic-specs  ⏱ 24ms
 ```
 
-> **複雑さを包み込み、シンプルさを公開する。**
-> 通常通りネイティブシェルの実行ファイルを実行しながら、自動コマンド翻訳、インライン提案、リッチな補完仕様、そしてモジュール式ツールチェーンをすべて `~/.kapsel/` 内にサンドボックス化して利用できます。
+> **複雑さを包み込み、シンプルさを届ける。**
+>
+> ネイティブシェルとシステムコマンドはそのままに、Kapsel が統一コマンドレイヤー、コンテキスト対応補完、インライン履歴提案、拡張可能なプラグイン環境をシームレスに追加します。すべて `~/.kapsel/` 内に安全にカプセル化されます。
 
 ---
 
-## 💡 なぜKapselなのか？
+## 💡 なぜ Kapsel なのか？
 
-オペレーティングシステムを切り替えると、壊れた筋肉記憶、散らかったドットファイル、断片化されたオートコンプリート設定に悩まされることがよくあります。Kapselは、非侵襲的なカプセル層でこのギャップを埋めます：
+端末での開発ワークフローは、未だに使用している OS やシェルによって大きく分断されています。
 
-| 課題 | 従来のシェル設定 | Kapselを使用した場合 |
+日常的な同じ作業であっても、Windows、macOS、Linux で異なるコマンドや構文が必要です。シェルの設定は `.bashrc`、`.zshrc`、PowerShell プロファイルなどに分散し、自動補完や開発ツールは個別に導入・設定しなければなりません。
+
+Kapsel は既存のターミナルを侵食することなく、その周囲に軽量なカプセルレイヤーを提供します：
+
+| 課題 | 従来の環境 | Kapsel |
 | :--- | :--- | :--- |
-| **クロスプラットフォームの摩擦** | OS間でコマンドが断片化（`dir` vs `ls`、`rmdir` vs `rm -rf`） | Windows、macOS、Linux間で統一されたLinuxファーストのコマンド層 |
-| **シェルプロファイルの汚染** | 肥大化した`.bashrc`や`$PROFILE`に脆弱なグローバルスクリプトが混在 | `~/.kapsel/`内に100%自己完結型サンドボックス（グローバルな変更はゼロ） |
-| **オートコンプリートの設定** | シェルごとに手動設定が必要で、不完全または遅いことが多い | Carapaceによる1,000以上のCLIツール向けの即時コンテキスト認識型コンプリート |
-| **ツールチェーンと同期の散在** | バラバラなツールで反復的な手動インストールが必要 | ランタイム、ミラー、ディレクトリジャンプ、同期のための統合`kps`プラグイン |
+| **クロスプラットフォーム** | OSごとに異なるコマンド構文 | Linux-First の統一コマンドレイヤー |
+| **シェル設定** | グローバルプロファイルに散乱 | `~/.kapsel/` に完全に自己完結 |
+| **自動補完** | 各シェル・ツール個別の複雑な設定 | Carapace エンジンによる高度な文脈補完 |
+| **開発ツール** | ツールごとに異なる設定と管理方法 | `kps` 名前空間下の統一プラグイン環境 |
+| **拡張性** | シェル固有のスクリプト依存 | 独立したモジュール式プラグイン構造 |
+
+Kapsel は既存のシェルやシステムコマンドを置き換えるものではありません。それらの隣に位置し、一貫した快適な実行環境を提供します。
 
 ---
 
-## ✨ 特徴
+## ✨ 機能
 
-- **🌐 クロスプラットフォームなコマンド一貫性**: どのターミナルでも標準コマンド（`ls -la`、`cat`、`rm -rf`、`grep`）を自然に入力でき、ホストの組み込み機能を乗っ取ることなく、ホストネイティブのプリミティブに自動変換されます。
-- **⚡ コンテキストを認識したオートコンプリート**: [Carapace](https://carapace.sh) と統合し、PowerShell、Bash、Zsh 全体で多段階の引数およびコンテキスト補完（Git ブランチ、Docker イメージ、npm スクリプト）を提供します。
-- **🛡️ ゼロ汚染サンドボックス化**: すべて（バイナリ、SQLite 履歴、宣言型仕様、プラグイン、ログ）は `~/.kapsel/` 内に格納されます。ホストのシェル設定ファイルは完全に変更されません。
-- **🧩 厳選されたプラグインエコシステム**: 強力な開発者向けユーティリティ（`zoxide`、`mise`、`chsrc`、`pueue`、AI アシスタント）に、統一された `kps` コマンドから直接アクセスできます。
-- **🎨 モダンなカードフレーム美学**: 終了コードバッジ（`✔ 0` / `✘ 1`）、実行ストップウォッチ計時、7 言語にわたるネイティブ i18n サポートを備えた、クリーンなビジュアルコマンドカードフレーミング。
+### 🌐 ネイティブ実行＆クロスプラットフォーム
+
+普段使用しているシステムコマンドをそのまま実行できます：
+
+```bash
+git
+docker
+python
+npm
+cargo
+vim
+```
+
+同時に、よく使われるクロスプラットフォーム操作のために Linux-First の統一レイヤーを提供します：
+
+```bash
+ls -la
+cat package.json
+rm -rf ./dist
+grep -r "TODO" .
+```
+
+ネイティブシェルの組み込みコマンドは誤った上書きから確実に保護されます。
 
 ---
 
-## 🚀 クイックスタート
+### ⚡ コンテキスト対応の高度な自動補完
 
-インタラクティブなカプセルシェルを起動します:
+Kapsel は [Carapace](https://carapace.sh) と連携し、高度な文脈認識補完を提供します：
+
+コマンド、引数、フラグだけでなく、以下の動的コンテキストを深く理解します：
+
+- Git ブランチとタグ
+- Docker コンテナ名とイメージ
+- Kubernetes リソース
+- npm スクリプト
+- その他 1,000 以上の CLI ツール仕様
+
+補完仕様は宣言的に管理され、プラグインやカスタム仕様で簡単に拡張できます。
+
+---
+
+### 💡 インライン履歴自動提案
+
+ローカルの SQLite 履歴ストアを活用し、タイピング中に入力履歴に基づいた提案をリアルタイムに表示します。
+
+`→` キーを押すだけで提案を採用できます。
+
+すべての履歴と状態は Kapsel のサンドボックス内に安全に保持されます。
+
+---
+
+### 🛡️ 汚染ゼロの独立サンドボックス
+
+Kapsel の設定、バイナリ、履歴、補完仕様、プラグイン、ログはすべて以下に集約されます：
+
+```text
+~/.kapsel/
+```
+
+既存のシェル設定ファイルを変更することはありません：
+
+```text
+.bashrc
+.zshrc
+config.fish
+PowerShell profiles
+```
+
+ホストシェルの純粋性を完全に保ちます。
+
+---
+
+### 🧩 モジュール式プラグイン設計
+
+`kps` 名前空間のもとでプラグインランタイムを提供します。
+
+プラグインは Kapsel コアに手を加えることなく、新しいコマンド、ワークフロー、補完仕様、外部ツールを追加できます。
+
+公式プラグインとコミュニティプラグインは共通の拡張アーキテクチャを共有しています。
+
+---
+
+### 🎨 モダンなインタラクティブ体験
+
+直感的で美しい 2 行表示カードレイアウト：
+
+```text
+╭─ ...
+╰─ ❯ ...
+✔ 0  ...  ⏱ 24ms
+```
+
+コマンド実行後には終了コードとミリ秒単位の経過時間を即座に表示。インターフェースは多言語ローカライズに対応しています。
+
+---
+
+# 🚀 クイックスタート
+
+## 1. インストール
+
+推奨インストール方法（`pipx`）：
+
+```bash
+pipx install kapsel-cli
+```
+
+または `pip`：
+
+```bash
+pip install --upgrade kapsel-cli
+```
+
+## 2. Kapsel の起動
 
 ```bash
 kapsel
 ```
 
-Kapsel 内では、コマンドは拡張されたフィードバックとともにネイティブに実行されます:
+普段通りにコマンドを実行できます：
 
 ```bash
-# 1. タイミングと終了コードカード付きのネイティブパススルー
 git status
 docker ps
-
-# 2. あらゆるOSでのユニバーサルコマンド変換
-rm -rf ./temp_dir
-cat package.json
-
-# 3. いつでも内蔵プラグインを使用
-kps portal work        # ディレクトリへジャンプ (zoxide)
-kps ai "explain git rebase"  # ターミナルAIアシスタントに質問
-kps shore get          # 最速のパッケージミラーを自動選択
-
-# 4. カプセルの状態を確認
-kps status
+python --version
 ```
 
-> **ワンショット実行**: 通常のシェルから `kps <command>` (例: `kps portal`、`kps status`、`kps ai`) を使用して、Kapsel ツールを直接呼び出すこともできます。
-
----
-
-## 🧩 組み込みプラグイン
-
-Kapselには、`kps`名前空間の下に、分離された公式プラグインが11個プリインストールされています：
-
-| プラグイン | コマンド | 機能 | 基盤技術 |
-| :--- | :--- | :--- | :--- |
-| **`portal`** | `kps portal` / `z` | frecency重み付けによる高速ディレクトリジャンプ | [zoxide](https://github.com/ajeetdsouza/zoxide) |
-| **`ai`** | `kps ai` | コマンド生成・説明のためのターミナルAIコパイロット | OpenAI / Claude / Ollama |
-| **`init`** | `kps init` | マルチ言語ツールチェーンランタイムマネージャー（Node、Python、Go、Rust） | [mise](https://github.com/jdx/mise) |
-| **`shore`** | `kps shore` | 最速のパッケージ＆OSダウンロードミラーをベンチマークし切り替え | [chsrc](https://github.com/AkihiroSuda/chsrc) |
-| **`install`** | `kps install` | 20以上のパッケージマネージャーを統合するユニバーサルソフトウェアインストーラー | [mpm](https://github.com/MrEiu/mpm) |
-| **`alias`** | `kps alias` | 名前空間の衝突がゼロのクロスプラットフォームエイリアス変換 | ネイティブエンジン |
-| **`autopilot`**| `kps autopilot`| バックグラウンドキュー＆自律デーモンタスクランナー | [pueue](https://github.com/Nukesor/pueue) |
-| **`help`** | `kps help <cmd>`| 即時利用可能なコミュニティ駆動の実践的コマンドチートシート | [tealdeer](https://github.com/dbrgn/tealdeer) |
-| **`fuck`** | `kps fuck` | 誤入力コマンドのインテリジェント自動修正＆構文修正 | [thefuck](https://github.com/nvbn/thefuck) |
-| **`profile`** | `kps profile` | クロスプラットフォームのドットファイル＆ワークステーション設定同期 | [chezmoi](https://github.com/twpayne/chezmoi) |
-| **`rec`** | `kps rec` | インタラクティブCLIコマンドスニペットのブックマーク＆ランナー | [pet](https://github.com/knqyf263/pet) |
-
----
-
-## 📦 インストール
-
-### 推奨方法（pipx / pip）
+必要に応じてクロスプラットフォームコマンドも利用可能です：
 
 ```bash
-# pipx による分離インストール（推奨）
-pipx install kapsel-cli
+ls -la
+cat package.json
+rm -rf ./temp
+```
 
-# または標準の pip
+## 3. Kapsel コマンドの使用
+
+`kps` から拡張機能にアクセスできます：
+
+```bash
+kps status
+kps config
+kps portal
+kps ai
+```
+
+使用例：
+
+```bash
+kps portal work
+kps ai "explain git rebase"
+kps shore get
+```
+
+## 4. 単発実行（非対話モード）
+
+対話型カプセルに入らなくても、既存のシェルから直接 `kps` を実行できます：
+
+```bash
+kps status
+kps portal
+kps ai "find large files"
+```
+
+スクリプト、エイリアス、自動化ワークフローに最適です。
+
+---
+
+# 🧩 プラグインエコシステム
+
+Kapsel は肥大化したモノリシック設計ではなく、プラグイン駆動のターミナル環境として設計されています。
+
+## 公式プラグイン
+
+| プラグイン | コマンド | 説明 | 駆動エンジン |
+| :--- | :--- | :--- | :--- |
+| **`portal`** | `kps portal` / `z` | 頻度・直近性に基づく超高速ディレクトリジャンプ | [zoxide](https://github.com/ajeetdsouza/zoxide) |
+| **`ai`** | `kps ai` | コマンド生成・解説・トラブル診断を行う AI アシスタント | OpenAI / Claude / Ollama |
+| **`init`** | `kps init` | Node、Python、Go、Rust 等のランタイム・ツールチェーン管理 | [mise](https://github.com/jdx/mise) |
+| **`shore`** | `kps shore` | パッケージマネージャーと OS の最速ミラー検出・切り替え | [chsrc](https://github.com/AkihiroSuda/chsrc) |
+| **`install`** | `kps install` | 複数パッケージマネージャーを横断した統一ソフト導入 | [mpm](https://github.com/MrEiu/mpm) |
+| **`alias`** | `kps alias` | プラットフォーム差分を解消するクロスプラットフォームエイリアス | ネイティブエンジン |
+| **`autopilot`** | `kps autopilot` | バックグラウンドタスクキューと長時間プロセスの監視 | [pueue](https://github.com/Nukesor/pueue) |
+| **`help`** | `kps help <cmd>` | 実践的なコマンドチートシートと解説 | [tealdeer](https://github.com/dbrgn/tealdeer) |
+| **`fuck`** | `kps fuck` | タイプミスしたコマンドの自動修正と再実行 | [thefuck](https://github.com/nvbn/thefuck) |
+| **`profile`** | `kps profile` | ドットファイルと開発環境設定のバージョン管理 | [chezmoi](https://github.com/twpayne/chezmoi) |
+| **`rec`** | `kps rec` | CLI スニペットのブックマーク・パラメータ化・実行 | [pet](https://github.com/knqyf263/pet) |
+
+---
+
+## 🌍 コミュニティプラグイン
+
+開発者は自由にプラグインを開発・共有できます：
+
+- 新しいコマンドや外部ツール
+- クラウドや開発ワークフローの統合
+- カスタム Carapace 補完仕様
+- 自動化ユーティリティ
+
+**[Kapsel プラグインリポジトリ](https://github.com/MrEiu/plugins)** から貢献できます。
+
+---
+
+# 📦 インストール
+
+## 推奨方式
+
+### pipx
+
+```bash
+pipx install kapsel-cli
+```
+
+### pip
+
+```bash
 pip install --upgrade kapsel-cli
 ```
 
-### ワンライン自動インストーラー
+---
 
-OS を自動検出し、シェルの補完設定まで行うクイックブートストラップスクリプト：
+## ワンライン自動インストーラー
+
+### macOS & Linux
 
 ```bash
-# macOS & Linux:
 curl -fsSL https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.sh | bash
+```
 
-# Windows (PowerShell):
+### Windows PowerShell
+
+```powershell
 irm https://raw.githubusercontent.com/MrEiu/Kapsel/master/scripts/install.ps1 | iex
 ```
 
-### その他のインストール方法
+---
 
-- **スタンドアロン版プリコンパイル済みバイナリ**: [GitHub Releases](https://github.com/MrEiu/Kapsel/releases/latest) から実行可能なリリースをダウンロードできます。
-- **パッケージマネージャー**: Scoop（`scoop install kapsel`）、Homebrew、Debian/Ubuntu の `.deb` パッケージで利用可能です。
-- **ソースからビルド**: `git clone https://github.com/MrEiu/Kapsel.git && cd Kapsel && pip install -e .`
+## スタンドアロンバイナリ
 
-👉 *中国国内向けミラー高速化や、各プラットフォームのパッケージマネージャーの詳細については、**[docs/INSTALLATION.md](docs/INSTALLATION.md)** を参照してください。*
+Python 環境が不要なビルド済みバイナリも提供しています：
+
+| プラットフォーム / アーキテクチャ | 配布物 |
+| :--- | :--- |
+| **Windows x86_64** | `kapsel-windows-x86_64.zip` |
+| **Linux x86_64** | `kapsel-linux-x86_64.tar.gz` |
+| **macOS Universal** | `kapsel-macos-universal.tar.gz` |
+| **Debian / Ubuntu** | `kapsel_amd64.deb` |
+
+最新リリースは **[GitHub Releases](https://github.com/MrEiu/Kapsel/releases/latest)** をご覧ください。
 
 ---
 
-## ⚙️ 設定
+## パッケージマネージャー
 
-Kapsel は設定を `~/.kapsel/config.yaml` に保存します。ターミナルから直接設定を管理できます：
+- **Scoop**
+- **Homebrew**
+- **Debian / Ubuntu (.deb)**
+
+詳細は **[インストールガイド](docs/INSTALLATION.md)** をご覧ください。
+
+---
+
+## ソースからビルド
 
 ```bash
-# 設定ダッシュボードを表示
+git clone https://github.com/MrEiu/Kapsel.git
+cd Kapsel
+pip install -e .
+kps completion sync
+```
+
+---
+
+# ⚙️ 設定
+
+設定ファイルパス：
+
+```text
+~/.kapsel/config.yaml
+```
+
+ターミナルから直接設定を確認・変更可能：
+
+```bash
 kps config
+```
 
-# 外部エディタで設定ファイルを開く
+エディタで設定を開く：
+
+```bash
 kps config edit
+```
 
-# 設定をその場で調整
+キーバリューの直接設定：
+
+```bash
 kps config set ui.enable_banner false
 kps config set interaction.autosuggest_sensitivity 0.2
 ```
 
+変更はセッションの再起動なしに即座に反映されます。詳細は **[設定ガイド](docs/configuration.md)** をご覧ください。
+
 ---
 
-## 🏛️ アーキテクチャとサンドボックス化
+# 🏛️ アーキテクチャ
 
-Kapselは**ゼロ汚染の原則**に従います。すべてのランタイム状態は厳密に格納されます：
+Kapsel は既存のホストシェルの外側に位置する非侵襲レイヤーとして機能します。
+
+```text
+                     ホストターミナル
+                            │
+                            ▼
+                 ┌─────────────────────┐
+                 │       Kapsel        │
+                 │                     │
+                 │  コマンドディスパッチャ │
+                 │  補完エンジン        │
+                 │  プラグインレジストリ  │
+                 │  履歴・状態管理      │
+                 └──────────┬──────────┘
+                            │
+                  ┌─────────┴─────────┐
+                  ▼                   ▼
+           ネイティブコマンド     Kapsel コマンド
+           git / docker / ...     kps <command>
+```
+
+## 二重状態実行パイプライン (Dual-State Execution)
+
+- **ネイティブ実行**：システムコマンドはそのまま透過的にホスト環境へ渡され、TTY、シグナル、ストリームが完全維持されます。
+- **Kapsel 実行**：`kps` 名前空間とプラグインシステムを通じて安全に処理されます。
+
+## 衝突防止名前空間 (Collision-Safe Namespaces)
+
+`alias`、`help`、`install`、`history`、`profile`、`ps`、`kill`、`dir` などのコマンドは `kps` 名前空間内に分離され、ホストシェルの内蔵コマンドを乗っ取ることはありません。
+
+## 汚染ゼロのディレクトリ構造
 
 ```text
 ~/.kapsel/
-├── config.yaml          # システム全体のUI設定、テーマ、および対話設定
-├── history.db           # コマンド履歴と統計を保存する永続的なSQLiteデータベース
-├── bin/                 # ユーザー空間のスタンドアロンバイナリツール（carapace、zoxide、mise...）
-├── specs/               # 宣言型オートコンプリートYAML仕様
-├── plugins/             # インストール済みの公式およびコミュニティプラグイン拡張機能
-└── logs/                # 診断ログとセッションメトリクス
+├── config.yaml          # 設定ファイル
+├── history.db           # SQLite 履歴データベース
+├── bin/                 # ユーザー空間バイナリ
+├── specs/               # Carapace 補完仕様
+├── plugins/             # インストール済みプラグイン
+└── logs/                # 診断・ログ
 ```
-
-- **デュアルステートエンジン**: ネイティブ実行可能ファイルはホストサブシェルのパススルーを介して直接実行されます。カプセルユーティリティは統合された`kps`レジストリを介して実行されます。
-- **衝突防止センチネル**: ネイティブシェルの組み込みコマンド（例：PowerShellの`Get-Alias`、`Get-Help`）がインターセプトまたはハイジャックされないことを保証します。
-- **分離されたプラグイン**: プラグインは独立して実行され、サードパーティの拡張機能がコアシェルをクラッシュさせることができないようにします。
 
 ---
 
-## 🧪 開発とテスト
+# 📚 ドキュメント
+
+| ドキュメント | 説明 |
+| :--- | :--- |
+| [インストールガイド](docs/INSTALLATION.md) | プラットフォームごとの詳細なセットアップ手順 |
+| [設定ガイド](docs/configuration.md) | 設定オプションとパラメータ一覧 |
+| [コマンドリファレンス](docs/commands.md) | 利用可能な全コマンドとオプション |
+| [プラグイン](docs/plugins.md) | プラグインの機能と使い方 |
+| [プラグイン開発](https://github.com/MrEiu/plugins) | プラグインの作成と公開手順 |
+| [アーキテクチャ](docs/architecture.md) | 内部設計とアーキテクチャ解説 |
+
+---
+
+# 🧪 開発とテスト
+
+リポジトリのクローン：
 
 ```bash
-# リポジトリをクローン
 git clone https://github.com/MrEiu/Kapsel.git
 cd Kapsel
+```
 
-# テスト依存関係を含む編集可能なパッケージをインストール
+依存関係のインストール：
+
+```bash
 pip install -e ".[test]"
+```
 
-# ユニットテストスイートを実行
+テストの実行：
+
+```bash
 pytest tests/ -v
 ```
 
 ---
 
-## 📄 ライセンス
+# 🤝 貢献
 
-**[MITライセンス](LICENSE)** の下で配布されています。MrEiuとオープンソースの貢献者によって構築されました。
+Kapsel へのコントリビューションを心より歓迎します。
+
+- **コア開発**：バグ修正、機能追加、パフォーマンス改善
+- **プラグイン開発**：**[プラグインリポジトリ](https://github.com/MrEiu/plugins)** での新規ツール公開
+- **ドキュメント**：ガイドの改善、翻訳、サンプルコードの充実
+
+---
+
+# 📄 ライセンス
+
+Kapsel は **[MIT License](LICENSE)** に基づいて公開されているオープンソースソフトウェアです。
+
+---
+
+<div align="center">
+
+**Kapsel — 複雑さを包み込み、シンプルさを届ける。**
+
+Built by [MrEiu](https://github.com/MrEiu) and open-source contributors.
+
+</div>

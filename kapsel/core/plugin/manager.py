@@ -50,10 +50,11 @@ class PluginManager:
         """
         dirs: List[Path] = []
 
-        # 1. Local workspace plugins (development & repository precedence)
-        local_plugins = Path.cwd() / "plugins"
-        if local_plugins.is_dir():
-            dirs.append(local_plugins)
+        # 1. Local workspace plugins (only loaded in dev mode)
+        if getattr(self.config, "is_dev", False):
+            local_plugins = Path.cwd() / "plugins"
+            if local_plugins.is_dir():
+                dirs.append(local_plugins)
 
         # 2. User global plugin directory (cross-project & universal)
         user_plugins = self.config.get_data_dir() / "plugins"

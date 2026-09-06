@@ -56,4 +56,12 @@ PT_STYLE = Style.from_dict({
     "kps.alias": "#00f0ff bold",
     "kps.desc": "#10b981",
     "kps.preview": "#a855f7 italic",
+
+    # Block Roaming Mode toolbar styles
+    "roaming.badge": "bg:#0891b2 #ffffff bold",
+    "roaming.index": "bg:#18181b #00f0ff bold",
+    "roaming.success": "bg:#27272a #10b981",
+    "roaming.failed": "bg:#27272a #f43f5e",
+    "roaming.help": "bg:#18181b #9ca3af",
+    "roaming.bar": "bg:#18181b #9ca3af italic",
 })

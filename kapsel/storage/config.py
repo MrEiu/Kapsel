@@ -15,6 +15,7 @@ from kapsel.storage.logger import get_kapsel_dir, logger
 
 DEFAULT_CONFIG: Dict[str, Any] = {
     "version": "1.1",
+    "mode": "release",                         # "release" (default, production/cloud catalog) or "dev" (local development, scans ./plugins & CWD)
     "interaction": {
         "autosuggest_tap_mode": "word",        # "word" (word-by-word) or "full" (entire line)
         "autosuggest_hold_action": "full",     # "full" (continuous press accepts entire line)
@@ -82,6 +83,14 @@ DEFAULT_CONFIG_COMMENTED_YAML = """# ===========================================
 # ==============================================================================
 
 version: "1.2"
+
+# ------------------------------------------------------------------------------
+# 0. 运行模式 (Running Mode)
+# ------------------------------------------------------------------------------
+# 可选值:
+#   - 'release': 发布模式 (默认)。保护命名空间，仅使用全局/官方规范插件，不读取当前普通文件夹。
+#   - 'dev': 开发者模式。允许读取当前工作区 ./plugins 源码及本地插件目录，方便插件调试与热重载。
+mode: "release"
 
 # ------------------------------------------------------------------------------
 # 1. 交互与右箭头灵敏度行为 (Interaction & Sensitivity)
@@ -204,6 +213,14 @@ sync:
 @dataclass
 class KapselConfig:
     raw: Dict[str, Any] = field(default_factory=lambda: DEFAULT_CONFIG.copy())
+
+    @property
+    def mode(self) -> str:
+        return str(self.raw.get("mode", "release")).lower()
+
+    @property
+    def is_dev(self) -> bool:
+        return self.mode == "dev"
 
     @property
     def interaction(self) -> Dict[str, Any]:

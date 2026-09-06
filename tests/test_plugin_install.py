@@ -32,9 +32,9 @@ def test_sort_managers_windows_priority():
     detected = ["npm", "pip", "uv", "winget", "cargo", "scoop"]
     sorted_managers = _sort_managers_by_platform(detected, "windows")
 
-    # winget and scoop should come before uv, cargo, npm, pip
-    assert sorted_managers.index("winget") < sorted_managers.index("scoop")
-    assert sorted_managers.index("scoop") < sorted_managers.index("uv")
+    # scoop and winget should come before uv, cargo, npm, pip
+    assert sorted_managers.index("scoop") < sorted_managers.index("winget")
+    assert sorted_managers.index("winget") < sorted_managers.index("uv")
     assert sorted_managers.index("uv") < sorted_managers.index("cargo")
     assert sorted_managers.index("cargo") < sorted_managers.index("npm")
     assert sorted_managers.index("npm") < sorted_managers.index("pip")
@@ -88,7 +88,7 @@ def test_config_generation_and_persistence(tmp_path):
             conf = plugin.load_config(force_refresh=True)
 
     assert conf["platform"] == "windows"
-    assert conf["managers"] == ["winget", "scoop", "uv"]
+    assert conf["managers"] == ["scoop", "winget", "uv"]
     assert "pip" in conf["disabled"]
 
     config_file = tmp_path / "config.yaml"
@@ -96,7 +96,7 @@ def test_config_generation_and_persistence(tmp_path):
 
     # Re-reading should match without generating anew
     cached = plugin.load_config()
-    assert cached["managers"] == ["winget", "scoop", "uv"]
+    assert cached["managers"] == ["scoop", "winget", "uv"]
 
 
 def test_user_custom_order_respected(tmp_path):

@@ -69,9 +69,11 @@ class DualStateEngine:
         """Determines if the current text line represents Kapsel Command Mode."""
         stripped = text.strip()
         return (
-            stripped in ("kapsel", "kps")
+            stripped in ("kapsel", "kps", "kp")
             or stripped.startswith("kapsel ")
             or stripped.startswith("kps ")
+            or stripped.startswith("kp ")
+            or stripped.startswith("kp\n")
         )
 
     is_kps_mode = is_kapsel_mode
@@ -98,9 +100,9 @@ class DualStateEngine:
             mode = "kapsel"
             translated_cmd = None
 
-            # Try dispatching to core/plugin kps/kapsel subcommands
+            # Try dispatching to core/plugin kps/kapsel/kp subcommands
             t0 = time.perf_counter()
-            handled_code = dispatch_kps(user_input)
+            handled_code = dispatch_kps(user_input, executor=self.executor)
             t1 = time.perf_counter()
             duration_ms = int((t1 - t0) * 1000)
 
@@ -142,6 +144,21 @@ class DualStateEngine:
             duration_ms=exec_summary.duration_ms,
             exit_code=exec_summary.exit_code,
         )
+
+        # Record to BlockRegistry for Block Roaming Mode (avoid duplicate if runner already registered)
+        from kapsel.core.block.registry import get_block_registry
+        block_reg = get_block_registry()
+        latest_b = block_reg.latest()
+        if not (latest_b and latest_b.command == user_input and abs(latest_b.timestamp - start_time) < 2.0):
+            block_reg.add_block(
+                command=user_input,
+                exit_code=exec_summary.exit_code,
+                duration_ms=exec_summary.duration_ms,
+                cwd=cwd_str,
+                sub_commands=[user_input],
+                is_concurrent=False,
+                output_text=f"$ {user_input} (exit {exec_summary.exit_code})",
+            )
 
         # Trigger plugin post-execution hook
         self.plugin_manager.trigger_hook(

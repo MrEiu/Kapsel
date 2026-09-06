@@ -143,6 +143,32 @@ class HistoryManager:
             logger.error(f"Failed to fetch history strings: {e}")
             return []
 
+    def get_recent_records(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Retrieves recent history records as dictionaries in chronological order."""
+        try:
+            with self._get_connection() as conn:
+                cur = conn.cursor()
+                cur.execute(
+                    "SELECT command, cwd, exit_code, duration_ms, timestamp FROM history ORDER BY id DESC LIMIT ?",
+                    (limit,),
+                )
+                rows = cur.fetchall()
+                results: List[Dict[str, Any]] = []
+                for r in reversed(rows):
+                    cmd = r["command"].strip()
+                    if cmd:
+                        results.append({
+                            "command": cmd,
+                            "cwd": r["cwd"] or "",
+                            "exit_code": r["exit_code"] or 0,
+                            "duration_ms": r["duration_ms"] or 0,
+                            "timestamp": r["timestamp"] or 0.0,
+                        })
+                return results
+        except Exception as e:
+            logger.error(f"Failed to fetch history records: {e}")
+            return []
+
 
 class KapselPromptHistory(History):
     """

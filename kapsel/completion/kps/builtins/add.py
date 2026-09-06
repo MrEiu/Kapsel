@@ -41,14 +41,21 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         con.print("[bold #10b981]✔ Plugin catalog and subcommands completion dictionary successfully updated![/]\n")
         return 0
 
+    cfg = load_config()
+    is_dev = getattr(cfg, "is_dev", False)
+
     source_path = Path(target_raw).expanduser()
 
     global_plugins_dir = get_kapsel_dir() / "plugins"
     global_plugins_dir.mkdir(parents=True, exist_ok=True)
 
-    # Determine plugin ID and source
-    if source_path.exists() and source_path.is_dir():
-        # User specified an explicit directory path (e.g. kapsel add ./plugins/install or /path/to/my-plugin)
+    # Determine plugin ID and source:
+    # In release mode, bare names like 'install' will never be hijacked by local folders.
+    # Only treat as a local directory if explicit path syntax is used (./, ../, /, \) or in dev mode.
+    has_path_qualifier = any(sep in target_raw for sep in ("/", "\\")) or target_raw.startswith(".")
+
+    if (has_path_qualifier or is_dev) and source_path.exists() and source_path.is_dir():
+        # User specified an explicit directory path (or in dev mode where local directory takes priority)
         target_name = source_path.name.lower()
         dest_plugin_dir = global_plugins_dir / target_name
 
@@ -67,8 +74,8 @@ def handle_add_command(args: List[str], console: Optional[Console] = None) -> in
         dest_plugin_dir = global_plugins_dir / target_name
         dev_plugin_dir = Path.cwd() / "plugins" / target_name
 
-        if dev_plugin_dir.exists() and dev_plugin_dir.is_dir() and (dev_plugin_dir / "__init__.py").exists():
-            # If present in local dev directory, automatically sync / update it to global user directory
+        if is_dev and dev_plugin_dir.exists() and dev_plugin_dir.is_dir() and (dev_plugin_dir / "__init__.py").exists():
+            # If present in local dev directory (dev mode only), sync to global user directory
             shutil.copytree(dev_plugin_dir, dest_plugin_dir, dirs_exist_ok=True)
             plugin_dir = dest_plugin_dir
         elif dest_plugin_dir.exists() and dest_plugin_dir.is_dir():

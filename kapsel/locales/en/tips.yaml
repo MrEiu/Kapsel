@@ -1,0 +1,13 @@
+# Kapsel Terminal Tips & Shortcuts (English)
+title: "Tip:"
+tips:
+  - "When there is only 1 completion recommendation, press [bold #00f0ff]→[/] (Right Arrow) to accept it instantly."
+  - "Type [bold #38bdf8]z <query>[/] to teleport to frecent project directories via the portal plugin."
+  - "Mistyped a command? Run [bold #00f0ff]kps fuck[/] to auto-correct the previous erroneous command."
+  - "Run [bold #38bdf8]kps shore[/] to test and switch to the fastest package manager mirrors."
+  - "Run [bold #38bdf8]kps help <cmd>[/] for instantaneous, practical cheatsheets powered by tealdeer."
+  - "Press [bold #f59e0b]Tab[/] to trigger deep multi-level context-aware completions powered by Carapace."
+  - "Run [bold #38bdf8]kapsel config edit[/] to customize themes, card styling, and key behaviors."
+  - "Run [bold #38bdf8]kps config set mode dev[/] to toggle plugin local development and hot-reload mode."
+  - "Run [bold #38bdf8]kapsel search[/] to discover official and community plugins."
+  - "Type [bold #f43f5e]exit[/] or press [bold #f43f5e]Ctrl+D[/] to safely exit Kapsel and return to your host shell."

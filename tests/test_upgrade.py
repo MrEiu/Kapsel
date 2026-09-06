@@ -215,4 +215,4 @@ def test_catalog_rich_loading_backwards_compatibility():
     assert "version" in rich["alias"]
     assert "description" in rich["alias"]
     assert "changelog" in rich["alias"]
-    assert rich["alias"]["version"] == "0.2.0"
+    assert rich["alias"]["version"] == "0.2.1"

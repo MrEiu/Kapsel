@@ -4,19 +4,24 @@ Dispatches 'kapsel <cmd>' and 'kps <cmd>' uniformly.
 Unified architecture ensures both prefixes share the exact same command pipeline.
 """
 
-from typing import List, Optional
+from typing import Any, List, Optional
 from rich.console import Console
 
 from kapsel.completion.kps.registry import get_kps_registry
 from kapsel.i18n import _
 
 
-def dispatch_kps(command_line: str, console: Optional[Console] = None) -> Optional[int]:
+def dispatch_kps(
+    command_line: str,
+    console: Optional[Console] = None,
+    executor: Optional[Any] = None,
+) -> Optional[int]:
     """
-    Dispatches command lines starting with 'kapsel' or 'kps'.
+    Dispatches command lines starting with 'kapsel', 'kps', or 'kp'.
     Routes 'kapsel <cmd>' to system management commands,
-    and 'kps <cmd>' to plugin/tool extension commands.
-    Returns exit code (int) if handled, or None if not recognized or not a kapsel/kps command.
+    'kps <cmd>' to plugin/tool extension commands,
+    and 'kp <cmd>' to block/batch pipeline execution.
+    Returns exit code (int) if handled, or None if not recognized.
     """
     stripped = command_line.strip()
     if not stripped:
@@ -38,8 +43,14 @@ def dispatch_kps(command_line: str, console: Optional[Console] = None) -> Option
     elif stripped == "kps":
         prefix = "kps"
         sub = ""
+    elif stripped.startswith("kp ") or stripped.startswith("kp\n"):
+        prefix = "kp"
+        sub = stripped[2:].strip()
+    elif stripped == "kp":
+        prefix = "kp"
+        sub = ""
     else:
-        # Not a kapsel or kps command: do not intercept
+        # Not a kapsel, kps, or kp command: do not intercept
         return None
 
     # Handle 'kapsel' namespace (System Platform & Shell Management)
@@ -98,5 +109,69 @@ def dispatch_kps(command_line: str, console: Optional[Console] = None) -> Option
 
         con.print(f"[bold #f43f5e]kps: unknown command '{cmd_name}'. Run 'kapsel help' for available commands.[/]")
         return 1
+
+    # Handle 'kp' namespace (Block & Parallel Batch Execution Pipeline)
+    if prefix == "kp":
+        return _handle_kp_command(sub, con, executor)
+
+    return None
+
+
+def _handle_kp_command(
+    sub: str,
+    con: Console,
+    executor: Optional[Any] = None,
+) -> int:
+    """
+    Handles 'kp [-c] <commands...>' execution.
+    - Default: Atomic sequential execution of multi-line commands (preserves env/cwd).
+    - With '-c' / '--concurrent': Concurrent parallel execution of task blocks.
+    """
+    cleaned = sub.strip()
+    if not cleaned or cleaned in ("-h", "--help", "help"):
+        con.print("\n[bold #00f0ff]⚡ Kapsel Block & Batch Pipeline Runner (kp)[/]")
+        con.print("[dim]Executes multiple commands or pasted blocks cleanly.[/]\n")
+        con.print("[bold white]Usage:[/]")
+        con.print("  [bold #a855f7]kp <commands...>[/]             Execute multi-line commands sequentially (atomic, context-preserving)")
+        con.print("  [bold #a855f7]kp -c <commands...>[/]          Execute commands concurrently in parallel tracks\n")
+        con.print("[bold white]Examples:[/]")
+        con.print("  kp git clone url\\ncd repo\\npnpm install      (Runs step-by-step sequentially)")
+        con.print("  kp -c pnpm build:app\\npnpm build:docs         (Runs build tasks in parallel)\n")
+        return 0
+
+    from kapsel.core.block.runner import (
+        split_commands,
+        execute_sequential_block,
+        execute_parallel_block,
+    )
+    from kapsel.core.executor import CommandExecutor
+
+    is_concurrent = False
+    body = sub
+
+    if sub.startswith("-c ") or sub.startswith("--concurrent "):
+        is_concurrent = True
+        body = sub.split(" ", 1)[1]
+    elif sub == "-c" or sub == "--concurrent":
+        con.print("[bold #f43f5e]Error:[/] Please provide commands to execute with 'kp -c'.\n")
+        return 1
+    elif sub.startswith("-c\n") or sub.startswith("--concurrent\n"):
+        is_concurrent = True
+        body = sub.split("\n", 1)[1]
+
+    commands = split_commands(body)
+    if not commands:
+        con.print("[yellow]Notice: No executable commands found in block.[/]\n")
+        return 0
+
+    if is_concurrent:
+        exit_code, _ = execute_parallel_block(commands, console=con)
+        return exit_code
+    else:
+        active_executor = executor or CommandExecutor()
+        exit_code, _ = execute_sequential_block(
+            commands, executor=active_executor, console=con
+        )
+        return exit_code
 
 

@@ -1,0 +1,13 @@
+# Kapsel 终端实用技巧与快捷指南 (简体中文)
+title: "技巧:"
+tips:
+  - "当补全建议仅剩 1 项候选词时，直接按 [bold #00f0ff]→[/] (右箭头) 即可瞬间采纳。"
+  - "输入 [bold #38bdf8]z <关键词>[/] 可使用 portal 插件模糊瞬移至最近常去的工作目录。"
+  - "命令打错不用慌，输入 [bold #00f0ff]kps fuck[/] 可自动感知并智能纠正上一条敲错的命令。"
+  - "运行 [bold #38bdf8]kps shore[/] 可自动对 PyPI、npm、Rust、Go 及系统包源进行极速测速与换源。"
+  - "随时运行 [bold #38bdf8]kps help <命令>[/] 可调用 tealdeer 秒级查阅高频实战用法示例。"
+  - "按 [bold #f59e0b]Tab[/] 键可随时唤起 Carapace 针对 1,000+ 命令的深度多级上下文与参数补全。"
+  - "输入 [bold #38bdf8]kapsel config edit[/] 可在默认编辑器中实时修改配色主题、提示符与按键行为。"
+  - "在终端运行 [bold #38bdf8]kps config set mode dev[/] 即可无缝开启插件本地开发与热载模式。"
+  - "运行 [bold #38bdf8]kapsel search[/] 可随时检索与发现官方插件生态家族。"
+  - "输入 [bold #f43f5e]exit[/] 或按 [bold #f43f5e]Ctrl+D[/] 可安全平滑退出胶囊终端，零残留返回原生 Shell。"
